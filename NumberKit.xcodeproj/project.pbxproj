@@ -35,6 +35,8 @@
 		CC99F56B1B7AA81500355E1E /* BigInt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigInt.swift; sourceTree = "<group>"; };
 		CC99F56D1B7AAAA300355E1E /* NumberUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NumberUtil.swift; sourceTree = "<group>"; };
 		CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NumberUtilTests.swift; sourceTree = "<group>"; };
+		CC99F5711B7AB5E600355E1E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		CC99F5721B7AB66E00355E1E /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -59,6 +61,8 @@
 		CC99F5451B7AA6E200355E1E = {
 			isa = PBXGroup;
 			children = (
+				CC99F5711B7AB5E600355E1E /* README.md */,
+				CC99F5721B7AB66E00355E1E /* LICENSE */,
 				CC99F5511B7AA6E200355E1E /* NumberKit */,
 				CC99F55D1B7AA6E200355E1E /* NumberKitTests */,
 				CC99F5501B7AA6E200355E1E /* Products */,
