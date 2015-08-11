@@ -9,7 +9,10 @@
 /* Begin PBXBuildFile section */
 		CC99F5531B7AA6E200355E1E /* NumberKit.h in Headers */ = {isa = PBXBuildFile; fileRef = CC99F5521B7AA6E200355E1E /* NumberKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CC99F55A1B7AA6E200355E1E /* NumberKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC99F54F1B7AA6E200355E1E /* NumberKit.framework */; };
-		CC99F55F1B7AA6E200355E1E /* NumberKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F55E1B7AA6E200355E1E /* NumberKitTests.swift */; };
+		CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F5691B7AA76600355E1E /* BigIntTests.swift */; };
+		CC99F56C1B7AA81500355E1E /* BigInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56B1B7AA81500355E1E /* BigInt.swift */; };
+		CC99F56E1B7AAAA300355E1E /* NumberUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56D1B7AAAA300355E1E /* NumberUtil.swift */; };
+		CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,8 +30,11 @@
 		CC99F5521B7AA6E200355E1E /* NumberKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NumberKit.h; sourceTree = "<group>"; };
 		CC99F5541B7AA6E200355E1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CC99F5591B7AA6E200355E1E /* NumberKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NumberKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		CC99F55E1B7AA6E200355E1E /* NumberKitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberKitTests.swift; sourceTree = "<group>"; };
 		CC99F5601B7AA6E200355E1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CC99F5691B7AA76600355E1E /* BigIntTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigIntTests.swift; sourceTree = "<group>"; };
+		CC99F56B1B7AA81500355E1E /* BigInt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BigInt.swift; sourceTree = "<group>"; };
+		CC99F56D1B7AAAA300355E1E /* NumberUtil.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NumberUtil.swift; sourceTree = "<group>"; };
+		CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NumberUtilTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,8 +77,10 @@
 		CC99F5511B7AA6E200355E1E /* NumberKit */ = {
 			isa = PBXGroup;
 			children = (
-				CC99F5521B7AA6E200355E1E /* NumberKit.h */,
 				CC99F5541B7AA6E200355E1E /* Info.plist */,
+				CC99F5521B7AA6E200355E1E /* NumberKit.h */,
+				CC99F56D1B7AAAA300355E1E /* NumberUtil.swift */,
+				CC99F56B1B7AA81500355E1E /* BigInt.swift */,
 			);
 			path = NumberKit;
 			sourceTree = "<group>";
@@ -80,8 +88,9 @@
 		CC99F55D1B7AA6E200355E1E /* NumberKitTests */ = {
 			isa = PBXGroup;
 			children = (
-				CC99F55E1B7AA6E200355E1E /* NumberKitTests.swift */,
 				CC99F5601B7AA6E200355E1E /* Info.plist */,
+				CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */,
+				CC99F5691B7AA76600355E1E /* BigIntTests.swift */,
 			);
 			path = NumberKitTests;
 			sourceTree = "<group>";
@@ -142,6 +151,7 @@
 		CC99F5461B7AA6E200355E1E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = ObjectHub;
 				TargetAttributes = {
@@ -193,6 +203,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC99F56E1B7AAAA300355E1E /* NumberUtil.swift in Sources */,
+				CC99F56C1B7AA81500355E1E /* BigInt.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,7 +212,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CC99F55F1B7AA6E200355E1E /* NumberKitTests.swift in Sources */,
+				CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */,
+				CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,6 +315,7 @@
 		CC99F5641B7AA6E200355E1E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
@@ -314,12 +328,14 @@
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		CC99F5651B7AA6E200355E1E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
