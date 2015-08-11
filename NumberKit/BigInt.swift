@@ -14,7 +14,7 @@ import Darwin
 /// `BigInt` provides all the signed, integer arithmetic operations from Swift and
 /// implements the corresponding protocols. To make it easier to define large `BigInt`
 /// literals, `String` objects can be used for representing such numbers. They get
-/// implicitly coerced into `BigInt`
+/// implicitly coerced into `BigInt`.
 ///
 /// - Note: `BigInt` is internally implemented as a Swift array of UInt32 numbers
 ///         and a boolean to represent the sign. Due to this overhead, for instance,
@@ -505,6 +505,7 @@ public final class BigInt: Hashable,
     return pow(self, exp)
   }
   
+  /// Computes the bitwise `and` between this value and `rhs`.
   public func and(rhs: BigInt) -> BigInt {
     let size = min(self.words.count, rhs.words.count)
     var res = [UInt32]()
@@ -515,6 +516,7 @@ public final class BigInt: Hashable,
     return BigInt(res, negative: self.negative && rhs.negative)
   }
   
+  /// Computes the bitwise `or` between this value and `rhs`.
   public func or(rhs: BigInt) -> BigInt {
     let size = max(self.words.count, rhs.words.count)
     var res = [UInt32]()
@@ -527,6 +529,7 @@ public final class BigInt: Hashable,
     return BigInt(res, negative: self.negative || rhs.negative)
   }
   
+  /// Computes the bitwise `xor` between this value and `rhs`.
   public func xor(rhs: BigInt) -> BigInt {
     let size = max(self.words.count, rhs.words.count)
     var res = [UInt32]()
@@ -539,6 +542,7 @@ public final class BigInt: Hashable,
     return BigInt(res, negative: self.negative || rhs.negative)
   }
   
+  /// Inverts the bits in this `BigInt`.
   public var invert: BigInt {
     var res = [UInt32]()
     res.reserveCapacity(self.words.count)
