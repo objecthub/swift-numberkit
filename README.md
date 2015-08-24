@@ -1,11 +1,15 @@
 # Swift NumberKit
 
+## Overview
+
 This is a library providing advanced numeric data types for the Swift 2 programming language.
 The current version implements three new numeric types:
 
   1. `BigInt`: arbitrary-precision signed integers
   2. `Rational`: signed rational numbers
   3. `Complex`: complex numbers
+
+*Requirements*: XCode 7.0 (beta) with Swift 2
 
 
 ## BigInt
