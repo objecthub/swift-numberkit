@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CC0741571B81269200406A43 /* Rational.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0741561B81269200406A43 /* Rational.swift */; };
+		CC0741591B8127B600406A43 /* Complex.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0741581B8127B600406A43 /* Complex.swift */; };
+		CC07415B1B813A0600406A43 /* RationalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07415A1B813A0600406A43 /* RationalTests.swift */; };
+		CC07415D1B813B0300406A43 /* ComplexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07415C1B813B0300406A43 /* ComplexTests.swift */; };
 		CC99F5531B7AA6E200355E1E /* NumberKit.h in Headers */ = {isa = PBXBuildFile; fileRef = CC99F5521B7AA6E200355E1E /* NumberKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CC99F55A1B7AA6E200355E1E /* NumberKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC99F54F1B7AA6E200355E1E /* NumberKit.framework */; };
 		CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F5691B7AA76600355E1E /* BigIntTests.swift */; };
@@ -26,6 +30,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CC0741561B81269200406A43 /* Rational.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Rational.swift; sourceTree = "<group>"; };
+		CC0741581B8127B600406A43 /* Complex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Complex.swift; sourceTree = "<group>"; };
+		CC07415A1B813A0600406A43 /* RationalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RationalTests.swift; sourceTree = "<group>"; };
+		CC07415C1B813B0300406A43 /* ComplexTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexTests.swift; sourceTree = "<group>"; };
 		CC99F54F1B7AA6E200355E1E /* NumberKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NumberKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC99F5521B7AA6E200355E1E /* NumberKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NumberKit.h; sourceTree = "<group>"; };
 		CC99F5541B7AA6E200355E1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -85,6 +93,8 @@
 				CC99F5521B7AA6E200355E1E /* NumberKit.h */,
 				CC99F56D1B7AAAA300355E1E /* NumberUtil.swift */,
 				CC99F56B1B7AA81500355E1E /* BigInt.swift */,
+				CC0741561B81269200406A43 /* Rational.swift */,
+				CC0741581B8127B600406A43 /* Complex.swift */,
 			);
 			path = NumberKit;
 			sourceTree = "<group>";
@@ -95,6 +105,8 @@
 				CC99F5601B7AA6E200355E1E /* Info.plist */,
 				CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */,
 				CC99F5691B7AA76600355E1E /* BigIntTests.swift */,
+				CC07415A1B813A0600406A43 /* RationalTests.swift */,
+				CC07415C1B813B0300406A43 /* ComplexTests.swift */,
 			);
 			path = NumberKitTests;
 			sourceTree = "<group>";
@@ -207,8 +219,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC0741591B8127B600406A43 /* Complex.swift in Sources */,
 				CC99F56E1B7AAAA300355E1E /* NumberUtil.swift in Sources */,
 				CC99F56C1B7AA81500355E1E /* BigInt.swift in Sources */,
+				CC0741571B81269200406A43 /* Rational.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,8 +230,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CC07415D1B813B0300406A43 /* ComplexTests.swift in Sources */,
 				CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */,
 				CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */,
+				CC07415B1B813A0600406A43 /* RationalTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -396,6 +412,7 @@
 				CC99F5651B7AA6E200355E1E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		CC99F5661B7AA6E200355E1E /* Build configuration list for PBXNativeTarget "NumberKitTests" */ = {
 			isa = XCConfigurationList;
@@ -404,6 +421,7 @@
 				CC99F5681B7AA6E200355E1E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
