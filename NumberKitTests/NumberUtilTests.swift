@@ -28,7 +28,7 @@ class NumberUtilTests: XCTestCase {
     XCTAssert(pow(1, 1) == 1)
     XCTAssert(pow(1, 9) == 1)
     XCTAssert(pow(7, 3) == 7 * 7 * 7)
-    XCTAssert(pow(31, 7) == 31 * 31 * 31 * 31 * 31 * 31 * 31)
+    XCTAssert(pow(31, 7) == 27512614111)
     XCTAssert(pow(-5, 2) == 25)
     XCTAssert(pow(-5, 3) == -125)
     XCTAssert(pow(-5, 0) == 1)
