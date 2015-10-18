@@ -124,9 +124,6 @@ public protocol FloatNumberType: Hashable,
                                  FloatingPointType,
                                  AbsoluteValuable,
                                  _BuiltinFloatLiteralConvertible {
-  static var zero: Self { get }
-  static var one: Self { get }
-  static var two: Self { get }
   var i: Complex<Self> { get }
   var abs: Self { get }
   var sqrt: Self { get }
@@ -167,7 +164,7 @@ public struct Complex<T: FloatNumberType>: ComplexType,
   /// Creates a complex number with the given real part and no imaginary part.
   public init(_ re: T) {
     self.re = re
-    self.im = T.zero
+    self.im = T(0)
   }
   
   /// Creates a complex number with the given real and integer imaginary parts.
@@ -282,8 +279,8 @@ public struct Complex<T: FloatNumberType>: ComplexType,
   
   /// Returns the square root of this complex number
   public var sqrt: Complex<T> {
-    let r = ((re + abs) / T.two).sqrt
-    let i = ((-re + abs) / T.two).sqrt
+    let r = ((re + abs) / T(2)).sqrt
+    let i = ((-re + abs) / T(2)).sqrt
     return Complex(r, im.isSignMinus ? -i : i)
   }
   
@@ -594,11 +591,8 @@ public func atanh<C: ComplexType>(z: C) -> C {
 }
 
 
-/// Make `Float` implement protocol `FloatNumberType`
+/// Make `Float` implement protocol `FloatNumberType` for usage with `Complex<T>`.
 extension Float: FloatNumberType {
-  public static let zero: Float = 0.0
-  public static let one: Float = 1.0
-  public static let two: Float = 2.0
   public var i: Complex<Float> {
     return Complex(0.0, self)
   }
@@ -632,11 +626,8 @@ extension Float: FloatNumberType {
 }
 
 
-/// Make `Double` implement protocol `FloatNumberType`
+/// Make `Double` implement protocol `FloatNumberType` for usage with `Complex<T>`.
 extension Double: FloatNumberType {
-  public static let zero: Double = 0.0
-  public static let one: Double = 1.0
-  public static let two: Double = 2.0
   public var i: Complex<Double> {
     return Complex(0.0, self)
   }

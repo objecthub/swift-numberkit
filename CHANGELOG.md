@@ -5,3 +5,7 @@
 - Completed implementation of `BigInt`
 - Completed implementation of `Rational<T>`
 - `Complex<T>` still missing a large range of functions and tests
+
+## 1.1 (2015-10-19)
+
+- Completed implementation of `Complex<T>`
