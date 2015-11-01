@@ -81,7 +81,7 @@ class BigIntTests: XCTestCase {
     let r2 = x3.dividedBy(x4)
     XCTAssert(r2.quotient == "310027063033")
     XCTAssert(r2.remainder == "1772541951990552417813256094292885914")
-    XCTAssert(x3 / x3 == 1)
-    XCTAssert(x3 / (x3.times(10)) == 0)
+    XCTAssert((x3 / x3) == BigInt(1))
+    XCTAssert((x3 / (x3.times(10))) == BigInt(0))
   }
 }

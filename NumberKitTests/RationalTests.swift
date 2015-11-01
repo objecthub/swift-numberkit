@@ -58,6 +58,9 @@ class RationalTests: XCTestCase {
     XCTAssert(r2 == 367)
     let r3: Rational<Int> = (458200/50).plus(3440/17)
     XCTAssert(r3 == 159228/17)
+    let x = BigInt(458200)/BigInt(50)
+    let r4: Rational<BigInt> = x.plus(BigInt(3440)/BigInt(17))
+    XCTAssert(r4 == BigInt(159228)/BigInt(17))
   }
   
   func testMinus() {

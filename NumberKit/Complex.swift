@@ -88,9 +88,6 @@ public protocol ComplexType: Equatable {
   /// Returns the natural logarithm of this complex number.
   var log: Self { get }
   
-  /// Returns this complex number taken to the power of `ex`.
-  func toPowerOf(ex: Self) -> Self
-  
   /// Returns the sum of `self` and `rhs` as a complex number.
   func plus(rhs: Self) -> Self
   
@@ -108,6 +105,9 @@ public protocol ComplexType: Equatable {
   
   /// Returns the result of dividing `self` by scalar `rhs` as a complex number.
   func dividedBy(rhs: Float) -> Self
+  
+  /// Returns this complex number taken to the power of `ex`.
+  func toPowerOf(ex: Self) -> Self
 }
 
 

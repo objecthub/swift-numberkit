@@ -24,6 +24,7 @@
 /// a and b: a / b. a is called the numerator, b is called the denominator. b must
 /// not be zero.
 public protocol RationalType: SignedNumberType,
+                              IntegerLiteralConvertible,
                               Comparable,
                               Hashable {
   
@@ -46,38 +47,37 @@ public protocol RationalType: SignedNumberType,
   /// Returns the `Rational` value as a double value
   var doubleValue: Double { get }
   
-  /// Negates `num`.
-  prefix func -(num: Self) -> Self
+  /// Is true if the rational value is negative.
+  var isNegative: Bool { get }
   
-  /// Returns the sum of `lhs` and `rhs`.
-  func +(lhs: Self, rhs: Self) -> Self
+  /// Is true if the rational value is zero.
+  var isZero: Bool { get }
   
-  /// Returns the difference between `lhs` and `rhs`.
-  func -(lhs: Self, rhs: Self) -> Self
+  /// The absolute rational value (without sign).
+  var abs: Self { get }
   
-  /// Returns the result of multiplying `lhs` with `rhs`.
-  func *(lhs: Self, rhs: Self) -> Self
+  /// The negated rational value.
+  var negate: Self { get }
   
-  /// Returns the result of dividing `lhs` by `rhs`.
-  func /(lhs: Self, rhs: Self) -> Self
+  /// Returns -1 if `self` is less than `rhs`,
+  ///          0 if `self` is equals to `rhs`,
+  ///         +1 if `self` is greater than `rhs`
+  func compareTo(rhs: Self) -> Int
   
-  /// Returns the result of taking `lhs` to the power of `rhs`.
-  func **(lhs: Self, rhs: Integer) -> Self
+  /// Returns the sum of this rational value and `rhs`.
+  func plus(rhs: Self) -> Self
   
-  /// Assigns `lhs` the sum of `lhs` and `rhs`.
-  func +=(inout lhs: Self, rhs: Self)
+  /// Returns the difference between this rational value and `rhs`.
+  func minus(rhs: Self) -> Self
   
-  /// Assigns `lhs` the difference between `lhs` and `rhs`.
-  func -=(inout lhs: Self, rhs: Self)
+  /// Multiplies this rational value with `rhs` and returns the result.
+  func times(rhs: Self) -> Self
   
-  /// Assigns `lhs` the result of multiplying `lhs` with `rhs`.
-  func *=(inout lhs: Self, rhs: Self)
+  /// Divides this rational value by `rhs` and returns the result.
+  func dividedBy(rhs: Self) -> Self
   
-  /// Assigns `lhs` the result of dividing `lhs` by `rhs`.
-  func /=(inout lhs: Self, rhs: Self)
-  
-  /// Assigns `lhs` the result of taking `lhs` to the power of `rhs`.
-  func **=(inout lhs: Self, rhs: Integer)
+  /// Raises this rational value to the power of `exp`.
+  func toPowerOf(exp: Integer) -> Self
 }
 
 // TODO: make this a static member of `Rational` once this is supported
@@ -90,7 +90,6 @@ internal let RATIONAL_SEPARATOR: Character = "/"
 /// is always 1. In addition, the sign of the rational number is defined by the
 /// numerator. The denominator is always positive.
 public struct Rational<T: SignedIntegerType>: RationalType,
-                                              IntegerLiteralConvertible,
                                               CustomStringConvertible {
   
   /// The numerator of this rational number. This is a signed integer.
@@ -262,86 +261,91 @@ public struct Rational<T: SignedIntegerType>: RationalType,
 
 
 /// Negates `num`.
-public prefix func - <T: SignedIntegerType>(num: Rational<T>) -> Rational<T> {
+public prefix func - <R: RationalType>(num: R) -> R {
   return num.negate
 }
 
 /// Returns the sum of `lhs` and `rhs`.
-public func + <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Rational<T> {
+public func + <R: RationalType>(lhs: R, rhs: R) -> R {
   return lhs.plus(rhs)
 }
 
 /// Returns the difference between `lhs` and `rhs`.
-public func - <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Rational<T> {
+public func - <R: RationalType>(lhs: R, rhs: R) -> R {
   return lhs.minus(rhs)
 }
 
 /// Multiplies `lhs` with `rhs` and returns the result.
-public func * <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Rational<T> {
+public func * <R: RationalType>(lhs: R, rhs: R) -> R {
   return lhs.times(rhs)
 }
 
 /// Divides `lhs` by `rhs` and returns the result.
-public func / <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Rational<T> {
+public func / <R: RationalType>(lhs: R, rhs: R) -> R {
   return lhs.dividedBy(rhs)
 }
 
+/// Divides `lhs` by `rhs` and returns the result.
+public func / <T: SignedIntegerType>(lhs: T, rhs: T) -> Rational<T> {
+  return Rational(lhs, rhs)
+}
+
 /// Raises rational value `lhs` to the power of `exp`.
-public func ** <T: SignedIntegerType>(lhs: Rational<T>, exp: T) -> Rational<T> {
+public func ** <R: RationalType>(lhs: R, exp: R.Integer) -> R {
   return lhs.toPowerOf(exp)
 }
 
 /// Assigns `lhs` the sum of `lhs` and `rhs`.
-public func += <T: SignedIntegerType>(inout lhs: Rational<T>, rhs: Rational<T>) {
+public func += <R: RationalType>(inout lhs: R, rhs: R) {
   lhs = lhs.plus(rhs)
 }
 
 /// Assigns `lhs` the difference between `lhs` and `rhs`.
-public func -= <T: SignedIntegerType>(inout lhs: Rational<T>, rhs: Rational<T>) {
+public func -= <R: RationalType>(inout lhs: R, rhs: R) {
   lhs = lhs.minus(rhs)
 }
 
 /// Assigns `lhs` the result of multiplying `lhs` with `rhs`.
-public func *= <T: SignedIntegerType>(inout lhs: Rational<T>, rhs: Rational<T>) {
+public func *= <R: RationalType>(inout lhs: R, rhs: R) {
   lhs = lhs.times(rhs)
 }
 
 /// Assigns `lhs` the result of dividing `lhs` by `rhs`.
-public func /= <T: SignedIntegerType>(inout lhs: Rational<T>, rhs: Rational<T>) {
+public func /= <R: RationalType>(inout lhs: R, rhs: R) {
   lhs = lhs.dividedBy(rhs)
 }
 
 /// Assigns `lhs` the result of raising rational value `lhs` to the power of `exp`.
-public func **= <T: SignedIntegerType>(inout lhs: Rational<T>, exp: T) {
+public func **= <R: RationalType>(inout lhs: R, exp: R.Integer) {
   lhs = lhs.toPowerOf(exp)
 }
 
 /// Returns true if `lhs` is less than `rhs`, false otherwise.
-public func < <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Bool {
+public func < <R: RationalType>(lhs: R, rhs: R) -> Bool {
   return lhs.compareTo(rhs) < 0
 }
 
 /// Returns true if `lhs` is less than or equals `rhs`, false otherwise.
-public func <= <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Bool {
+public func <= <R: RationalType>(lhs: R, rhs: R) -> Bool {
   return lhs.compareTo(rhs) <= 0
 }
 
 /// Returns true if `lhs` is greater or equals `rhs`, false otherwise.
-public func >= <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Bool {
+public func >= <R: RationalType>(lhs: R, rhs: R) -> Bool {
   return lhs.compareTo(rhs) >= 0
 }
 
 /// Returns true if `lhs` is greater than equals `rhs`, false otherwise.
-public func > <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Bool {
+public func > <R: RationalType>(lhs: R, rhs: R) -> Bool {
   return lhs.compareTo(rhs) > 0
 }
 
 /// Returns true if `lhs` is equals `rhs`, false otherwise.
-public func == <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Bool {
+public func == <R: RationalType>(lhs: R, rhs: R) -> Bool {
   return lhs.compareTo(rhs) == 0
 }
 
 /// Returns true if `lhs` is not equals `rhs`, false otherwise.
-public func != <T: SignedIntegerType>(lhs: Rational<T>, rhs: Rational<T>) -> Bool {
+public func != <R: RationalType>(lhs: R, rhs: R) -> Bool {
   return lhs.compareTo(rhs) != 0
 }
