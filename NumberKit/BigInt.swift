@@ -70,9 +70,14 @@ public final class BigInt: Hashable,
   public final class Base {
     private let digitSpace: [Character]
     private let digitMap: [Character: UInt8]
+    
     private init(digitSpace: [Character], digitMap: [Character: UInt8]) {
       self.digitSpace = digitSpace
       self.digitMap = digitMap
+    }
+    
+    private var radix: Int {
+      return self.digitSpace.count
     }
   }
   
@@ -101,9 +106,76 @@ public final class BigInt: Hashable,
       "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15]
   )
   
-  /// Tries to parse the given string as a `BigInt` number represented with a given
-  /// optional base. If parsing fails, `nil` is returned.
-  public static func fromString(str: String, base: Base = BigInt.DEC) -> BigInt? {
+  /// Maps a radix number to the corresponding `Base` object. Only 2, 8, 10, and 16 are
+  /// supported.
+  public static func base(radix: Int) -> Base {
+    switch radix {
+      case 2:
+        return BigInt.BIN
+      case 8:
+        return BigInt.OCT
+      case 10:
+        return BigInt.DEC
+      case 16:
+        return BigInt.HEX
+      default:
+        preconditionFailure("unsupported base \(radix)")
+    }
+  }
+  
+  /// Internal primary constructor. It removes superfluous words and normalizes the
+  /// representation of zero.
+  private init(var _ words: [UInt32], negative: Bool) {
+    while words.count > 1 && words[words.count - 1] == 0 {
+      words.removeLast()
+    }
+    self.words = words
+    self.negative = words.count == 1 && words[0] == 0 ? false : negative
+  }
+  
+  private static let INT64_MAX = UInt64(Int64.max)
+  
+  /// Creates a `BigInt` from the given `UInt64` value
+  public convenience init(_ value: UInt64) {
+    self.init([BigInt.loword(value), BigInt.hiword(value)], negative: false)
+  }
+  
+  /// Creates a `BigInt` from the given `Int64` value
+  public convenience init(_ value: Int64) {
+    let absvalue = value == Int64.min ? BigInt.INT64_MAX + 1 : UInt64(value < 0 ? -value : value)
+    self.init([BigInt.loword(absvalue), BigInt.hiword(absvalue)], negative: value < 0)
+  }
+  
+  /// Creates a `BigInt` from a sequence of digits for a given base. The first digit in the
+  /// array of digits is the least significant one. `negative` is used to indicate negative
+  /// `BigInt` numbers.
+  public convenience init(var _ digits: [UInt8], negative: Bool = false, base: Base = BigInt.DEC) {
+    var words: [UInt32] = []
+    var iterate: Bool
+    repeat {
+      var sum: UInt64 = 0
+      var res: [UInt8] = []
+      var j = 0
+      while j < digits.count && sum < BigInt.BASE {
+        sum = sum * UInt64(base.radix) + UInt64(digits[j++])
+      }
+      res.append(UInt8(BigInt.hiword(sum)))
+      iterate = BigInt.hiword(sum) > 0
+      sum = UInt64(BigInt.loword(sum))
+      while j < digits.count {
+        sum = sum * UInt64(base.radix) + UInt64(digits[j++])
+        res.append(UInt8(BigInt.hiword(sum)))
+        iterate = true
+        sum = UInt64(BigInt.loword(sum))
+      }
+      words.append(BigInt.loword(sum))
+      digits = res
+    } while iterate
+    self.init(words, negative: negative)
+  }
+
+  /// Creates a `BigInt` from a string containing a number using the given base.
+  public convenience init?(_ str: String, base: Base = BigInt.DEC) {
     var negative = false
     let chars = str.characters
     var i = chars.startIndex
@@ -123,7 +195,8 @@ public final class BigInt: Hashable,
         i++
       }
       if i == chars.endIndex {
-        return BigInt(0)
+        self.init(0)
+        return
       }
     }
     var temp: [UInt8] = []
@@ -141,28 +214,7 @@ public final class BigInt: Hashable,
     guard i == chars.endIndex else {
       return nil
     }
-    var words: [UInt32] = []
-    var iterate: Bool
-    repeat {
-      var sum: UInt64 = 0
-      var res: [UInt8] = []
-      var j = 0
-      while j < temp.count && sum < BigInt.BASE {
-        sum = sum * 10 + UInt64(temp[j++])
-      }
-      res.append(UInt8(BigInt.hiword(sum)))
-      iterate = BigInt.hiword(sum) > 0
-      sum = UInt64(BigInt.loword(sum))
-      while j < temp.count {
-        sum = sum * 10 + UInt64(temp[j++])
-        res.append(UInt8(BigInt.hiword(sum)))
-        iterate = true
-        sum = UInt64(BigInt.loword(sum))
-      }
-      words.append(BigInt.loword(sum))
-      temp = res
-    } while iterate
-    return BigInt(words, negative: negative)
+    self.init(temp, negative: negative, base: base)
   }
   
   /// Converts the `BigInt` object into a string using the given base. `BigInt.DEC` is
@@ -172,7 +224,7 @@ public final class BigInt: Hashable,
     let b = UInt64(base.digitSpace.count)
     precondition(b > 1 && b <= 36, "illegal base for BigInt string conversion")
     // Shortcut handling of zero
-    if isZero {
+    if self.isZero {
       return String(base.digitSpace[0])
     }
     // Build representation with base `b` in `str`
@@ -223,39 +275,20 @@ public final class BigInt: Hashable,
     return res
   }
   
-  // Internal primary constructor. It removes superfluous words and normalizes the
-  // representation of zero.
-  private init(var _ words: [UInt32], negative: Bool) {
-    while words.count > 1 && words[words.count - 1] == 0 {
-      words.removeLast()
+  /// Returns a string representation of this `BigInt` number using base 10.
+  public var description: String {
+    return toString()
+  }
+  
+  /// Returns a string representation of this `BigInt` number for debugging purposes.
+  public var debugDescription: String {
+    var res = "{\(words.count): \(words[0])"
+    for i in 1..<words.count {
+      res += ", \(words[i])"
     }
-    self.words = words
-    self.negative = words.count == 1 && words[0] == 0 ? false : negative
+    return res + "}"
   }
-  
-  private static let INT64_MAX = UInt64(Int64.max)
-  
-  /// Creates a `BigInt` from the given `UInt64` value
-  public convenience init(_ value: UInt64) {
-    self.init([BigInt.loword(value), BigInt.hiword(value)], negative: false)
-  }
-  
-  /// Creates a `BigInt` from the given `Int64` value
-  public convenience init(_ value: Int64) {
-    let absvalue = value == Int64.min ? BigInt.INT64_MAX + 1 : UInt64(value < 0 ? -value : value)
-    self.init([BigInt.loword(absvalue), BigInt.hiword(absvalue)], negative: value < 0)
-  }
-  
-  /// Creates a `BigInt` from a string containing a number using the given base.
-  public convenience init?(_ str: String, base: Base = BigInt.DEC) {
-    if let this = BigInt.fromString(str) {
-      self.init(this.words, negative: this.negative)
-    } else {
-      self.init(0)
-      return nil
-    }
-  }
-  
+
   /// Returns the `BigInt` as a `Int64` value if this is possible. If the number is outside
   /// the `Int64` range, the property will contain `nil`.
   public var intValue: Int64? {
@@ -288,18 +321,14 @@ public final class BigInt: Hashable,
     return value
   }
   
-  /// Returns a string representation of this `BigInt` number using base 10.
-  public var description: String {
-    return toString()
-  }
-  
-  /// Returns a string representation of this `BigInt` number for debugging purposes.
-  public var debugDescription: String {
-    var res = "{\(words.count): \(words[0])"
-    for i in 1..<words.count {
-      res += ", \(words[i])"
+  /// Returns the `BigInt` as a `Double` value. This might lead to a significant loss of
+  /// precision, but this operation is always possible.
+  public var doubleValue: Double {
+    var res: Double = 0.0
+    for word in words.reverse() {
+      res = res * Double(BigInt.BASE) + Double(word)
     }
-    return res + "}"
+    return self.negative ? -res : res
   }
   
   /// The hash value of this `BigInt` object.
@@ -619,8 +648,8 @@ extension BigInt: IntegerLiteralConvertible,
   }
   
   public convenience init(stringLiteral value: String) {
-    if let this = BigInt.fromString(value) {
-      self.init(this.words, negative: this.negative)
+    if let bi = BigInt(value) {
+      self.init(bi.words, negative: bi.negative)
     } else {
       self.init(0)
     }

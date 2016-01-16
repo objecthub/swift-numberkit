@@ -81,7 +81,7 @@ public protocol RationalType: SignedNumberType,
 }
 
 // TODO: make this a static member of `Rational` once this is supported
-internal let RATIONAL_SEPARATOR: Character = "/"
+private let RATIONAL_SEPARATOR: Character = "/"
 
 
 /// Struct `Rational<T>` implements the `RationalType` interface on top of the
@@ -98,17 +98,12 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   /// The denominator of this rational number. This integer is always positive.
   public let denominator: T
   
-  /* Uncomment once static members of generic structs are supported.
-  private static let RATIONAL_SEPARATOR: Character = "/"
-  
-  public static var min: Rational<T> {
-  return Rational(T.min, T(1))
+  /// Sets numerator and denominator without normalization. This function must not be called
+  /// outside of the NumberKit framework.
+  private init(numerator: T, denominator: T) {
+    self.numerator = numerator
+    self.denominator = denominator
   }
-  
-  public static var max: Rational<T> {
-  return Rational(T.max, T(1))
-  }
-  */
   
   /// Creates a rational number from a numerator and a denominator.
   public init(_ numerator: T, _ denominator: T) {
@@ -118,12 +113,12 @@ public struct Rational<T: SignedIntegerType>: RationalType,
     let adenom = denominator < 0 ? -denominator : denominator
     let div = Rational.gcd(anum, adenom)
     self.numerator = negative ? -(anum / div) : (anum / div)
-    self.denominator = (denominator < 0 ? -denominator : denominator) / div
+    self.denominator = adenom / div
   }
   
   /// Creates a `Rational` from the given integer value of type `T`
   public init(_ value: T) {
-    self.init(value, T(1))
+    self.init(numerator: value, denominator: T(1))
   }
   
   /// Create an instance initialized to `value`.
@@ -191,7 +186,9 @@ public struct Rational<T: SignedIntegerType>: RationalType,
     return y
   }
   
-  private func equalizeDenomWith(other: Rational<T>) -> (num1: T, num2: T, denom: T) {
+  /// Determine the smallest common denominator between `self` and `other` and return
+  /// the corresponding numerators and the common denominator.
+  private func commonDenomWith(other: Rational<T>) -> (num1: T, num2: T, denom: T) {
     let div = Rational.gcd(self.denominator, other.denominator)
     let t1 = self.denominator / div
     let t2 = other.denominator / div
@@ -227,19 +224,19 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   ///          0 if `self` is equals to `rhs`,
   ///         +1 if `self` is greater than `rhs`
   public func compareTo(rhs: Rational<T>) -> Int {
-    let (n1, n2, _) = equalizeDenomWith(rhs)
+    let (n1, n2, _) = commonDenomWith(rhs)
     return n1 == n2 ? 0 : (n1 < n2 ? -1 : 1)
   }
   
   /// Returns the sum of this rational value and `rhs`.
   public func plus(rhs: Rational<T>) -> Rational<T> {
-    let (n1, n2, denom) = equalizeDenomWith(rhs)
+    let (n1, n2, denom) = commonDenomWith(rhs)
     return Rational(n1 + n2, denom)
   }
   
   /// Returns the difference between this rational value and `rhs`.
   public func minus(rhs: Rational<T>) -> Rational<T> {
-    let (n1, n2, denom) = equalizeDenomWith(rhs)
+    let (n1, n2, denom) = commonDenomWith(rhs)
     return Rational(n1 - n2, denom)
   }
   
@@ -256,6 +253,87 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   /// Raises this rational value to the power of `exp`.
   public func toPowerOf(exp: T) -> Rational<T> {
     return Rational(pow(numerator, exp), pow(denominator, exp))
+  }
+}
+
+/// This extension provides static functions for basic arithmetic operations which keep
+/// track of overflows.
+extension Rational {
+  
+  /// Compute absolute number of `num` and return a tuple consisting of the result and a
+  /// boolean indicating whether there was an overflow.
+  private static func absWithOverflow(num: T) -> (T, Bool) {
+    return num < 0 ? T.subtractWithOverflow(0, num) : (num, false)
+  }
+  
+  /// Creates a rational number from a numerator and a denominator.
+  public static func rationalWithOverflow(numerator: T, _ denominator: T) -> (Rational<T>, Bool) {
+    guard denominator != 0 else {
+      return (Rational(0), true)
+    }
+    let negative = numerator > 0 && denominator < 0 || numerator < 0 && denominator > 0
+    let (anum, overflow1) = Rational.absWithOverflow(numerator)
+    let (adenom, overflow2) = Rational.absWithOverflow(denominator)
+    let div = Rational.gcd(anum, adenom)
+    let (n, overflow3) = T.divideWithOverflow(anum, div)
+    let (numer, overflow4) = negative ? T.subtractWithOverflow(0, n) : (n, false)
+    let (denom, overflow5) = T.divideWithOverflow(adenom, div)
+    return (Rational(numerator: numer, denominator: denom),
+            overflow1 || overflow2 || overflow3 || overflow4 || overflow5)
+  }
+  
+  /// Compute the smalles common denominator of `this` and `that` and return it together
+  /// with the corresponding numerators.
+  private static func commonDenomWithOverflow(this: Rational<T>, _ that: Rational<T>)
+                                          -> (num1: T, num2: T, denom: T, overflow: Bool) {
+    let div = Rational.gcd(this.denominator, that.denominator)
+    let t1 = this.denominator / div
+    let t2 = that.denominator / div
+    let (n1, overflow1) = T.multiplyWithOverflow(this.numerator, t2)
+    let (n2, overflow2) = T.multiplyWithOverflow(that.numerator, t1)
+    let (dp, overflow3) = T.multiplyWithOverflow(t1, t2)
+    let (dn, overflow4) = T.multiplyWithOverflow(dp, div)
+    return (n1, n2, dn, overflow1 || overflow2 || overflow3 || overflow4)
+  }
+  
+  /// Add `lhs` and `rhs` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public static func addWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+                                 -> (Rational<T>, Bool) {
+    let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(lhs, rhs)
+    let (numer, overflow2) = T.addWithOverflow(n1, n2)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
+  }
+  
+  /// Subtract `rhs` from `lhs` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public static func subtractWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+                                      -> (Rational<T>, Bool) {
+    let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(lhs, rhs)
+    let (numer, overflow2) = T.subtractWithOverflow(n1, n2)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
+  }
+  
+  /// Multiply `lhs` and `rhs` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public static func multiplyWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+                                      -> (Rational<T>, Bool) {
+    let (numer, overflow1) = T.multiplyWithOverflow(lhs.numerator, rhs.numerator)
+    let (denom, overflow2) = T.multiplyWithOverflow(lhs.denominator, rhs.denominator)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
+  }
+  
+  /// Divide `lhs` by `rhs` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public static func divideWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+                                    -> (Rational<T>, Bool) {
+    let (numer, overflow1) = T.multiplyWithOverflow(lhs.numerator, rhs.denominator)
+    let (denom, overflow2) = T.multiplyWithOverflow(lhs.denominator, rhs.numerator)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
   }
 }
 
