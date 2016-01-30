@@ -178,6 +178,12 @@ public struct Complex<T: FloatNumberType>: ComplexType,
     self.im = im
   }
   
+  /// Creates a complex number from polar coordinates
+  public init(abs: T, arg: T) {
+    self.re = abs * arg.cos
+    self.im = abs * arg.sin
+  }
+  
   /// Creates a real number initialized to integer `value`.
   public init(integerLiteral value: IntMax) {
     self.init(T(value))
