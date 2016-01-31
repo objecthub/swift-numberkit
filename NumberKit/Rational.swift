@@ -176,14 +176,23 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   }
   
   /// Compute the greatest common divisor for `x` and `y`.
-  public static func gcd(var x: T, var _ y: T) -> T {
-    var rest = x % y
+  public static func gcd(x: T, _ y: T) -> T {
+    var (x, y, rest) = (x, y, x % y)
     while rest > 0 {
       x = y
       y = rest
       rest = x % y
     }
     return y
+  }
+  
+  /// Compute the least common multiplier of `x` and `y`.
+  public static func lcm(x: T, _ y: T) -> T {
+    var abs = x * y
+    if abs < 0 {
+      abs = -abs
+    }
+    return abs / Rational.gcd(x, y)
   }
   
   /// Determine the smallest common denominator between `self` and `other` and return
@@ -224,19 +233,19 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   ///          0 if `self` is equals to `rhs`,
   ///         +1 if `self` is greater than `rhs`
   public func compareTo(rhs: Rational<T>) -> Int {
-    let (n1, n2, _) = commonDenomWith(rhs)
+    let (n1, n2, _) = self.commonDenomWith(rhs)
     return n1 == n2 ? 0 : (n1 < n2 ? -1 : 1)
   }
   
   /// Returns the sum of this rational value and `rhs`.
   public func plus(rhs: Rational<T>) -> Rational<T> {
-    let (n1, n2, denom) = commonDenomWith(rhs)
+    let (n1, n2, denom) = self.commonDenomWith(rhs)
     return Rational(n1 + n2, denom)
   }
   
   /// Returns the difference between this rational value and `rhs`.
   public func minus(rhs: Rational<T>) -> Rational<T> {
-    let (n1, n2, denom) = commonDenomWith(rhs)
+    let (n1, n2, denom) = self.commonDenomWith(rhs)
     return Rational(n1 - n2, denom)
   }
   
@@ -253,6 +262,18 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   /// Raises this rational value to the power of `exp`.
   public func toPowerOf(exp: T) -> Rational<T> {
     return Rational(pow(numerator, exp), pow(denominator, exp))
+  }
+  
+  /// Returns the greatest common denominator for the two given rational numbers
+  public static func gcd(x: Rational<T>, _ y: Rational<T>) -> Rational<T> {
+    return Rational(Rational.gcd(x.numerator, y.numerator),
+                    Rational.lcm(x.denominator, y.denominator))
+  }
+  
+  /// Returns the least common multiplier for the two given rational numbers
+  public static func lcm(x: Rational<T>, _ y: Rational<T>) -> Rational<T> {
+    let (xn, yn, denom) = x.commonDenomWith(y)
+    return Rational(Rational.lcm(xn, yn), denom)
   }
 }
 
@@ -334,6 +355,42 @@ extension Rational {
     let (denom, overflow2) = T.multiplyWithOverflow(lhs.denominator, rhs.numerator)
     let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
     return (res, overflow1 || overflow2 || overflow3)
+  }
+  
+  /// Compute the greatest common divisor for `x` and `y`.
+  public static func gcdWithOverflow(x: T, _ y: T) -> (T, Bool) {
+    var (x, y, (rest, overflow)) = (x, y, T.remainderWithOverflow(x, y))
+    while rest > 0 {
+      x = y
+      y = rest
+      let (rem, overflow1) = T.remainderWithOverflow(x, y)
+      rest = rem
+      overflow = overflow || overflow1
+    }
+    return (y, overflow)
+  }
+  
+  /// Compute the least common multiplier of `x` and `y`.
+  public static func lcmWithOverflow(x: T, _ y: T) -> (T, Bool) {
+    let (abs, overflow1) = T.multiplyWithOverflow(x, y)
+    let (gcd, overflow2) = Rational.gcdWithOverflow(x, y)
+    return ((abs < 0 ? -abs : abs) / gcd, overflow1 || overflow2)
+  }
+  
+  /// Returns the greatest common denominator for the two given rational numbers and a boolean
+  /// which indicates whether there was an overflow.
+  public static func gcdWithOverflow(x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
+    let (numer, overflow1) = Rational.gcdWithOverflow(x.numerator, y.numerator)
+    let (denom, overflow2) = Rational.lcmWithOverflow(x.denominator, y.denominator)
+    return (Rational(numer, denom), overflow1 || overflow2)
+  }
+  
+  /// Returns the least common multiplier for the two given rational numbers and a boolean
+  /// which indicates whether there was an overflow.
+  public static func lcmWithOverflow(x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
+    let (xn, yn, denom, overflow1) = Rational.commonDenomWithOverflow(x, y)
+    let (numer, overflow2) = Rational.lcmWithOverflow(xn, yn)
+    return (Rational(numer, denom), overflow1 || overflow2)
   }
 }
 
