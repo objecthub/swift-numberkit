@@ -538,7 +538,7 @@ public final class BigInt: Hashable,
       divident--
       sizediff--
     } while sizediff >= 0
-    return (BigInt(res, negative: neg), BigInt(rem, negative: false))
+    return (BigInt(res, negative: neg), BigInt(rem, negative: self.negative))
   }
   
   /// Raises this `BigInt` value to the power of `exp`.
