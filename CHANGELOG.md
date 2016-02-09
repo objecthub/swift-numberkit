@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3 (2016-02-09)
+
+- Significant performance improvements to speed up the BigInt/String conversion method
+- Minor feature additions to rational numbers
+- Playground (created by Dan Kogai)
+
 ## 1.2 (2016-01-17)
 
 - Added arithmetic operations to `Rational<T>` which keep track of overflows
