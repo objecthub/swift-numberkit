@@ -221,58 +221,59 @@ public final class BigInt: Hashable,
   /// used as the default base.
   public func toString(base base: Base = BigInt.DEC) -> String {
     // Determine base
-    let b = UInt64(base.digitSpace.count)
-    precondition(b > 1 && b <= 36, "illegal base for BigInt string conversion")
+    let radix = base.radix
     // Shortcut handling of zero
-    if self.isZero {
-      return String(base.digitSpace[0])
+    if isZero {
+      return "0"
     }
-    // Build representation with base `b` in `str`
-    var str: [UInt8] = []
-    var word = words[words.count - 1]
-    while word > 0 {
-      str.append(UInt8(word % UInt32(b)))
-      word /= UInt32(b)
-    }
-    var temp: [UInt8] = []
-    if words.count > 1 {
-      for i in 2...words.count {
-        var carry: UInt64 = 0
-        // Multiply `str` with `BASE` and store in `temp`
-        temp.removeAll()
-        for s in str {
-          carry += UInt64(s) * BigInt.BASE
-          temp.append(UInt8(carry % b))
-          carry /= b
-        }
-        while carry > 0 {
-          temp.append(UInt8(carry % b))
-          carry /= b
-        }
-        // Add `z` to `temp` and store in `str`
-        word = words[words.count - i]
-        var r = 0
-        str.removeAll()
-        while r < temp.count || word > 0 {
-          if r < temp.count {
-            carry += UInt64(temp[r++])
-          }
-          carry += UInt64(word) % b
-          str.append(UInt8(carry % b))
-          carry /= b
-          word /= UInt32(b)
-        }
-        if carry > 0 {
-          str.append(UInt8(carry % b))
-        }
+    var radixPow: UInt32 = 1
+    var digits = 0
+    while true {
+      let (pow, overflow) = UInt32.multiplyWithOverflow(radixPow, UInt32(radix))
+      if !overflow || pow == 0 {
+        digits++
+        radixPow = pow
+      }
+      if overflow {
+        break
       }
     }
-    // Convert representation in `str` into string
-    var res = negative ? "-" : ""
-    for i in 1...str.count {
-      res.append(base.digitSpace[Int(str[str.count-i])])
+    var res = ""
+    if radixPow == 0 {
+      for i in words.indices.dropLast() {
+        BigInt.toString(words[i], prepend: &res, length: digits, base: base)
+      }
+      BigInt.toString(words.last!, prepend: &res, length: 0, base: base)
+    } else {
+      var words = self.words
+      while words.count > 0 {
+        var rem: UInt32 = 0
+        for i in words.indices.reverse() {
+          let x = BigInt.joinwords(words[i], rem)
+          words[i] = UInt32(x / UInt64(radixPow))
+          rem = UInt32(x % UInt64(radixPow))
+        }
+        while words.last == 0 {
+          words.removeLast()
+        }
+        BigInt.toString(rem, prepend: &res, length: words.count > 0 ? digits : 0, base: base)
+      }
+    }
+    if negative {
+      res.insert(Character("-"), atIndex: res.startIndex)
     }
     return res
+  }
+  
+  /// Prepends a string representation of `word` to string `prepend` for the given base.
+  /// `length` determines the least amount of characters. "0" is used for padding purposes.
+  private static func toString(word: UInt32, inout prepend: String, length: Int, base: Base) {
+    let radix = base.radix
+    var value = Int(word)
+    for var n = 0; n < length || value > 0; n++ {
+      prepend.insert(base.digitSpace[value % radix], atIndex: prepend.startIndex)
+      value /= radix
+    }
   }
   
   /// Returns a string representation of this `BigInt` number using base 10.
@@ -541,7 +542,7 @@ public final class BigInt: Hashable,
     return (BigInt(res, negative: neg), BigInt(rem, negative: self.negative))
   }
   
-  /// Raises this `BigInt` value to the power of `exp`.
+  /// Raises this `BigInt` value to the radixPow of `exp`.
   public func toPowerOf(exp: BigInt) -> BigInt {
     return pow(self, exp)
   }

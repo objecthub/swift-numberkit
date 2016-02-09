@@ -19,7 +19,7 @@
 //
 
 
-// Provider power function for all integers
+// Provide power function for all integers
 
 infix operator ** {
   associativity left
@@ -45,20 +45,22 @@ func pow<T: IntegerType>(var base: T, var _ exp: T) -> T {
   return res
 }
 
+/// Implements power function for all integer types.
 public func ** <T: IntegerType>(lhs: T, rhs: T) -> T {
   return pow(lhs, rhs)
 }
 
+/// Implements power-assignment function for all integer types.
 public func **= <T: IntegerType>(inout lhs: T, rhs: T) {
   lhs = pow(lhs, rhs)
 }
 
-// Min/max implementation for all integers
-
+/// Implements minimum function for all integer types.
 public func min<T: IntegerType>(fst: T, _ snd: T) -> T {
   return fst < snd ? fst : snd
 }
 
+/// Implements maximum function for all integer types.
 public func max<T: IntegerType>(fst: T, _ snd: T) -> T {
   return fst > snd ? fst : snd
 }
