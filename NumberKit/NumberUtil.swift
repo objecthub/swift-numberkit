@@ -32,15 +32,16 @@ infix operator **= {
   assignment
 }
 
-func pow<T: IntegerType>(var base: T, var _ exp: T) -> T {
+func pow<T: IntegerType>(base: T, _ exp: T) -> T {
   precondition(exp >= 0, "pow(base, exp) with negative exp")
+  var (expo, radix) = (exp, base)
   var res: T = 1
-  while exp != 0 {
-    if (exp & 1) != 0 {
-      res *= base
+  while expo != 0 {
+    if (expo & 1) != 0 {
+      res *= radix
     }
-    exp /= 2
-    base *= base
+    expo /= 2
+    radix *= radix
   }
   return res
 }

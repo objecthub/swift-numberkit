@@ -29,7 +29,7 @@ public protocol RationalType: SignedNumberType,
                               Hashable {
   
   /// The integer type on which this rational number is based.
-  typealias Integer: SignedIntegerType
+  associatedtype Integer: SignedIntegerType
   
   /// The numerator of this rational number.
   var numerator: Integer { get }

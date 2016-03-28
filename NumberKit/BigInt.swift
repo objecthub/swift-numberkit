@@ -125,7 +125,8 @@ public final class BigInt: Hashable,
   
   /// Internal primary constructor. It removes superfluous words and normalizes the
   /// representation of zero.
-  private init(var _ words: [UInt32], negative: Bool) {
+  private init(_ words: [UInt32], negative: Bool) {
+    var words = words
     while words.count > 1 && words[words.count - 1] == 0 {
       words.removeLast()
     }
@@ -149,7 +150,8 @@ public final class BigInt: Hashable,
   /// Creates a `BigInt` from a sequence of digits for a given base. The first digit in the
   /// array of digits is the least significant one. `negative` is used to indicate negative
   /// `BigInt` numbers.
-  public convenience init(var _ digits: [UInt8], negative: Bool = false, base: Base = BigInt.DEC) {
+  public convenience init(_ digits: [UInt8], negative: Bool = false, base: Base = BigInt.DEC) {
+    var digits = digits
     var words: [UInt32] = []
     var iterate: Bool
     repeat {
@@ -157,13 +159,15 @@ public final class BigInt: Hashable,
       var res: [UInt8] = []
       var j = 0
       while j < digits.count && sum < BigInt.BASE {
-        sum = sum * UInt64(base.radix) + UInt64(digits[j++])
+        sum = sum * UInt64(base.radix) + UInt64(digits[j])
+        j += 1
       }
       res.append(UInt8(BigInt.hiword(sum)))
       iterate = BigInt.hiword(sum) > 0
       sum = UInt64(BigInt.loword(sum))
       while j < digits.count {
-        sum = sum * UInt64(base.radix) + UInt64(digits[j++])
+        sum = sum * UInt64(base.radix) + UInt64(digits[j])
+        j += 1
         res.append(UInt8(BigInt.hiword(sum)))
         iterate = true
         sum = UInt64(BigInt.loword(sum))
@@ -180,19 +184,19 @@ public final class BigInt: Hashable,
     let chars = str.characters
     var i = chars.startIndex
     while i < chars.endIndex && chars[i] == " " {
-      i++
+      i = i.successor()
     }
     if i < chars.endIndex {
       if chars[i] == "-" {
         negative = true
-        i++
+        i = i.successor()
       } else if chars[i] == "+" {
-        i++
+        i = i.successor()
       }
     }
     if i < chars.endIndex && chars[i] == "0" {
       while i < chars.endIndex && chars[i] == "0" {
-        i++
+        i = i.successor()
       }
       if i == chars.endIndex {
         self.init(0)
@@ -203,13 +207,13 @@ public final class BigInt: Hashable,
     while i < chars.endIndex {
       if let digit = base.digitMap[chars[i]] {
         temp.append(digit)
-        i++
+        i = i.successor()
       } else {
         break
       }
     }
     while i < chars.endIndex && chars[i] == " " {
-      i++
+      i = i.successor()
     }
     guard i == chars.endIndex else {
       return nil
@@ -231,7 +235,7 @@ public final class BigInt: Hashable,
     while true {
       let (pow, overflow) = UInt32.multiplyWithOverflow(radixPow, UInt32(radix))
       if !overflow || pow == 0 {
-        digits++
+        digits += 1
         radixPow = pow
       }
       if overflow {
@@ -269,10 +273,11 @@ public final class BigInt: Hashable,
   /// `length` determines the least amount of characters. "0" is used for padding purposes.
   private static func toString(word: UInt32, inout prepend: String, length: Int, base: Base) {
     let radix = base.radix
-    var value = Int(word)
-    for var n = 0; n < length || value > 0; n++ {
+    var (value, n) = (Int(word), 0)
+    while n < length || value > 0 {
       prepend.insert(base.digitSpace[value % radix], atIndex: prepend.startIndex)
       value /= radix
+      n += 1
     }
   }
   
@@ -485,7 +490,7 @@ public final class BigInt: Hashable,
       if divis[i - 1] > rem[from + i - 1] {
         return false
       }
-      i--
+      i -= 1
     }
     var carry: UInt64 = 0
     for j in 0..<divis.count {
@@ -534,10 +539,10 @@ public final class BigInt: Hashable,
         approx = x / div
       }
       if BigInt.subIfPossible(divis, &rem, sizediff) {
-        res[sizediff]++
+        res[sizediff] += 1
       }
-      divident--
-      sizediff--
+      divident -= 1
+      sizediff -= 1
     } while sizediff >= 0
     return (BigInt(res, negative: neg), BigInt(rem, negative: self.negative))
   }

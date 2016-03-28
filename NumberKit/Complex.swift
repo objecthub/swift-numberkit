@@ -31,7 +31,7 @@ import Darwin
 public protocol ComplexType: Equatable {
   
   /// The floating point number type on which this complex number is based.
-  typealias Float: FloatingPointType
+  associatedtype Float: FloatingPointType
   
   /// Creates a complex number without imaginary part from the given real part.
   init(_ re: Float)
