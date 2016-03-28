@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4 (2016-03-28)
+
+- Code now compatible with Xcode 7.3, Swift 2.2
+- Turned `BigInt` into a struct to avoid garbage collection overhead
+
 ## 1.3 (2016-02-09)
 
 - Significant performance improvements to speed up the BigInt/String conversion method

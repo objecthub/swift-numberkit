@@ -32,9 +32,9 @@ import Darwin
 ///         and a boolean to represent the sign. Due to this overhead, for instance,
 ///         representing a `UInt64` value as a `BigInt` will result in an object that
 ///         requires more memory than the corresponding `UInt64` integer.
-public final class BigInt: Hashable,
-                           CustomStringConvertible,
-                           CustomDebugStringConvertible {
+public struct BigInt: Hashable,
+                      CustomStringConvertible,
+                      CustomDebugStringConvertible {
   
   // This is an array of `UInt32` words. The lowest significant word comes first in
   // the array.
@@ -137,12 +137,12 @@ public final class BigInt: Hashable,
   private static let INT64_MAX = UInt64(Int64.max)
   
   /// Creates a `BigInt` from the given `UInt64` value
-  public convenience init(_ value: UInt64) {
+  public init(_ value: UInt64) {
     self.init([BigInt.loword(value), BigInt.hiword(value)], negative: false)
   }
   
   /// Creates a `BigInt` from the given `Int64` value
-  public convenience init(_ value: Int64) {
+  public init(_ value: Int64) {
     let absvalue = value == Int64.min ? BigInt.INT64_MAX + 1 : UInt64(value < 0 ? -value : value)
     self.init([BigInt.loword(absvalue), BigInt.hiword(absvalue)], negative: value < 0)
   }
@@ -150,7 +150,7 @@ public final class BigInt: Hashable,
   /// Creates a `BigInt` from a sequence of digits for a given base. The first digit in the
   /// array of digits is the least significant one. `negative` is used to indicate negative
   /// `BigInt` numbers.
-  public convenience init(_ digits: [UInt8], negative: Bool = false, base: Base = BigInt.DEC) {
+  public init(_ digits: [UInt8], negative: Bool = false, base: Base = BigInt.DEC) {
     var digits = digits
     var words: [UInt32] = []
     var iterate: Bool
@@ -179,7 +179,7 @@ public final class BigInt: Hashable,
   }
 
   /// Creates a `BigInt` from a string containing a number using the given base.
-  public convenience init?(_ str: String, base: Base = BigInt.DEC) {
+  public init?(_ str: String, base: Base = BigInt.DEC) {
     var negative = false
     let chars = str.characters
     var i = chars.startIndex
@@ -613,47 +613,47 @@ extension BigInt: IntegerLiteralConvertible,
   
   public typealias Distance = BigInt
   
-  public convenience init(_ value: UInt) {
+  public init(_ value: UInt) {
     self.init(Int64(value))
   }
   
-  public convenience init(_ value: UInt8) {
+  public init(_ value: UInt8) {
     self.init(Int64(value))
   }
   
-  public convenience init(_ value: UInt16) {
+  public init(_ value: UInt16) {
     self.init(Int64(value))
   }
   
-  public convenience init(_ value: UInt32) {
+  public init(_ value: UInt32) {
     self.init(Int64(value))
   }
   
-  public convenience init(_ value: Int) {
+  public init(_ value: Int) {
     self.init(Int64(value))
   }
   
-  public convenience init(_ value: Int8) {
+  public init(_ value: Int8) {
     self.init(Int64(value))
   }
   
-  public convenience init(_ value: Int16) {
+  public init(_ value: Int16) {
     self.init(Int64(value))
   }
   
-  public convenience init(_ value: Int32) {
+  public init(_ value: Int32) {
     self.init(Int64(value))
   }
   
-  public convenience init(integerLiteral value: Int64) {
+  public init(integerLiteral value: Int64) {
     self.init(value)
   }
   
-  public convenience init(_builtinIntegerLiteral value: _MaxBuiltinIntegerType) {
+  public init(_builtinIntegerLiteral value: _MaxBuiltinIntegerType) {
     self.init(Int64(_builtinIntegerLiteral: value))
   }
   
-  public convenience init(stringLiteral value: String) {
+  public init(stringLiteral value: String) {
     if let bi = BigInt(value) {
       self.init(bi.words, negative: bi.negative)
     } else {
@@ -661,12 +661,12 @@ extension BigInt: IntegerLiteralConvertible,
     }
   }
   
-  public convenience init(
+  public init(
     extendedGraphemeClusterLiteral value: String.ExtendedGraphemeClusterLiteralType) {
       self.init(stringLiteral: String(value))
   }
   
-  public convenience init(
+  public init(
     unicodeScalarLiteral value: String.UnicodeScalarLiteralType) {
       self.init(stringLiteral: String(value))
   }
