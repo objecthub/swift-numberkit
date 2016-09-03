@@ -1,9 +1,8 @@
 # Swift NumberKit
-=================
 
 <p>
 <a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-OS X-blue.svg?style=flat" alt="Platform: OS X" /></a>
-<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%202.2-green.svg?style=flat" alt="Language: Swift 3" /></a>
+<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%203.0-green.svg?style=flat" alt="Language: Swift 3" /></a>
 <a href="https://raw.githubusercontent.com/objecthub/swift-lispkit/master/LICENSE"><img src="http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License: Apache" /></a>
 </p>
 
