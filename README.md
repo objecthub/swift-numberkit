@@ -1,29 +1,36 @@
 # Swift NumberKit
+=================
+
+<p>
+<a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-OS X-blue.svg?style=flat" alt="Platform: OS X" /></a>
+<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%202.2-green.svg?style=flat" alt="Language: Swift 3" /></a>
+<a href="https://raw.githubusercontent.com/objecthub/swift-lispkit/master/LICENSE"><img src="http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License: Apache" /></a>
+</p>
 
 ## Overview
 
-This is a library providing advanced numeric data types for the Swift 2 programming language.
+This is a library providing advanced numeric data types for the Swift 3 programming language.
 The current version implements three new numeric types:
 
   1. `BigInt`: arbitrary-precision signed integers
   2. `Rational`: signed rational numbers
   3. `Complex`: complex floating-point numbers
 
-**Requirements**: Xcode 7.3, Swift 2.2
+**Requirements**: Xcode 8-beta, Swift 3
 
 
 ## BigInt
 
 `BigInt` objects are immutable, signed, arbitrary-precision integers that can be used as a
-drop-in replacement for the existing integer types of Swift 2. Class `BigInt` defines all
+drop-in replacement for the existing integer types of Swift 3. Struct `BigInt` defines all
 the standard arithmetic integer operations and implements the corresponding protocols defined
 in the standard library.
 
 
 ## Rational
 
-Struct `Rational<T>` defines rational numbers based on an existing signed integer type
-`T`, like `Int32`, `Int64`, or `BigInt`. A rational number is a signed number that can
+Struct `Rational<T>` defines immutable, rational numbers based on an existing signed integer
+type `T`, like `Int32`, `Int64`, or `BigInt`. A rational number is a signed number that can
 be expressed as the quotient of two integers _a_ and _b_: _a / b_.
 
 
