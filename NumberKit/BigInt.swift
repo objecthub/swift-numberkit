@@ -150,7 +150,7 @@ public struct BigInt: Hashable,
   /// Creates a `BigInt` from a sequence of digits for a given base. The first digit in the
   /// array of digits is the least significant one. `negative` is used to indicate negative
   /// `BigInt` numbers.
-  internal init(digits: [UInt8], negative: Bool = false, base: Base = BigInt.decBase) {
+  public init(digits: [UInt8], negative: Bool = false, base: Base = BigInt.decBase) {
     var digits = digits
     var words: [UInt32] = []
     var iterate: Bool
