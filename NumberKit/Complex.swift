@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 15/08/2015.
-//  Copyright © 2015 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2016 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -21,17 +21,17 @@
 import Darwin
 
 
-/// The `ComplexType` protocol defines an interface for complex numbers. A complex
+/// The `ComplexNumber` protocol defines an interface for complex numbers. A complex
 /// number consists of two floating point components: a real part `re` and an imaginary
 /// part `im`. It is typically expressed as: re + im * i where i is the imaginary unit.
 /// i satisfies the equation i * i = -1.
 ///
-/// - Note: The `ComplexType` protocol abstracts over the floating point type on which
+/// - Note: The `ComplexNumber` protocol abstracts over the floating point type on which
 ///         the complex type implementation is based on.
-public protocol ComplexType: Equatable {
+public protocol ComplexNumber: Equatable {
   
   /// The floating point number type on which this complex number is based.
-  associatedtype Float: FloatingPointType
+  associatedtype Float: FloatingPoint
   
   /// Creates a complex number without imaginary part from the given real part.
   init(_ re: Float)
@@ -89,41 +89,41 @@ public protocol ComplexType: Equatable {
   var log: Self { get }
   
   /// Returns the sum of `self` and `rhs` as a complex number.
-  func plus(rhs: Self) -> Self
+  func plus(_ rhs: Self) -> Self
   
   /// Returns the difference between `self` and `rhs` as a complex number.
-  func minus(rhs: Self) -> Self
+  func minus(_ rhs: Self) -> Self
   
   /// Returns the result of multiplying `self` with `rhs` as a complex number.
-  func times(rhs: Self) -> Self
+  func times(_ rhs: Self) -> Self
   
   /// Returns the result of multiplying `self` with scalar `rhs` as a complex number.
-  func times(rhs: Float) -> Self
+  func times(_ rhs: Float) -> Self
   
   /// Returns the result of dividing `self` by `rhs` as a complex number.
-  func dividedBy(rhs: Self) -> Self
+  func divided(by rhs: Self) -> Self
   
   /// Returns the result of dividing `self` by scalar `rhs` as a complex number.
-  func dividedBy(rhs: Float) -> Self
+  func divided(by rhs: Float) -> Self
   
   /// Returns this complex number taken to the power of `ex`.
-  func toPowerOf(ex: Self) -> Self
+  func toPower(of ex: Self) -> Self
 }
 
 
-/// Protocol `FloatNumberType` is supposed to be used in combination with struct
+/// Protocol `FloatNumber` is supposed to be used in combination with struct
 /// `Complex<T>`. It defines the functionality needed for a floating point
-/// implementation to build complex numbers on top. The `FloatingPointType`
-/// protocol from the Swift standard library is not sufficient currently.
+/// implementation to build complex numbers on top. The `FloatingPoint`
+/// protocol from the Swift 3 standard library is not sufficient currently.
 ///
-/// - Note: For some reason, `_BuiltinFloatLiteralConvertible` is needed here to
-///         allow `Complex<T>` to implement protocol `FloatLiteralConvertible`.
-///         Replacing it with `FloatLiteralConvertible` does not work either.
-public protocol FloatNumberType: Hashable,
-                                 Comparable,
-                                 FloatingPointType,
-                                 AbsoluteValuable,
-                                 _BuiltinFloatLiteralConvertible {
+/// - Note: For some reason, `_ExpressibleByBuiltinFloatLiteral` is needed here to
+///         allow `Complex<T>` to implement protocol `ExpressibleByFloatLiteral`.
+///         Replacing it with `ExpressibleByFloatLiteral` does not work either.
+public protocol FloatNumber: Hashable,
+                             Comparable,
+                             FloatingPoint,
+                             AbsoluteValuable,
+                             _ExpressibleByBuiltinFloatLiteral {
   var i: Complex<Self> { get }
   var abs: Self { get }
   var sqrt: Self { get }
@@ -131,29 +131,25 @@ public protocol FloatNumberType: Hashable,
   var cos: Self { get }
   var exp: Self { get }
   var log: Self { get }
-  func pow(ex: Self) -> Self
-  func hypot(y: Self) -> Self
-  func atan2(y: Self) -> Self
-  func +(lhs: Self, rhs: Self) -> Self
-  func -(lhs: Self, rhs: Self) -> Self
-  func *(lhs: Self, rhs: Self) -> Self
-  func /(lhs: Self, rhs: Self) -> Self
+  func pow(_ ex: Self) -> Self
+  func hypot(_ y: Self) -> Self
+  func atan2(_ y: Self) -> Self
 }
 
 
-/// Struct `Complex<T>` implements the `ComplexType` interface on top of the
+/// Struct `Complex<T>` implements the `ComplexNumber` interface on top of the
 /// floating point type `T`; i.e. both the rational and the imaginary part of the
 /// complex number are represented as values of type `T`.
 ///
-/// - Note: `T` needs to implement the `FloatNumberType` protocol. The `FloatingPointType`
+/// - Note: `T` needs to implement the `FloatNumber` protocol. The `FloatingPoint`
 ///         protocol that is defined in the Swift standard library is not sufficient to
-///         implement a complex number as it does not, at all, define interfaces for
-///         basic arithmetic operations.
-public struct Complex<T: FloatNumberType>: ComplexType,
-                                           Hashable,
-                                           IntegerLiteralConvertible,
-                                           FloatLiteralConvertible,
-                                           CustomStringConvertible {
+///         implement a complex number as it does not define interfaces for trigonometric
+///         functions.
+public struct Complex<T: FloatNumber>: ComplexNumber,
+                                       Hashable,
+                                       ExpressibleByIntegerLiteral,
+                                       ExpressibleByFloatLiteral,
+                                       CustomStringConvertible {
   
   /// The real part of thix complex number.
   public let re: T
@@ -197,11 +193,11 @@ public struct Complex<T: FloatNumberType>: ComplexType,
   /// Returns a textual representation of this complex number
   public var description: String {
     if im.isZero {
-      return String(re)
+      return String(describing: re)
     } else if re.isZero {
-      return String(im) + "i"
+      return String(describing: im) + "i"
     } else {
-      return im.isSignMinus ? "\(re)\(im)i" : "\(re)+\(im)i"
+      return (im.sign == .minus) ? "\(re)\(im)i" : "\(re)+\(im)i"
     }
   }
   
@@ -287,318 +283,318 @@ public struct Complex<T: FloatNumberType>: ComplexType,
   public var sqrt: Complex<T> {
     let r = ((re + abs) / T(2)).sqrt
     let i = ((-re + abs) / T(2)).sqrt
-    return Complex(r, im.isSignMinus ? -i : i)
+    return Complex(r, (im.sign == .minus) ? -i : i)
   }
   
   /// Returns this complex number taken to the power of `ex`.
-  public func toPowerOf(ex: Complex<T>) -> Complex<T> {
+  public func toPower(of ex: Complex<T>) -> Complex<T> {
     return isZero ? (ex.isZero ? 1 : 0) : log.times(ex).exp
   }
   
   /// Returns the sum of `self` and `rhs` as a complex number.
-  public func plus(rhs: Complex<T>) -> Complex<T> {
+  public func plus(_ rhs: Complex<T>) -> Complex<T> {
     return Complex(self.re + rhs.re, self.im + rhs.im);
   }
   
   /// Returns the difference between `self` and `rhs` as a complex number.
-  public func minus(rhs: Complex<T>) -> Complex<T> {
+  public func minus(_ rhs: Complex<T>) -> Complex<T> {
     return Complex(self.re - rhs.re, self.im - rhs.im);
   }
   
   /// Returns the result of multiplying `self` with `rhs` as a complex number.
-  public func times(rhs: Complex<T>) -> Complex<T> {
+  public func times(_ rhs: Complex<T>) -> Complex<T> {
     return Complex(self.re * rhs.re - self.im * rhs.im, self.re * rhs.im + self.im * rhs.re);
   }
   
   /// Returns the result of multiplying `self` with scalar `rhs` as a complex number.
-  public func times(rhs: T) -> Complex<T> {
+  public func times(_ rhs: T) -> Complex<T> {
     return Complex(self.re * rhs, self.im * rhs);
   }
   
   /// Returns the result of dividing `self` by `rhs` as a complex number.
-  public func dividedBy(rhs: Complex<T>) -> Complex<T> {
+  public func divided(by rhs: Complex<T>) -> Complex<T> {
     return times(rhs.reciprocal)
   }
   
   /// Returns the result of dividing `self` by scalar `rhs` as a complex number.
-  public func dividedBy(rhs: T) -> Complex<T> {
+  public func divided(by rhs: T) -> Complex<T> {
     return Complex(self.re / rhs, self.im / rhs);
   }
 }
 
 // Implement equality
 
-public func == <C: ComplexType>(lhs: C, rhs: C) -> Bool {
+public func == <C: ComplexNumber>(lhs: C, rhs: C) -> Bool {
   return lhs.re == rhs.re && lhs.im == rhs.im
 }
 
-public func == <C: ComplexType>(lhs: C.Float, rhs: C) -> Bool {
+public func == <C: ComplexNumber>(lhs: C.Float, rhs: C) -> Bool {
   return rhs.re == lhs && rhs.im.isZero
 }
 
-public func == <C: ComplexType>(lhs: C, rhs: C.Float) -> Bool {
+public func == <C: ComplexNumber>(lhs: C, rhs: C.Float) -> Bool {
   return lhs.re == rhs && lhs.im.isZero
 }
 
-public func != <C: ComplexType>(lhs: C, rhs: C) -> Bool {
+public func != <C: ComplexNumber>(lhs: C, rhs: C) -> Bool {
   return lhs.re != rhs.re || lhs.im != rhs.im
 }
 
-public func != <C: ComplexType>(lhs: C.Float, rhs: C) -> Bool {
+public func != <C: ComplexNumber>(lhs: C.Float, rhs: C) -> Bool {
   return rhs.re != lhs || !rhs.im.isZero
 }
 
-public func != <C: ComplexType>(lhs: C, rhs: C.Float) -> Bool {
+public func != <C: ComplexNumber>(lhs: C, rhs: C.Float) -> Bool {
   return lhs.re != rhs || !lhs.im.isZero
 }
 
 
 /// Negates complex number `z`.
-public prefix func - <C: ComplexType>(z: C) -> C {
+public prefix func - <C: ComplexNumber>(z: C) -> C {
   return z.negate
 }
 
 /// Returns the sum of `lhs` and `rhs`.
-public func + <C: ComplexType>(lhs: C, rhs: C) -> C {
+public func + <C: ComplexNumber>(lhs: C, rhs: C) -> C {
   return lhs.plus(rhs)
 }
 
 /// Returns the sum of `lhs` and `rhs`.
-public func + <C: ComplexType>(lhs: C, rhs: C.Float) -> C {
+public func + <C: ComplexNumber>(lhs: C, rhs: C.Float) -> C {
   return lhs.plus(C(rhs))
 }
 
 /// Returns the sum of `lhs` and `rhs`.
-public func + <C: ComplexType>(lhs: C.Float, rhs: C) -> C {
+public func + <C: ComplexNumber>(lhs: C.Float, rhs: C) -> C {
   return C(lhs).plus(rhs)
 }
 
 /// Returns the difference between `lhs` and `rhs`.
-public func - <C: ComplexType>(lhs: C, rhs: C) -> C {
+public func - <C: ComplexNumber>(lhs: C, rhs: C) -> C {
   return lhs.minus(rhs)
 }
 
 /// Returns the difference between `lhs` and `rhs`.
-public func - <C: ComplexType>(lhs: C, rhs: C.Float) -> C {
+public func - <C: ComplexNumber>(lhs: C, rhs: C.Float) -> C {
   return lhs.minus(C(rhs))
 }
 
 /// Returns the difference between `lhs` and `rhs`.
-public func - <C: ComplexType>(lhs: C.Float, rhs: C) -> C {
+public func - <C: ComplexNumber>(lhs: C.Float, rhs: C) -> C {
   return C(lhs).minus(rhs)
 }
 
 /// Multiplies `lhs` with `rhs` and returns the result.
-public func * <C: ComplexType>(lhs: C, rhs: C) -> C {
+public func * <C: ComplexNumber>(lhs: C, rhs: C) -> C {
   return lhs.times(rhs)
 }
 
 /// Multiplies complex number `lhs` with scalar `rhs` and returns the result.
-public func * <C: ComplexType>(lhs: C, rhs: C.Float) -> C {
+public func * <C: ComplexNumber>(lhs: C, rhs: C.Float) -> C {
   return lhs.times(rhs)
 }
 
 /// Multiplies scalar `lhs` with complex number `rhs` and returns the result.
-public func * <C: ComplexType>(lhs: C.Float, rhs: C) -> C {
+public func * <C: ComplexNumber>(lhs: C.Float, rhs: C) -> C {
   return rhs.times(lhs)
 }
 
 /// Divides `lhs` by `rhs` and returns the result.
-public func / <C: ComplexType>(lhs: C, rhs: C) -> C {
-  return lhs.dividedBy(rhs)
+public func / <C: ComplexNumber>(lhs: C, rhs: C) -> C {
+  return lhs.divided(by: rhs)
 }
 
 /// Divides complex number `lhs` by scalar `rhs` and returns the result.
-public func / <C: ComplexType>(lhs: C, rhs: C.Float) -> C {
-  return lhs.dividedBy(rhs)
+public func / <C: ComplexNumber>(lhs: C, rhs: C.Float) -> C {
+  return lhs.divided(by: rhs)
 }
 
 /// Divides complex number `lhs` by scalar `rhs` and returns the result.
-public func / <C: ComplexType>(lhs: C.Float, rhs: C) -> C {
-  return C(lhs).dividedBy(rhs)
+public func / <C: ComplexNumber>(lhs: C.Float, rhs: C) -> C {
+  return C(lhs).divided(by: rhs)
 }
 
 /// Assigns `lhs` the sum of `lhs` and `rhs`.
-public func += <C: ComplexType>(inout lhs: C, rhs: C) {
+public func += <C: ComplexNumber>(lhs: inout C, rhs: C) {
   lhs = lhs.plus(rhs)
 }
 
 /// Assigns `lhs` the sum of `lhs` and `rhs`.
-public func += <C: ComplexType>(inout lhs: C, rhs: C.Float) {
+public func += <C: ComplexNumber>(lhs: inout C, rhs: C.Float) {
   lhs = lhs.plus(C(rhs))
 }
 
 /// Assigns `lhs` the difference between `lhs` and `rhs`.
-public func -= <C: ComplexType>(inout lhs: C, rhs: C) {
+public func -= <C: ComplexNumber>(lhs: inout C, rhs: C) {
   lhs = lhs.minus(rhs)
 }
 
 /// Assigns `lhs` the difference between `lhs` and `rhs`.
-public func -= <C: ComplexType>(inout lhs: C, rhs: C.Float) {
+public func -= <C: ComplexNumber>(lhs: inout C, rhs: C.Float) {
   lhs = lhs.minus(C(rhs))
 }
 
 /// Assigns `lhs` the result of multiplying `lhs` with `rhs`.
-public func *= <C: ComplexType>(inout lhs: C, rhs: C) {
+public func *= <C: ComplexNumber>(lhs: inout C, rhs: C) {
   lhs = lhs.times(rhs)
 }
 
 /// Assigns `lhs` the result of multiplying `lhs` with scalar `rhs`.
-public func *= <C: ComplexType>(inout lhs: C, rhs: C.Float) {
+public func *= <C: ComplexNumber>(lhs: inout C, rhs: C.Float) {
   lhs = lhs.times(rhs)
 }
 
 /// Assigns `lhs` the result of dividing `lhs` by `rhs`.
-public func /= <C: ComplexType>(inout lhs: C, rhs: C) {
-  lhs = lhs.dividedBy(rhs)
+public func /= <C: ComplexNumber>(lhs: inout C, rhs: C) {
+  lhs = lhs.divided(by: rhs)
 }
 
 /// Assigns `lhs` the result of dividing `lhs` by scalar `rhs`.
-public func /= <C: ComplexType>(inout lhs: C, rhs: C.Float) {
-  lhs = lhs.dividedBy(rhs)
+public func /= <C: ComplexNumber>(lhs: inout C, rhs: C.Float) {
+  lhs = lhs.divided(by: rhs)
 }
 
 /// Returns the absolute value of the given complex number `z`.
-public func abs<C: ComplexType>(z: C) -> C.Float {
+public func abs<C: ComplexNumber>(_ z: C) -> C.Float {
   return z.abs
 }
 
 /// Returns the argument/phase of the given complex number `z`.
-public func arg<C: ComplexType>(z: C) -> C.Float {
+public func arg<C: ComplexNumber>(_ z: C) -> C.Float {
   return z.arg
 }
 
 /// Returns the real part of the given complex number `z`.
-public func real<C: ComplexType>(z: C) -> C.Float {
+public func real<C: ComplexNumber>(_ z: C) -> C.Float {
   return z.re
 }
 
 /// Returns the imaginary part of the given complex number `z`.
-public func imag<C: ComplexType>(z: C) -> C.Float {
+public func imag<C: ComplexNumber>(_ z: C) -> C.Float {
   return z.im
 }
 
 /// Returns the norm of the given complex number `z`.
-public func norm<C: ComplexType>(z: C) -> C.Float {
+public func norm<C: ComplexNumber>(_ z: C) -> C.Float {
   return z.norm
 }
 
 /// Returns the conjugate of the given complex number `z`.
-public func conj<C: ComplexType>(z: C) -> C {
+public func conj<C: ComplexNumber>(_ z: C) -> C {
   return z.conjugate
 }
 
 /// Returns the exponential of the given complex number `z`.
-public func exp<C: ComplexType>(z: C) -> C {
+public func exp<C: ComplexNumber>(_ z: C) -> C {
   return z.exp
 }
 
 /// Returns the logarithm of the given complex number `z`.
-public func log<C: ComplexType>(z: C) -> C {
+public func log<C: ComplexNumber>(_ z: C) -> C {
   return z.log
 }
 
 /// Returns `base` to the power of `ex`.
-public func pow<C: ComplexType>(base: C, _ ex: C) -> C {
-  return base.toPowerOf(ex)
+public func pow<C: ComplexNumber>(_ base: C, _ ex: C) -> C {
+  return base.toPower(of: ex)
 }
 
 /// Returns `base` to the power of `ex`.
-public func pow<C: ComplexType>(base: C.Float, _ ex: C) -> C {
-  return C(base).toPowerOf(ex)
+public func pow<C: ComplexNumber>(_ base: C.Float, _ ex: C) -> C {
+  return C(base).toPower(of: ex)
 }
 
 /// Returns `base` to the power of `ex`.
-public func pow<C: ComplexType>(base: C, _ ex: C.Float) -> C {
-  return base.toPowerOf(C(ex))
+public func pow<C: ComplexNumber>(_ base: C, _ ex: C.Float) -> C {
+  return base.toPower(of: C(ex))
 }
 
 /// Returns the square root of the given complex number `z`.
-public func sqrt<C: ComplexType>(z: C) -> C {
+public func sqrt<C: ComplexNumber>(_ z: C) -> C {
   return z.sqrt
 }
 
 /// Returns `sin(z)` for the given complex number `z`.
-public func sin<C: ComplexType>(z: C) -> C {
-  return exp(-z.i).minus(exp(z.i)).i.dividedBy(C.Float(2))
+public func sin<C: ComplexNumber>(_ z: C) -> C {
+  return exp(-z.i).minus(exp(z.i)).i.divided(by: C.Float(2))
 }
 
 /// Returns `cos(z)` for the given complex number `z`.
-public func cos<C: ComplexType>(z: C) -> C {
-  return exp(z.i).plus(exp(-z.i)).dividedBy(C.Float(2))
+public func cos<C: ComplexNumber>(_ z: C) -> C {
+  return exp(z.i).plus(exp(-z.i)).divided(by: C.Float(2))
 }
 
 /// Returns `tan(z)` for the given complex number `z`.
-public func tan<C: ComplexType>(z: C) -> C {
+public func tan<C: ComplexNumber>(_ z: C) -> C {
   let x = exp(z.i)
   let y = exp(-z.i)
-  return x.minus(y).dividedBy(x.plus(y).i)
+  return x.minus(y).divided(by: x.plus(y).i)
 }
 
 /// Returns `asin(z)` for the given complex number `z`.
-public func asin<C: ComplexType>(z: C) -> C {
+public func asin<C: ComplexNumber>(_ z: C) -> C {
   return -log(z.i.plus(sqrt(C(C.Float(1)).minus(z.times(z))))).i
 }
 
 /// Returns `acos(z)` for the given complex number `z`.
-public func acos<C: ComplexType>(z: C) -> C {
+public func acos<C: ComplexNumber>(_ z: C) -> C {
   return log(z.minus(sqrt(C(C.Float(1)).minus(z.times(z))).i)).i
 }
 
 /// Returns `atan(z)` for the given complex number `z`.
-public func atan<C: ComplexType>(z: C) -> C {
+public func atan<C: ComplexNumber>(_ z: C) -> C {
   let x = log(C(C.Float(1)).minus(z.i))
   let y = log(C(C.Float(1)).plus(z.i))
-  return x.minus(y).i.dividedBy(C.Float(2))
+  return x.minus(y).i.divided(by: C.Float(2))
 }
 
 /// Returns `cos(r)` for the given floating point number `r`.
-public func atan<T: FloatNumberType>(r: T) -> T {
+public func atan<T: FloatNumber>(_ r: T) -> T {
   return atan(Complex(r)).re
 }
 
 /// Returns `atan2(z1, z2)` for the given complex numbers `z1` and `z2`.
-public func atan2<C: ComplexType>(z1: C, _ z2: C) -> C {
-  return atan(z1.dividedBy(z2))
+public func atan2<C: ComplexNumber>(_ z1: C, _ z2: C) -> C {
+  return atan(z1.divided(by: z2))
 }
 
 /// Returns `sinh(z)` for the given complex number `z`.
-public func sinh<C: ComplexType>(z: C) -> C {
-  return exp(z).minus(exp(-z)).dividedBy(C.Float(2))
+public func sinh<C: ComplexNumber>(_ z: C) -> C {
+  return exp(z).minus(exp(-z)).divided(by: C.Float(2))
 }
 
 /// Returns `cosh(z)` for the given complex number `z`.
-public func cosh<C: ComplexType>(z: C) -> C {
-  return exp(z).plus(exp(-z)).dividedBy(C.Float(2))
+public func cosh<C: ComplexNumber>(_ z: C) -> C {
+  return exp(z).plus(exp(-z)).divided(by: C.Float(2))
 }
 
 /// Returns `tanh(z)` for the given complex number `z`.
-public func tanh<C: ComplexType>(z: C) -> C {
+public func tanh<C: ComplexNumber>(_ z: C) -> C {
   let x = exp(z)
   let y = exp(-z)
-  return x.minus(y).dividedBy(x.plus(y))
+  return x.minus(y).divided(by: x.plus(y))
 }
 
 /// Returns `asinh(z)` for the given complex number `z`.
-public func asinh<C: ComplexType>(z: C) -> C {
+public func asinh<C: ComplexNumber>(_ z: C) -> C {
   return log(z.plus(sqrt(z.times(z).plus(C(C.Float(1))))))
 }
 
 /// Returns `acosh(z)` for the given complex number `z`.
-public func acosh<C: ComplexType>(z: C) -> C {
+public func acosh<C: ComplexNumber>(_ z: C) -> C {
   return log(z.plus(sqrt(z.times(z).minus(C(C.Float(1))))))
 }
 
 /// Returns `atanh(z)` for the given complex number `z`.
-public func atanh<C: ComplexType>(z: C) -> C {
+public func atanh<C: ComplexNumber>(_ z: C) -> C {
   let x = C(C.Float(1)).plus(z)
   let y = C(C.Float(1)).minus(z)
-  return log(x.dividedBy(y)).dividedBy(C.Float(2))
+  return log(x.divided(by: y)).divided(by: C.Float(2))
 }
 
 
-/// Make `Float` implement protocol `FloatNumberType` for usage with `Complex<T>`.
-extension Float: FloatNumberType {
+/// Make `Float` implement protocol `FloatNumber` for usage with `Complex<T>`.
+extension Float: FloatNumber {
   public var i: Complex<Float> {
     return Complex(0.0, self)
   }
@@ -620,20 +616,20 @@ extension Float: FloatNumberType {
   public var log: Float {
     return Darwin.log(self)
   }
-  public func pow(ex: Float) -> Float {
+  public func pow(_ ex: Float) -> Float {
     return Darwin.pow(self, ex)
   }
-  public func hypot(y: Float) -> Float {
+  public func hypot(_ y: Float) -> Float {
     return Darwin.hypot(self, y)
   }
-  public func atan2(y: Float) -> Float {
+  public func atan2(_ y: Float) -> Float {
     return Darwin.atan2(self, y)
   }
 }
 
 
-/// Make `Double` implement protocol `FloatNumberType` for usage with `Complex<T>`.
-extension Double: FloatNumberType {
+/// Make `Double` implement protocol `FloatNumber` for usage with `Complex<T>`.
+extension Double: FloatNumber {
   public var i: Complex<Double> {
     return Complex(0.0, self)
   }
@@ -655,13 +651,13 @@ extension Double: FloatNumberType {
   public var log: Double {
     return Darwin.log(self)
   }
-  public func pow(ex: Double) -> Double {
+  public func pow(_ ex: Double) -> Double {
     return Darwin.pow(self, ex)
   }
-  public func hypot(y: Double) -> Double {
+  public func hypot(_ y: Double) -> Double {
     return Darwin.hypot(self, y)
   }
-  public func atan2(y: Double) -> Double {
+  public func atan2(_ y: Double) -> Double {
     return Darwin.atan2(self, y)
   }
 }

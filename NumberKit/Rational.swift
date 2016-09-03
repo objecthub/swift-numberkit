@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 04/08/2015.
-//  Copyright © 2015 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2016 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -19,17 +19,17 @@
 //
 
 
-/// The `RationalType` protocol defines an interface for rational numbers. A rational
+/// The `RationalNumber` protocol defines an interface for rational numbers. A rational
 /// number is a signed number that can be expressed as the quotient of two integers
 /// a and b: a / b. a is called the numerator, b is called the denominator. b must
 /// not be zero.
-public protocol RationalType: SignedNumberType,
-                              IntegerLiteralConvertible,
-                              Comparable,
-                              Hashable {
+public protocol RationalNumber: SignedNumber,
+                                ExpressibleByIntegerLiteral,
+                                Comparable,
+                                Hashable {
   
   /// The integer type on which this rational number is based.
-  associatedtype Integer: SignedIntegerType
+  associatedtype Integer: SignedInteger
   
   /// The numerator of this rational number.
   var numerator: Integer { get }
@@ -62,35 +62,35 @@ public protocol RationalType: SignedNumberType,
   /// Returns -1 if `self` is less than `rhs`,
   ///          0 if `self` is equals to `rhs`,
   ///         +1 if `self` is greater than `rhs`
-  func compareTo(rhs: Self) -> Int
+  func compare(to rhs: Self) -> Int
   
   /// Returns the sum of this rational value and `rhs`.
-  func plus(rhs: Self) -> Self
+  func plus(_ rhs: Self) -> Self
   
   /// Returns the difference between this rational value and `rhs`.
-  func minus(rhs: Self) -> Self
+  func minus(_ rhs: Self) -> Self
   
   /// Multiplies this rational value with `rhs` and returns the result.
-  func times(rhs: Self) -> Self
+  func times(_ rhs: Self) -> Self
   
   /// Divides this rational value by `rhs` and returns the result.
-  func dividedBy(rhs: Self) -> Self
+  func divided(by rhs: Self) -> Self
   
   /// Raises this rational value to the power of `exp`.
-  func toPowerOf(exp: Integer) -> Self
+  func toPower(of exp: Integer) -> Self
 }
 
 // TODO: make this a static member of `Rational` once this is supported
-private let RATIONAL_SEPARATOR: Character = "/"
+private let rationalSeparator: Character = "/"
 
 
-/// Struct `Rational<T>` implements the `RationalType` interface on top of the
+/// Struct `Rational<T>` implements the `RationalNumber` interface on top of the
 /// integer type `T`. `Rational<T>` always represents rational numbers in normalized
 /// form such that the greatest common divisor of the numerator and the denominator
 /// is always 1. In addition, the sign of the rational number is defined by the
 /// numerator. The denominator is always positive.
-public struct Rational<T: SignedIntegerType>: RationalType,
-                                              CustomStringConvertible {
+public struct Rational<T: SignedInteger>: RationalNumber,
+                                          CustomStringConvertible {
   
   /// The numerator of this rational number. This is a signed integer.
   public let numerator: T
@@ -100,7 +100,7 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   
   /// Sets numerator and denominator without normalization. This function must not be called
   /// outside of the NumberKit framework.
-  private init(numerator: T, denominator: T) {
+  fileprivate init(numerator: T, denominator: T) {
     self.numerator = numerator
     self.denominator = denominator
   }
@@ -133,12 +133,13 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   ///                | SignedInteger
   ///    Numerator   = SignedInteger
   ///    Denominator = SignedInteger
-  public init?(_ str: String, radix: Int = 10) {
+  public init?(from str: String, radix: Int = 10) {
     precondition(radix >= 2, "radix >= 2 required")
-    if let idx = str.characters.indexOf(RATIONAL_SEPARATOR) {
-      let numStr = str.substringToIndex(idx)
-      let denomStr = str.substringFromIndex(idx.successor())
-      if let numVal = Int64(numStr, radix: radix), denomVal = Int64(denomStr, radix: radix) {
+    let chars = str.characters
+    if let idx = chars.index(of: rationalSeparator) {
+      let numStr = str.substring(to: idx)
+      let denomStr = str.substring(from: chars.index(after: idx))
+      if let numVal = Int64(numStr, radix: radix), let denomVal = Int64(denomStr, radix: radix) {
         self.init(T(numVal.toIntMax()), T(denomVal.toIntMax()))
       } else {
         return nil
@@ -172,11 +173,11 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   /// Returns a string representation of this `Rational<T>` number using base 10.
   public var description: String {
     return denominator == 1 ? numerator.description
-      : numerator.description + String(RATIONAL_SEPARATOR) + denominator.description
+      : numerator.description + String(rationalSeparator) + denominator.description
   }
   
   /// Compute the greatest common divisor for `x` and `y`.
-  public static func gcd(x: T, _ y: T) -> T {
+  public static func gcd(_ x: T, _ y: T) -> T {
     var (x, y, rest) = (x, y, x % y)
     while rest > 0 {
       x = y
@@ -187,7 +188,7 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   }
   
   /// Compute the least common multiplier of `x` and `y`.
-  public static func lcm(x: T, _ y: T) -> T {
+  public static func lcm(_ x: T, _ y: T) -> T {
     var abs = x * y
     if abs < 0 {
       abs = -abs
@@ -197,7 +198,7 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   
   /// Determine the smallest common denominator between `self` and `other` and return
   /// the corresponding numerators and the common denominator.
-  private func commonDenomWith(other: Rational<T>) -> (num1: T, num2: T, denom: T) {
+  fileprivate func commonDenomWith(_ other: Rational<T>) -> (num1: T, num2: T, denom: T) {
     let div = Rational.gcd(self.denominator, other.denominator)
     let t1 = self.denominator / div
     let t2 = other.denominator / div
@@ -232,63 +233,82 @@ public struct Rational<T: SignedIntegerType>: RationalType,
   /// Returns -1 if `self` is less than `rhs`,
   ///          0 if `self` is equals to `rhs`,
   ///         +1 if `self` is greater than `rhs`
-  public func compareTo(rhs: Rational<T>) -> Int {
+  public func compare(to rhs: Rational<T>) -> Int {
     let (n1, n2, _) = self.commonDenomWith(rhs)
     return n1 == n2 ? 0 : (n1 < n2 ? -1 : 1)
   }
   
   /// Returns the sum of this rational value and `rhs`.
-  public func plus(rhs: Rational<T>) -> Rational<T> {
+  public func plus(_ rhs: Rational<T>) -> Rational<T> {
     let (n1, n2, denom) = self.commonDenomWith(rhs)
     return Rational(n1 + n2, denom)
   }
   
   /// Returns the difference between this rational value and `rhs`.
-  public func minus(rhs: Rational<T>) -> Rational<T> {
+  public func minus(_ rhs: Rational<T>) -> Rational<T> {
     let (n1, n2, denom) = self.commonDenomWith(rhs)
     return Rational(n1 - n2, denom)
   }
   
   /// Multiplies this rational value with `rhs` and returns the result.
-  public func times(rhs: Rational<T>) -> Rational<T> {
+  public func times(_ rhs: Rational<T>) -> Rational<T> {
     return Rational(self.numerator * rhs.numerator, self.denominator * rhs.denominator)
   }
   
   /// Divides this rational value by `rhs` and returns the result.
-  public func dividedBy(rhs: Rational<T>) -> Rational<T> {
+  public func divided(by rhs: Rational<T>) -> Rational<T> {
     return Rational(self.numerator * rhs.denominator, self.denominator * rhs.numerator)
   }
   
   /// Raises this rational value to the power of `exp`.
-  public func toPowerOf(exp: T) -> Rational<T> {
+  public func toPower(of exp: T) -> Rational<T> {
     return Rational(pow(numerator, exp), pow(denominator, exp))
   }
   
   /// Returns the greatest common denominator for the two given rational numbers
-  public static func gcd(x: Rational<T>, _ y: Rational<T>) -> Rational<T> {
+  public static func gcd(_ x: Rational<T>, _ y: Rational<T>) -> Rational<T> {
     return Rational(Rational.gcd(x.numerator, y.numerator),
                     Rational.lcm(x.denominator, y.denominator))
   }
   
   /// Returns the least common multiplier for the two given rational numbers
-  public static func lcm(x: Rational<T>, _ y: Rational<T>) -> Rational<T> {
+  public static func lcm(_ x: Rational<T>, _ y: Rational<T>) -> Rational<T> {
     let (xn, yn, denom) = x.commonDenomWith(y)
     return Rational(Rational.lcm(xn, yn), denom)
   }
 }
 
-/// This extension provides static functions for basic arithmetic operations which keep
-/// track of overflows.
-extension Rational {
+
+/// This extension implements the boilerplate to make `Rational` compatible
+/// to the applicable Swift 3 protocols. `Rational` is convertible from Strings and
+/// implements basic arithmetic operations which keep track of overflows.
+extension Rational: ExpressibleByStringLiteral {
+
+  public init(stringLiteral value: String) {
+    if let rat = Rational(from: value) {
+      self.init(numerator: rat.numerator, denominator: rat.denominator)
+    } else {
+      self.init(0)
+    }
+  }
+  
+  public init(extendedGraphemeClusterLiteral value: String) {
+    self.init(stringLiteral: value)
+  }
+  
+  public init(unicodeScalarLiteral value: String) {
+    self.init(stringLiteral: value)
+  }
   
   /// Compute absolute number of `num` and return a tuple consisting of the result and a
   /// boolean indicating whether there was an overflow.
-  private static func absWithOverflow(num: T) -> (T, Bool) {
+  fileprivate static func absWithOverflow(_ num: T) -> (T, Bool) {
     return num < 0 ? T.subtractWithOverflow(0, num) : (num, false)
   }
   
   /// Creates a rational number from a numerator and a denominator.
-  public static func rationalWithOverflow(numerator: T, _ denominator: T) -> (Rational<T>, Bool) {
+  public static func rationalWithOverflow(_ numerator: T, _ denominator: T)
+                                      -> (Rational<T>, Bool) {
     guard denominator != 0 else {
       return (Rational(0), true)
     }
@@ -305,8 +325,8 @@ extension Rational {
   
   /// Compute the smalles common denominator of `this` and `that` and return it together
   /// with the corresponding numerators.
-  private static func commonDenomWithOverflow(this: Rational<T>, _ that: Rational<T>)
-                                          -> (num1: T, num2: T, denom: T, overflow: Bool) {
+  fileprivate static func commonDenomWithOverflow(_ this: Rational<T>, _ that: Rational<T>)
+                                              -> (num1: T, num2: T, denom: T, overflow: Bool) {
     let div = Rational.gcd(this.denominator, that.denominator)
     let t1 = this.denominator / div
     let t2 = that.denominator / div
@@ -319,7 +339,7 @@ extension Rational {
   
   /// Add `lhs` and `rhs` and return a tuple consisting of the result and a boolean which
   /// indicates whether there was an overflow.
-  public static func addWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+  public static func addWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
                                  -> (Rational<T>, Bool) {
     let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(lhs, rhs)
     let (numer, overflow2) = T.addWithOverflow(n1, n2)
@@ -329,7 +349,7 @@ extension Rational {
   
   /// Subtract `rhs` from `lhs` and return a tuple consisting of the result and a boolean which
   /// indicates whether there was an overflow.
-  public static func subtractWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+  public static func subtractWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
                                       -> (Rational<T>, Bool) {
     let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(lhs, rhs)
     let (numer, overflow2) = T.subtractWithOverflow(n1, n2)
@@ -339,7 +359,7 @@ extension Rational {
   
   /// Multiply `lhs` and `rhs` and return a tuple consisting of the result and a boolean which
   /// indicates whether there was an overflow.
-  public static func multiplyWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+  public static func multiplyWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
                                       -> (Rational<T>, Bool) {
     let (numer, overflow1) = T.multiplyWithOverflow(lhs.numerator, rhs.numerator)
     let (denom, overflow2) = T.multiplyWithOverflow(lhs.denominator, rhs.denominator)
@@ -349,7 +369,7 @@ extension Rational {
   
   /// Divide `lhs` by `rhs` and return a tuple consisting of the result and a boolean which
   /// indicates whether there was an overflow.
-  public static func divideWithOverflow(lhs: Rational<T>, _ rhs: Rational<T>)
+  public static func divideWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
                                     -> (Rational<T>, Bool) {
     let (numer, overflow1) = T.multiplyWithOverflow(lhs.numerator, rhs.denominator)
     let (denom, overflow2) = T.multiplyWithOverflow(lhs.denominator, rhs.numerator)
@@ -358,7 +378,7 @@ extension Rational {
   }
   
   /// Compute the greatest common divisor for `x` and `y`.
-  public static func gcdWithOverflow(x: T, _ y: T) -> (T, Bool) {
+  public static func gcdWithOverflow(_ x: T, _ y: T) -> (T, Bool) {
     var (x, y, (rest, overflow)) = (x, y, T.remainderWithOverflow(x, y))
     while rest > 0 {
       x = y
@@ -371,7 +391,7 @@ extension Rational {
   }
   
   /// Compute the least common multiplier of `x` and `y`.
-  public static func lcmWithOverflow(x: T, _ y: T) -> (T, Bool) {
+  public static func lcmWithOverflow(_ x: T, _ y: T) -> (T, Bool) {
     let (abs, overflow1) = T.multiplyWithOverflow(x, y)
     let (gcd, overflow2) = Rational.gcdWithOverflow(x, y)
     return ((abs < 0 ? -abs : abs) / gcd, overflow1 || overflow2)
@@ -379,7 +399,7 @@ extension Rational {
   
   /// Returns the greatest common denominator for the two given rational numbers and a boolean
   /// which indicates whether there was an overflow.
-  public static func gcdWithOverflow(x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
+  public static func gcdWithOverflow(_ x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
     let (numer, overflow1) = Rational.gcdWithOverflow(x.numerator, y.numerator)
     let (denom, overflow2) = Rational.lcmWithOverflow(x.denominator, y.denominator)
     return (Rational(numer, denom), overflow1 || overflow2)
@@ -387,7 +407,7 @@ extension Rational {
   
   /// Returns the least common multiplier for the two given rational numbers and a boolean
   /// which indicates whether there was an overflow.
-  public static func lcmWithOverflow(x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
+  public static func lcmWithOverflow(_ x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
     let (xn, yn, denom, overflow1) = Rational.commonDenomWithOverflow(x, y)
     let (numer, overflow2) = Rational.lcmWithOverflow(xn, yn)
     return (Rational(numer, denom), overflow1 || overflow2)
@@ -396,91 +416,91 @@ extension Rational {
 
 
 /// Negates `num`.
-public prefix func - <R: RationalType>(num: R) -> R {
+public prefix func - <R: RationalNumber>(num: R) -> R {
   return num.negate
 }
 
 /// Returns the sum of `lhs` and `rhs`.
-public func + <R: RationalType>(lhs: R, rhs: R) -> R {
+public func + <R: RationalNumber>(lhs: R, rhs: R) -> R {
   return lhs.plus(rhs)
 }
 
 /// Returns the difference between `lhs` and `rhs`.
-public func - <R: RationalType>(lhs: R, rhs: R) -> R {
+public func - <R: RationalNumber>(lhs: R, rhs: R) -> R {
   return lhs.minus(rhs)
 }
 
 /// Multiplies `lhs` with `rhs` and returns the result.
-public func * <R: RationalType>(lhs: R, rhs: R) -> R {
+public func * <R: RationalNumber>(lhs: R, rhs: R) -> R {
   return lhs.times(rhs)
 }
 
 /// Divides `lhs` by `rhs` and returns the result.
-public func / <R: RationalType>(lhs: R, rhs: R) -> R {
-  return lhs.dividedBy(rhs)
+public func / <R: RationalNumber>(lhs: R, rhs: R) -> R {
+  return lhs.divided(by: rhs)
 }
 
 /// Divides `lhs` by `rhs` and returns the result.
-public func / <T: SignedIntegerType>(lhs: T, rhs: T) -> Rational<T> {
+public func / <T: SignedInteger>(lhs: T, rhs: T) -> Rational<T> {
   return Rational(lhs, rhs)
 }
 
 /// Raises rational value `lhs` to the power of `exp`.
-public func ** <R: RationalType>(lhs: R, exp: R.Integer) -> R {
-  return lhs.toPowerOf(exp)
+public func ** <R: RationalNumber>(lhs: R, exp: R.Integer) -> R {
+  return lhs.toPower(of: exp)
 }
 
 /// Assigns `lhs` the sum of `lhs` and `rhs`.
-public func += <R: RationalType>(inout lhs: R, rhs: R) {
+public func += <R: RationalNumber>(lhs: inout R, rhs: R) {
   lhs = lhs.plus(rhs)
 }
 
 /// Assigns `lhs` the difference between `lhs` and `rhs`.
-public func -= <R: RationalType>(inout lhs: R, rhs: R) {
+public func -= <R: RationalNumber>(lhs: inout R, rhs: R) {
   lhs = lhs.minus(rhs)
 }
 
 /// Assigns `lhs` the result of multiplying `lhs` with `rhs`.
-public func *= <R: RationalType>(inout lhs: R, rhs: R) {
+public func *= <R: RationalNumber>(lhs: inout R, rhs: R) {
   lhs = lhs.times(rhs)
 }
 
 /// Assigns `lhs` the result of dividing `lhs` by `rhs`.
-public func /= <R: RationalType>(inout lhs: R, rhs: R) {
-  lhs = lhs.dividedBy(rhs)
+public func /= <R: RationalNumber>(lhs: inout R, rhs: R) {
+  lhs = lhs.divided(by: rhs)
 }
 
 /// Assigns `lhs` the result of raising rational value `lhs` to the power of `exp`.
-public func **= <R: RationalType>(inout lhs: R, exp: R.Integer) {
-  lhs = lhs.toPowerOf(exp)
+public func **= <R: RationalNumber>(lhs: inout R, exp: R.Integer) {
+  lhs = lhs.toPower(of: exp)
 }
 
 /// Returns true if `lhs` is less than `rhs`, false otherwise.
-public func < <R: RationalType>(lhs: R, rhs: R) -> Bool {
-  return lhs.compareTo(rhs) < 0
+public func < <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
+  return lhs.compare(to: rhs) < 0
 }
 
 /// Returns true if `lhs` is less than or equals `rhs`, false otherwise.
-public func <= <R: RationalType>(lhs: R, rhs: R) -> Bool {
-  return lhs.compareTo(rhs) <= 0
+public func <= <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
+  return lhs.compare(to: rhs) <= 0
 }
 
 /// Returns true if `lhs` is greater or equals `rhs`, false otherwise.
-public func >= <R: RationalType>(lhs: R, rhs: R) -> Bool {
-  return lhs.compareTo(rhs) >= 0
+public func >= <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
+  return lhs.compare(to: rhs) >= 0
 }
 
 /// Returns true if `lhs` is greater than equals `rhs`, false otherwise.
-public func > <R: RationalType>(lhs: R, rhs: R) -> Bool {
-  return lhs.compareTo(rhs) > 0
+public func > <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
+  return lhs.compare(to: rhs) > 0
 }
 
 /// Returns true if `lhs` is equals `rhs`, false otherwise.
-public func == <R: RationalType>(lhs: R, rhs: R) -> Bool {
-  return lhs.compareTo(rhs) == 0
+public func == <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
+  return lhs.compare(to: rhs) == 0
 }
 
 /// Returns true if `lhs` is not equals `rhs`, false otherwise.
-public func != <R: RationalType>(lhs: R, rhs: R) -> Bool {
-  return lhs.compareTo(rhs) != 0
+public func != <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
+  return lhs.compare(to: rhs) != 0
 }
