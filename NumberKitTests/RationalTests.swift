@@ -35,14 +35,14 @@ class RationalTests: XCTestCase {
     XCTAssert(r2.numerator == 43 && r2.denominator == 7)
     let r3 = Rational(19 * 3 * 5 * 7, 2 * 5 * 7)
     XCTAssert(r3.numerator == 19 * 3 && r3.denominator == 2)
-    let r4: Rational<Int>? = Rational("172346/254")
+    let r4: Rational<Int>? = Rational(from: "172346/254")
     if let r4u = r4 {
       XCTAssertEqual(r4u.numerator, 86173)
       XCTAssertEqual(r4u.denominator, 127)
     } else {
       XCTFail("cannot parse r4 string")
     }
-    let r5: Rational<Int>? = Rational("-128/64")
+    let r5: Rational<Int>? = Rational(from: "-128/64")
     if let r5u = r5 {
       XCTAssertEqual(r5u.numerator, -2)
       XCTAssertEqual(r5u.denominator, 1)
@@ -58,7 +58,7 @@ class RationalTests: XCTestCase {
     XCTAssert(r2 == 367)
     let r3: Rational<Int> = (458200/50).plus(3440/17)
     XCTAssert(r3 == 159228/17)
-    let x = BigInt(458200)/BigInt(50)
+    let x = Rational(BigInt(458200)/BigInt(50))
     let r4: Rational<BigInt> = x.plus(BigInt(3440)/BigInt(17))
     XCTAssert(r4 == BigInt(159228)/BigInt(17))
   }
@@ -82,7 +82,7 @@ class RationalTests: XCTestCase {
   }
   
   func testDividedBy() {
-    let r1 = Rational(10, -3).dividedBy(-31/49)
+    let r1 = Rational(10, -3).divided(by: -31/49)
     XCTAssertEqual(r1, Rational(10 * 49, 3 * 31))
   }
 }

@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 12/08/2015.
-//  Copyright © 2015 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2016 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -21,18 +21,16 @@
 
 // Provide power function for all integers
 
-infix operator ** {
-  associativity left
-  precedence 155
+precedencegroup ExponentiativePrecedence {
+  associativity: left
+  higherThan: MultiplicationPrecedence
 }
 
-infix operator **= {
-  associativity right
-  precedence 90
-  assignment
-}
+infix operator ** : ExponentiativePrecedence
+infix operator **= : AssignmentPrecedence
 
-func pow<T: IntegerType>(base: T, _ exp: T) -> T {
+
+func pow<T: Integer>(_ base: T, _ exp: T) -> T {
   precondition(exp >= 0, "pow(base, exp) with negative exp")
   var (expo, radix) = (exp, base)
   var res: T = 1
@@ -47,21 +45,21 @@ func pow<T: IntegerType>(base: T, _ exp: T) -> T {
 }
 
 /// Implements power function for all integer types.
-public func ** <T: IntegerType>(lhs: T, rhs: T) -> T {
+public func ** <T: Integer>(_ lhs: T, _ rhs: T) -> T {
   return pow(lhs, rhs)
 }
 
 /// Implements power-assignment function for all integer types.
-public func **= <T: IntegerType>(inout lhs: T, rhs: T) {
+public func **= <T: Integer>(_ lhs: inout T, _ rhs: T) {
   lhs = pow(lhs, rhs)
 }
 
 /// Implements minimum function for all integer types.
-public func min<T: IntegerType>(fst: T, _ snd: T) -> T {
+public func min<T: Integer>(_ fst: T, _ snd: T) -> T {
   return fst < snd ? fst : snd
 }
 
 /// Implements maximum function for all integer types.
-public func max<T: IntegerType>(fst: T, _ snd: T) -> T {
+public func max<T: Integer>(_ fst: T, _ snd: T) -> T {
   return fst > snd ? fst : snd
 }
