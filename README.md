@@ -15,7 +15,7 @@ The current version implements three new numeric types:
   2. `Rational`: signed rational numbers
   3. `Complex`: complex floating-point numbers
 
-**Requirements**: Xcode 8-beta, Swift 3.0
+**Requirements**: Xcode 8.0, Swift 3.0
 
 
 ## BigInt
