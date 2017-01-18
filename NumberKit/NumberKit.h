@@ -26,6 +26,7 @@ FOUNDATION_EXPORT double NumberKitVersionNumber;
 //! Project version string for NumberKit.
 FOUNDATION_EXPORT const unsigned char NumberKitVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <NumberKit/PublicHeader.h>
+// In this header, you should import all the public headers of your framework using
+// statements like #import <NumberKit/PublicHeader.h>
 
 

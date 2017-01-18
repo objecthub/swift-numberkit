@@ -198,7 +198,7 @@ public struct Rational<T: SignedInteger>: RationalNumber,
   
   /// Determine the smallest common denominator between `self` and `other` and return
   /// the corresponding numerators and the common denominator.
-  fileprivate func commonDenomWith(_ other: Rational<T>) -> (num1: T, num2: T, denom: T) {
+  private func commonDenomWith(_ other: Rational<T>) -> (num1: T, num2: T, denom: T) {
     let div = Rational.gcd(self.denominator, other.denominator)
     let t1 = self.denominator / div
     let t2 = other.denominator / div
@@ -302,7 +302,7 @@ extension Rational: ExpressibleByStringLiteral {
   
   /// Compute absolute number of `num` and return a tuple consisting of the result and a
   /// boolean indicating whether there was an overflow.
-  fileprivate static func absWithOverflow(_ num: T) -> (T, Bool) {
+  private static func absWithOverflow(_ num: T) -> (T, Bool) {
     return num < 0 ? T.subtractWithOverflow(0, num) : (num, false)
   }
   
@@ -325,7 +325,7 @@ extension Rational: ExpressibleByStringLiteral {
   
   /// Compute the smalles common denominator of `this` and `that` and return it together
   /// with the corresponding numerators.
-  fileprivate static func commonDenomWithOverflow(_ this: Rational<T>, _ that: Rational<T>)
+  private static func commonDenomWithOverflow(_ this: Rational<T>, _ that: Rational<T>)
                                               -> (num1: T, num2: T, denom: T, overflow: Bool) {
     let div = Rational.gcd(this.denominator, that.denominator)
     let t1 = this.denominator / div
