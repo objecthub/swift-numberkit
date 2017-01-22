@@ -1,21 +1,22 @@
 # Swift NumberKit
 
 <p>
-<a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-OS X-blue.svg?style=flat" alt="Platform: OS X" /></a>
-<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%203.0-green.svg?style=flat" alt="Language: Swift 3" /></a>
+<a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-macOS-blue.svg?style=flat" alt="Platform: macOS" /></a>
+<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%203.0-green.svg?style=flat" alt="Language: Swift 3.0" /></a>
+<a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%208.2-orange.svg?style=flat" alt="IDE: Xcode 8.2" /></a>
 <a href="https://raw.githubusercontent.com/objecthub/swift-lispkit/master/LICENSE"><img src="http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License: Apache" /></a>
 </p>
 
 ## Overview
 
-This is a library providing advanced numeric data types for the Swift 3 programming language.
-The current version implements three new numeric types:
+This is a macOS framework implementing advanced numeric data types for the Swift 3 programming
+language. The current version provides three new numeric types:
 
   1. `BigInt`: arbitrary-precision signed integers
   2. `Rational`: signed rational numbers
   3. `Complex`: complex floating-point numbers
 
-**Requirements**: Xcode 8.0, Swift 3.0
+**Requirements**: Xcode 8.2, Swift 3.0
 
 
 ## BigInt

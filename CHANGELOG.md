@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.5 (2016-09-03)
-- Migrated library to Xcode 8-beta, Swift 3.0
+- Migrated library to Xcode 8.0, Swift 3.0
 - Renamed protocols to match the Swift 3 style guidelines
 - Simplified a few implementations, making use of new Swift 3 APIs
 
