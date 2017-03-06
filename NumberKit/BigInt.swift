@@ -560,6 +560,9 @@ public struct BigInt: Hashable,
   /// Computes the square root; this is the largest `BigInt` value `x` such that `x * x` is
   /// smaller than `self`.
   public var sqrt: BigInt {
+    guard !self.isNegative else {
+      preconditionFailure("cannot compute square root of negative number")
+    }
     guard !self.isZero && !self.isOne else {
       return self
     }

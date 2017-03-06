@@ -85,6 +85,15 @@ class BigIntTests: XCTestCase {
     XCTAssert((x3 / (x3.times(10))) == BigInt(0))
   }
   
+  func testSqrt() {
+    let x1: BigInt = "987248974087420857240857208746297469247698798798798700"
+    XCTAssert(x1.sqrt == "993604032845791572092520365")
+    let x2: BigInt = "785035630596835096835069835069385609358603956830596835096835069835608390000"
+    XCTAssert(x2.sqrt == "28018487300295765553963049921800641599")
+    let x3: BigInt = "1000000000000"
+    XCTAssert(x3.sqrt == "1000000")
+  }
+  
   func testDescription() {
     let x1s = "1234"
     let x1n = BigInt(stringLiteral: x1s)
