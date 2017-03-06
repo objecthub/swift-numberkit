@@ -353,7 +353,12 @@ public struct BigInt: Hashable,
   
   /// Returns true if this `BigInt` represents zero.
   public var isZero: Bool {
-    return words.count == 1 && words[0] == 0
+    return self.words.count == 1 && self.words[0] == 0
+  }
+  
+  /// Returns true if this `BigInt` represents one.
+  public var isOne: Bool {
+    return self.words.count == 1 && self.words[0] == 1 && !self.negative
   }
   
   /// Returns a `BigInt` with swapped sign.
@@ -550,6 +555,22 @@ public struct BigInt: Hashable,
   /// Raises this `BigInt` value to the radixPow of `exp`.
   public func toPowerOf(_ exp: BigInt) -> BigInt {
     return pow(exp, self)
+  }
+  
+  /// Computes the square root; this is the largest `BigInt` value `x` such that `x * x` is
+  /// smaller than `self`.
+  public var sqrt: BigInt {
+    guard !self.isZero && !self.isOne else {
+      return self
+    }
+    let two = BigInt(2)
+    var y = self / two
+    var x = self / y
+    while y > x {
+      y = (x + y) / two
+      x = self / y
+    }
+    return y
   }
   
   /// Computes the bitwise `and` between this value and `rhs`.
