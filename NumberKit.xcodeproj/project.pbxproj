@@ -45,6 +45,7 @@
 		CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NumberUtilTests.swift; sourceTree = "<group>"; };
 		CC99F5711B7AB5E600355E1E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CC99F5721B7AB66E00355E1E /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		CCB691501EB7710700B32D55 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
 		CCE9DD301B8BB4A600340DD1 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -73,6 +74,7 @@
 				CC99F5711B7AB5E600355E1E /* README.md */,
 				CCE9DD301B8BB4A600340DD1 /* CHANGELOG.md */,
 				CC99F5721B7AB66E00355E1E /* LICENSE */,
+				CCB691501EB7710700B32D55 /* Package.swift */,
 				CC99F5511B7AA6E200355E1E /* NumberKit */,
 				CC99F55D1B7AA6E200355E1E /* NumberKitTests */,
 				CC99F5501B7AA6E200355E1E /* Products */,
@@ -102,7 +104,7 @@
 			);
 			indentWidth = 2;
 			name = NumberKit;
-			path = Sources;
+			path = Sources/NumberKit;
 			sourceTree = "<group>";
 			tabWidth = 2;
 		};
@@ -359,7 +361,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/NumberKit/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
@@ -380,7 +382,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/NumberKit/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
