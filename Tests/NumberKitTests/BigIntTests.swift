@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 11/08/2015.
-//  Copyright © 2015 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2017 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ class BigIntTests: XCTestCase {
     XCTAssert(BigInt(Int32.max / 3).intValue == Int64(Int32.max / 3))
     XCTAssert(BigInt(Int64(Int32.max) * 3).intValue == Int64(Int32.max) * 3)
     XCTAssert(BigInt(Int64(Int32.max) * Int64(Int32.max - 17)).intValue ==
-      Int64(Int32.max) * Int64(Int32.max - 17))
+              Int64(Int32.max) * Int64(Int32.max - 17))
     XCTAssert(BigInt(Int64(Int32.max) * Int64(Int32.max - 17)).uintValue ==
-      UInt64(Int32.max) * UInt64(Int32.max - 17))
+              UInt64(Int32.max) * UInt64(Int32.max - 17))
   }
   
   func testPlus() {

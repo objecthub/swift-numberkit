@@ -77,7 +77,9 @@
 				CC99F55D1B7AA6E200355E1E /* NumberKitTests */,
 				CC99F5501B7AA6E200355E1E /* Products */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
+			tabWidth = 2;
 		};
 		CC99F5501B7AA6E200355E1E /* Products */ = {
 			isa = PBXGroup;
@@ -98,8 +100,11 @@
 				CC0741561B81269200406A43 /* Rational.swift */,
 				CC0741581B8127B600406A43 /* Complex.swift */,
 			);
-			path = NumberKit;
+			indentWidth = 2;
+			name = NumberKit;
+			path = Sources;
 			sourceTree = "<group>";
+			tabWidth = 2;
 		};
 		CC99F55D1B7AA6E200355E1E /* NumberKitTests */ = {
 			isa = PBXGroup;
@@ -110,8 +115,11 @@
 				CC07415A1B813A0600406A43 /* RationalTests.swift */,
 				CC07415C1B813B0300406A43 /* ComplexTests.swift */,
 			);
-			path = NumberKitTests;
+			indentWidth = 2;
+			name = NumberKitTests;
+			path = Tests/NumberKitTests;
 			sourceTree = "<group>";
+			tabWidth = 2;
 		};
 /* End PBXGroup section */
 
@@ -351,7 +359,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = NumberKit/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
@@ -372,7 +380,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
-				INFOPLIST_FILE = NumberKit/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Sources/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
@@ -386,7 +394,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = NumberKitTests/Info.plist;
+				INFOPLIST_FILE = Tests/NumberKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -398,7 +406,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = NumberKitTests/Info.plist;
+				INFOPLIST_FILE = Tests/NumberKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKitTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

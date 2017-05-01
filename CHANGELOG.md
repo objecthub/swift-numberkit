@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 1.6 (2017-05-01)
+- Refactored directory structure
+- Support for Swift Package Manager
+
 ## 1.5 (2016-09-03)
 - Migrated library to Xcode 8.0, Swift 3.0
 - Renamed protocols to match the Swift 3 style guidelines
