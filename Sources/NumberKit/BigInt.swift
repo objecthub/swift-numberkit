@@ -136,15 +136,29 @@ public struct BigInt: Hashable,
   
   private static let int64Max = UInt64(Int64.max)
   
-  /// Creates a `BigInt` from the given `UInt64` value
+  /// Initializes a `BigInt` from the given `UInt64` value
   public init(_ value: UInt64) {
     self.init(words: [BigInt.loword(value), BigInt.hiword(value)], negative: false)
   }
   
-  /// Creates a `BigInt` from the given `Int64` value
+  /// Initializes a `BigInt` from the given `Int64` value
   public init(_ value: Int64) {
     let absvalue = value == Int64.min ? BigInt.int64Max + 1 : UInt64(value < 0 ? -value : value)
     self.init(words: [BigInt.loword(absvalue), BigInt.hiword(absvalue)], negative: value < 0)
+  }
+  
+  /// Initializes a `BigInt` from the given `Double` value
+  public init(_ value: Double) {
+    if value > -1.0 && value < 1.0 {
+      self.init(words: [BigInt.loword(0), BigInt.hiword(0)], negative: value < 0.0)
+    } else if value > -Double(UInt64.max) && value < Double(UInt64.max) {
+      let absvalue = UInt64(value < 0 ? -value : value)
+      self.init(words: [BigInt.loword(absvalue), BigInt.hiword(absvalue)], negative: value < 0.0)
+    } else {
+      let x = BigInt(UInt64(value.significand * pow(2.0, 63.0)))
+      let y = x * BigInt(2).toPowerOf(BigInt(value.exponent - 63))
+      self.init(words: y.words, negative: value < 0.0)
+    }
   }
   
   /// Creates a `BigInt` from a sequence of digits for a given base. The first digit in the
@@ -554,7 +568,7 @@ public struct BigInt: Hashable,
   
   /// Raises this `BigInt` value to the radixPow of `exp`.
   public func toPowerOf(_ exp: BigInt) -> BigInt {
-    return pow(exp, self)
+    return pow(self, exp)
   }
   
   /// Computes the square root; this is the largest `BigInt` value `x` such that `x * x` is

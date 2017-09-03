@@ -94,6 +94,28 @@ class BigIntTests: XCTestCase {
     XCTAssert(x3.sqrt == "1000000")
   }
   
+  func testPowerOf() {
+    let x1: BigInt = "84570248572048572408572048572048"
+    let y1 = x1 * x1 * x1 * x1
+    XCTAssert(x1.toPowerOf(BigInt(4)) == y1)
+  }
+  
+  func testDoubleConversion() {
+    let x1: Double = 34134342324888777666555444333.1343141341341 * 10000000000000000.0
+    let y1 = BigInt(x1)
+    XCTAssert(x1 == y1.doubleValue)
+    let x2: Double = -998877665544332211.123456789 * 10000000000000000.0
+    let y2 = BigInt(x2)
+    XCTAssert(x2 == y2.doubleValue)
+    let x3 = Double(UInt64.max)
+    let y3 = BigInt(x3)
+    XCTAssert(x3 == y3.doubleValue)
+    let x4 = Double(UInt64.max)
+    let y4 = BigInt(x4)
+    let z4 = BigInt(UInt64.max)
+    XCTAssert(y4.doubleValue == z4.doubleValue)
+  }
+  
   func testDescription() {
     let x1s = "1234"
     let x1n = BigInt(stringLiteral: x1s)
