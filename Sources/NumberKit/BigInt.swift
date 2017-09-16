@@ -156,7 +156,7 @@ public struct BigInt: Hashable,
       self.init(words: [BigInt.loword(absvalue), BigInt.hiword(absvalue)], negative: value < 0.0)
     } else {
       let x = BigInt(UInt64(value.significand * pow(2.0, 63.0)))
-      let y = x * BigInt(2).toPowerOf(BigInt(value.exponent - 63))
+      let y = x * BigInt(2).toPower(of: BigInt(value.exponent - 63))
       self.init(words: y.words, negative: value < 0.0)
     }
   }
@@ -525,8 +525,13 @@ public struct BigInt: Hashable,
     return true
   }
   
-  /// Divides `self` by `rhs` and returns the result as a `BigInt`.
+  @available(*, deprecated, renamed: "divided(by:)")
   public func dividedBy(_ rhs: BigInt) -> (quotient: BigInt, remainder: BigInt) {
+    return self.divided(by: rhs)
+  }
+  
+  /// Divides `self` by `rhs` and returns the result as a `BigInt`.
+  public func divided(by rhs: BigInt) -> (quotient: BigInt, remainder: BigInt) {
     guard rhs.words.count <= self.words.count else {
       return (BigInt(0), self.abs)
     }
@@ -566,8 +571,13 @@ public struct BigInt: Hashable,
     return (BigInt(words: res, negative: neg), BigInt(words: rem, negative: self.negative))
   }
   
-  /// Raises this `BigInt` value to the radixPow of `exp`.
+  @available(*, deprecated, renamed: "toPower(of:)")
   public func toPowerOf(_ exp: BigInt) -> BigInt {
+    return self.toPower(of: exp)
+  }
+  
+  /// Raises this `BigInt` value to the radixPow of `exp`.
+  public func toPower(of exp: BigInt) -> BigInt {
     return pow(self, exp)
   }
   
@@ -720,12 +730,12 @@ extension BigInt: ExpressibleByIntegerLiteral,
   }
   
   public static func divideWithOverflow(_ lhs: BigInt, _ rhs: BigInt) -> (BigInt, overflow: Bool) {
-    let res = lhs.dividedBy(rhs)
+    let res = lhs.divided(by: rhs)
     return (res.quotient, overflow: false)
   }
   
   public static func remainderWithOverflow(_ lhs: BigInt, _ rhs: BigInt) -> (BigInt, overflow: Bool) {
-    let res = lhs.dividedBy(rhs)
+    let res = lhs.divided(by: rhs)
     return (res.remainder, overflow: false)
   }
   

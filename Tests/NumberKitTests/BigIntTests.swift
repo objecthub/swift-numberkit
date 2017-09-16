@@ -73,12 +73,12 @@ class BigIntTests: XCTestCase {
   func testDividedBy() {
     let x1: BigInt = "38274945700000001034304000022452452525224002449"
     let x2: BigInt = "1234567890123456789"
-    let r1 = x1.dividedBy(x2)
+    let r1 = x1.divided(by: x2)
     XCTAssert(r1.quotient == "31002706296024357530217920519")
     XCTAssert(r1.remainder == "654242677691048958")
     let x3: BigInt = "3827494570900000103430410002245245252522400244999"
     let x4: BigInt = "12345678901234567892344542545242452245"
-    let r2 = x3.dividedBy(x4)
+    let r2 = x3.divided(by: x4)
     XCTAssert(r2.quotient == "310027063033")
     XCTAssert(r2.remainder == "1772541951990552417813256094292885914")
     XCTAssert((x3 / x3) == BigInt(1))
@@ -97,7 +97,7 @@ class BigIntTests: XCTestCase {
   func testPowerOf() {
     let x1: BigInt = "84570248572048572408572048572048"
     let y1 = x1 * x1 * x1 * x1
-    XCTAssert(x1.toPowerOf(BigInt(4)) == y1)
+    XCTAssert(x1.toPower(of: BigInt(4)) == y1)
   }
   
   func testDoubleConversion() {
