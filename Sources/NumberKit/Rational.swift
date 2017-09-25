@@ -100,7 +100,7 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
 
   /// Sets numerator and denominator without normalization. This function must not be called
   /// outside of the NumberKit framework.
-  fileprivate init(numerator: T, denominator: T) {
+  private init(numerator: T, denominator: T) {
     self.numerator = numerator
     self.denominator = denominator
   }
