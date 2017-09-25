@@ -146,6 +146,34 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x6 >> 5, x6 / 32)
   }
   
+  func testWords() {
+    let x1: BigInt = "39998740587340080087986767562130873870358038157034635280980314708375001"
+    XCTAssertEqual(x1.words, [17444856893563336153,
+                              10071105391305811219,
+                              12534310513326413052,
+                              6372167008517,
+                              0])
+    let x2: BigInt = -x1
+    XCTAssertEqual(x2.words, [1001887180146215463,
+                              8375638682403740396,
+                              5912433560383138563,
+                              18446737701542543098,
+                              18446744073709551615])
+    let x3: BigInt = x1 >> 64
+    XCTAssertEqual(x3.words, [10071105391305811219,
+                              12534310513326413052,
+                              6372167008517,
+                              0])
+    let x4: BigInt = BigInt(UInt.max)
+    XCTAssertEqual(x4.words, [18446744073709551615, 0])
+    let x5: BigInt = -x4
+    XCTAssertEqual(x5.words, [1,18446744073709551615])
+    let x6: BigInt = -x5
+    XCTAssertEqual(x6.words, [18446744073709551615, 0])
+    let x7: BigInt = BigInt(UInt.max) + 1
+    XCTAssertEqual(x7.words, [0, 1, 0])
+  }
+  
   func testDescription() {
     let x1s = "1234"
     let x1n = BigInt(stringLiteral: x1s)

@@ -722,13 +722,17 @@ extension BigInt: IntegerNumber,
   /// This is a signed type
   public static let isSigned: Bool = true
   
-  /// Returns the number of bits used to represent this `BigInt`.
+  /// Returns the number of bits used to represent this `BigInt`. This consists of the
+  /// words for representing the absolute value and one extra bit for representing the sign.
   public var bitWidth: Int {
-    return self.uwords.count * UInt32.bitWidth
+    return (self.uwords.count * UInt32.bitWidth) + 1
   }
   
   /// Returns the number of trailing zero bits in the representation of this `BigInt`.
   public var trailingZeroBitCount: Int {
+    guard !self.isZero else {
+      return self.bitWidth
+    }
     var i = 0
     while i < self.uwords.count && self.uwords[i] == 0 {
       i += 1
@@ -738,9 +742,8 @@ extension BigInt: IntegerNumber,
   }
   
   /// Returns the words in the binary representation of the magnitude of this number in the
-  /// format expected by Swift 4.
-  /// IMPORTANT: This might not return the expected result for negative numbers. Need to
-  /// figure out the exact spec first.
+  /// format expected by Swift 4, i.e. using the two-complement of the representation for
+  /// negative numbers.
   public var words: [UInt] {
     var res = [UInt]()
     res.reserveCapacity((self.uwords.count + 1) / 2)
@@ -751,6 +754,17 @@ extension BigInt: IntegerNumber,
       let next = i == self.uwords.count ? 0 : (UInt(self.uwords[i]) << UInt32.bitWidth)
       i += 1
       res.append(current | next)
+    }
+    res.append(0)
+    if self.negative {
+      var addOne = true
+      for i in res.indices {
+        if addOne {
+          (res[i], addOne) = (~res[i]).addingReportingOverflow(1)
+        } else {
+          res[i] = ~res[i]
+        }
+      }
     }
     return res
   }
@@ -839,7 +853,7 @@ extension BigInt: IntegerNumber,
   }
   
   public init(_ value: UInt) {
-    self.init(Int64(value))
+    self.init(UInt64(value))
   }
   
   public init(_ value: UInt8) {
