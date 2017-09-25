@@ -103,17 +103,47 @@ class BigIntTests: XCTestCase {
   func testDoubleConversion() {
     let x1: Double = 34134342324888777666555444333.1343141341341 * 10000000000000000.0
     let y1 = BigInt(x1)
-    XCTAssert(x1 == y1.doubleValue)
+    XCTAssertEqual(x1, y1.doubleValue)
     let x2: Double = -998877665544332211.123456789 * 10000000000000000.0
     let y2 = BigInt(x2)
-    XCTAssert(x2 == y2.doubleValue)
+    XCTAssertEqual(x2, y2.doubleValue)
     let x3 = Double(UInt64.max)
     let y3 = BigInt(x3)
-    XCTAssert(x3 == y3.doubleValue)
+    XCTAssertEqual(x3, y3.doubleValue)
     let x4 = Double(UInt64.max)
     let y4 = BigInt(x4)
     let z4 = BigInt(UInt64.max)
-    XCTAssert(y4.doubleValue == z4.doubleValue)
+    XCTAssertEqual(y4.doubleValue, z4.doubleValue)
+  }
+  
+  func testFloatConversion() {
+    let x0: Float = 34133.134314134134132
+    let y0 = BigInt(exactly: x0)
+    XCTAssertEqual(y0, nil)
+    let x1: Float = 34134342324888777633.1343141341341 * 1000000000000.0
+    let y1 = BigInt(exactly: x1)
+    XCTAssertEqual(Double(x1), (y1 ?? BigInt.zero).doubleValue)
+    let x2: Float = -998877665544332211.123456789 * 10000000000000000.0
+    let y2 = BigInt(x2)
+    XCTAssertEqual(Double(x2), y2.doubleValue)
+    let x3 = Float(Int64.min)
+    let y3 = BigInt(x3)
+    XCTAssertEqual(Double(x3), y3.doubleValue)
+  }
+  
+  func testShifts() {
+    let x1: BigInt = "987248974087420857"
+    XCTAssertEqual(x1 << 1, x1 * 2)
+    let x2: BigInt = "9872489740874208572408572"
+    XCTAssertEqual(x2 << 1, x2 * 2)
+    let x3: BigInt = "98724897408742085724085724524524524524524522454525245999"
+    XCTAssertEqual(x3 << 9, x3 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2 * 2)
+    let x4: BigInt = "987248974087420857"
+    XCTAssertEqual(x4 >> 1, x4 / 2)
+    let x5: BigInt = "9872489740874208572408572"
+    XCTAssertEqual(x5 >> 1, x5 / 2)
+    let x6: BigInt = "98724897408742085724085724524524524524524522454525245999098037580357603865"
+    XCTAssertEqual(x6 >> 5, x6 / 32)
   }
   
   func testDescription() {

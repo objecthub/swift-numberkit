@@ -674,8 +674,8 @@ public struct BigInt: Hashable,
   }
   
   private func shiftLeft(_ x: Int) -> BigInt {
-    let swords = x / UInt.bitWidth
-    let sbits = x % UInt.bitWidth
+    let swords = x / UInt32.bitWidth
+    let sbits = x % UInt32.bitWidth
     var res = [UInt32]()
     res.reserveCapacity(Int(self.uwords.count) + swords)
     for _ in 0..<swords {
@@ -684,7 +684,7 @@ public struct BigInt: Hashable,
     var carry: UInt32 = 0
     for word in self.uwords {
       res.append((word << sbits) | carry)
-      carry = word >> (UInt.bitWidth - sbits)
+      carry = word >> (UInt32.bitWidth - sbits)
     }
     if carry > 0 {
       res.append(carry)
@@ -693,8 +693,8 @@ public struct BigInt: Hashable,
   }
   
   private func shiftRight(_ x: Int) -> BigInt {
-    let swords = x / UInt.bitWidth
-    let sbits = x % UInt.bitWidth
+    let swords = x / UInt32.bitWidth
+    let sbits = x % UInt32.bitWidth
     var res = [UInt32]()
     res.reserveCapacity(Int(self.uwords.count) - swords)
     var carry: UInt32 = 0
@@ -702,19 +702,20 @@ public struct BigInt: Hashable,
     while i >= swords {
       let word = self.uwords[i]
       res.append((word >> sbits) | carry)
-      carry = word << (UInt.bitWidth - sbits)
+      carry = word << (UInt32.bitWidth - sbits)
       i -= 1
     }
-    return BigInt(words: res, negative: self.negative)
+    return BigInt(words: res.reversed(), negative: self.negative)
   }
 }
 
 
 /// This extension implements all the boilerplate to make `BigInt` compatible
-/// to the applicable Swift 3 protocols. `BigInt` is convertible from integer literals,
+/// to the applicable Swift 4 numeric protocols. `BigInt` is convertible from integer literals,
 /// convertible from Strings, it's a signed number, equatable, comparable, and implements
-/// all integer arithmetic functions.
+/// all signed integer arithmetic functions.
 extension BigInt: IntegerNumber,
+                  SignedInteger,
                   ExpressibleByIntegerLiteral,
                   ExpressibleByStringLiteral {
   
@@ -738,7 +739,8 @@ extension BigInt: IntegerNumber,
   
   /// Returns the words in the binary representation of the magnitude of this number in the
   /// format expected by Swift 4.
-  /// IMPORTANT: This is not returning the expected result for negative numbers.
+  /// IMPORTANT: This might not return the expected result for negative numbers. Need to
+  /// figure out the exact spec first.
   public var words: [UInt] {
     var res = [UInt]()
     res.reserveCapacity((self.uwords.count + 1) / 2)
@@ -772,8 +774,8 @@ extension BigInt: IntegerNumber,
     return BigInt(words: uwords, negative: false)
   }
   
-  /// Generic constructor for all binary integers
-  public init<T>(_ source: T) where T: BinaryInteger {
+  /// Generic constructor for all binary integers.
+  public init<T: BinaryInteger>(_ source: T) {
     if T.isSigned {
       if let value = Int64(exactly: source) {
         self.init(value)
@@ -791,36 +793,50 @@ extension BigInt: IntegerNumber,
     }
   }
   
-  /// Generic constructor for all binary integers
-  public init?<T>(exactly: T) where T: BinaryInteger {
+  /// Generic constructor for all binary integers.
+  public init?<T: BinaryInteger>(exactly: T) {
     self.init(exactly)
   }
   
-  /// Generic constructor for all binary integers
-  public init<T>(clamping: T) where T: BinaryInteger {
+  /// Generic constructor for all binary integers.
+  public init<T: BinaryInteger>(clamping: T) {
     self.init(clamping)
   }
   
-  /// Generic constructor for all binary integers
-  public init<T>(truncatingIfNeeded: T) where T: BinaryInteger {
+  /// Generic constructor for all binary integers.
+  public init<T: BinaryInteger>(truncatingIfNeeded: T) {
     self.init(truncatingIfNeeded)
   }
   
-  /* TODO to make this compatible with BinaryInteger
-  
-  public init<T>(_ value: T) where T: BinaryFloatingPoint {
-    self.init(0)
+  /// Generic constructor for all binary floating point numbers. This may crash for
+  /// floating point numbers representing infinity or NaN.
+  public init<T: BinaryFloatingPoint>(_ source: T) {
+    self.init(exactly: source)!
   }
   
-  public init?<T>(exactly source: T) where T: BinaryFloatingPoint {
-    if let value = Int64(exactly: source) {
-      self.init(value)
-    } else {
+  /// Generic constructor for all binary floating point numbers.
+  public init?<T: BinaryFloatingPoint>(exactly source: T) {
+    guard !source.isNaN && source.isFinite else {
       return nil
     }
+    if source.isZero {
+      self = BigInt.zero
+    } else {
+      var neg = false
+      var value = source
+      if source.sign == .minus {
+        neg = true
+        value = -source
+      }
+      guard value == value.rounded(.towardZero) else {
+        return nil
+      }
+      let significand = value.significandBitPattern
+      let res = (BigInt.one << value.exponent) +
+                BigInt(significand) >> (T.significandBitCount - Int(value.exponent))
+      self = neg ? -res : res
+    }
   }
-  
-  */
   
   public init(_ value: UInt) {
     self.init(Int64(value))
@@ -1010,12 +1026,12 @@ public func ^(lhs: BigInt, rhs: BigInt) -> BigInt {
 }
 
 /// Shifts the bits of `lhs` by `rhs` to the left and returns the result.
-public func << <T>(lhs: BigInt, rhs: T) -> BigInt where T: BinaryInteger {
+public func << <T: BinaryInteger>(lhs: BigInt, rhs: T) -> BigInt {
   return lhs.shift(Int(rhs))
 }
 
 /// Shifts the bits of `lhs` by `rhs` to the right and returns the result.
-public func >> <T>(lhs: BigInt, rhs: T) -> BigInt where T: BinaryInteger {
+public func >> <T: BinaryInteger>(lhs: BigInt, rhs: T) -> BigInt {
   return lhs.shift(-Int(rhs))
 }
 
@@ -1036,12 +1052,12 @@ public func ^=(lhs: inout BigInt, rhs: BigInt) {
 }
 
 /// Shifts the bits of `lhs` by `rhs` to the left and stores the result in `lhs`.
-public func <<=<T>(lhs: inout BigInt, rhs: T) where T: BinaryInteger {
+public func <<=<T: BinaryInteger>(lhs: inout BigInt, rhs: T) {
   lhs = lhs.shift(Int(rhs))
 }
 
 /// Shifts the bits of `lhs` by `rhs` to the right and stores the result in `rhs`.
-public func >>=<T>(lhs: inout BigInt, rhs: T) where T: BinaryInteger {
+public func >>=<T: BinaryInteger>(lhs: inout BigInt, rhs: T) {
   lhs = lhs.shift(-Int(rhs))
 }
 

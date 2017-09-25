@@ -30,7 +30,7 @@ of NumberKit. Adaptations should be straightforward.
 ## BigInt
 
 `BigInt` objects are immutable, signed, arbitrary-precision integers that can be used as a
-drop-in replacement for the existing integer types of Swift 3. Struct `BigInt` defines all
+drop-in replacement for the existing binary integer types of Swift 4. Struct `BigInt` defines all
 the standard arithmetic integer operations and implements the corresponding protocols defined
 in the standard library.
 

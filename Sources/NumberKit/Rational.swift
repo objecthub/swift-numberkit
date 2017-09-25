@@ -127,7 +127,7 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
     self.init(T(value))
   }
   
-  public init?<S>(exactly source: S) where S: BinaryInteger {
+  public init?<S: BinaryInteger>(exactly source: S) {
     if let numerator = T(exactly: source) {
       self.init(numerator)
     } else {
@@ -298,7 +298,7 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
 
 
 /// This extension implements the boilerplate to make `Rational` compatible
-/// to the applicable Swift 3 protocols. `Rational` is convertible from Strings and
+/// to the applicable Swift 4 protocols. `Rational` is convertible from Strings and
 /// implements basic arithmetic operations which keep track of overflows.
 extension Rational: ExpressibleByStringLiteral {
 
