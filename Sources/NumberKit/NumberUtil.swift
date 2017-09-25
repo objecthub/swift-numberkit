@@ -19,8 +19,7 @@
 //
 
 
-// Provide power function for all integers
-
+/// Provide power operator for all integers
 precedencegroup ExponentiativePrecedence {
   associativity: left
   higherThan: MultiplicationPrecedence
@@ -29,37 +28,22 @@ precedencegroup ExponentiativePrecedence {
 infix operator ** : ExponentiativePrecedence
 infix operator **= : AssignmentPrecedence
 
-
-func pow<T: Integer>(_ base: T, _ exp: T) -> T {
-  precondition(exp >= 0, "pow(base, exp) with negative exp")
-  var (expo, radix) = (exp, base)
-  var res: T = 1
-  while expo != 0 {
-    if (expo & 1) != 0 {
-      res *= radix
-    }
-    expo /= 2
-    radix *= radix
-  }
-  return res
-}
-
 /// Implements power function for all integer types.
-public func ** <T: Integer>(_ lhs: T, _ rhs: T) -> T {
-  return pow(lhs, rhs)
+public func ** <T: IntegerNumber>(_ lhs: T, _ rhs: T) -> T {
+  return lhs.toPower(of: rhs)
 }
 
 /// Implements power-assignment function for all integer types.
-public func **= <T: Integer>(_ lhs: inout T, _ rhs: T) {
-  lhs = pow(lhs, rhs)
+public func **= <T: IntegerNumber>(_ lhs: inout T, _ rhs: T) {
+  lhs = lhs.toPower(of: rhs)
 }
 
 /// Implements minimum function for all integer types.
-public func min<T: Integer>(_ fst: T, _ snd: T) -> T {
+public func min<T: IntegerNumber>(_ fst: T, _ snd: T) -> T {
   return fst < snd ? fst : snd
 }
 
 /// Implements maximum function for all integer types.
-public func max<T: Integer>(_ fst: T, _ snd: T) -> T {
+public func max<T: IntegerNumber>(_ fst: T, _ snd: T) -> T {
   return fst > snd ? fst : snd
 }

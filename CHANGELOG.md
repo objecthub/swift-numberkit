@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0 (2017-09-24)
+- Ported NumberKit to Swift 4. This is a major change that might break existing clients.
+- Added support for `toPower(of:)` for all integer types
+- Added new operators to `BigInt`: `<<`, `>>`, `<<=`, `>>=`, `%`, `%=`
+- Introduced new integer protocol: `IntegerNumber`
+- Renamed `FloatNumber` into `FloatingPointNumber`
 
 ## 1.6 (2017-05-01)
 - Refactored directory structure
@@ -11,28 +17,23 @@
 - Simplified a few implementations, making use of new Swift 3 APIs
 
 ## 1.4 (2016-03-28)
-
 - Code now compatible with Xcode 7.3, Swift 2.2
 - Turned `BigInt` into a struct to avoid garbage collection overhead
 
 ## 1.3 (2016-02-09)
-
 - Significant performance improvements to speed up the BigInt/String conversion method
 - Minor feature additions to rational numbers
 - Playground (created by Dan Kogai)
 
 ## 1.2 (2016-01-17)
-
 - Added arithmetic operations to `Rational<T>` which keep track of overflows
 - Simplified implementation of `BigInt`
 - Included new `BigInt` operations, e.g. a computed property for coercions to `Double`
 
 ## 1.1 (2015-10-19)
-
 - Completed implementation of `Complex<T>`
 
 ## 1.0 (2015-08-24)
-
 - Completed implementation of `BigInt`
 - Completed implementation of `Rational<T>`
 - `Complex<T>` still missing a large range of functions and tests

@@ -38,10 +38,10 @@ public struct BigInt: Hashable,
   
   // This is an array of `UInt32` words. The lowest significant word comes first in
   // the array.
-  internal let words: [UInt32]
+  private let uwords: [UInt32]
   
   // `negative` signals whether the number is positive or negative.
-  internal let negative: Bool
+  private let negative: Bool
   
   // All internal computations are based on 32-bit words; the base of this representation
   // is therefore `UInt32.max + 1`.
@@ -130,8 +130,21 @@ public struct BigInt: Hashable,
     while words.count > 1 && words[words.count - 1] == 0 {
       words.removeLast()
     }
-    self.words = words
+    self.uwords = words
     self.negative = words.count == 1 && words[0] == 0 ? false : negative
+  }
+  
+  /// Internal primary constructor. It removes superfluous words and normalizes the
+  /// representation of zero.
+  internal init(words: [UInt], negative: Bool) {
+    var uwords = [UInt32]()
+    uwords.reserveCapacity(words.count * 2)
+    for word in words {
+      let myword = UInt64(word)
+      uwords.append(BigInt.loword(myword))
+      uwords.append(BigInt.hiword(myword))
+    }
+    self.init(words: uwords, negative: negative)
   }
   
   private static let int64Max = UInt64(Int64.max)
@@ -157,7 +170,7 @@ public struct BigInt: Hashable,
     } else {
       let x = BigInt(UInt64(value.significand * pow(2.0, 63.0)))
       let y = x * BigInt(2).toPower(of: BigInt(value.exponent - 63))
-      self.init(words: y.words, negative: value < 0.0)
+      self.init(words: y.uwords, negative: value < 0.0)
     }
   }
   
@@ -239,7 +252,7 @@ public struct BigInt: Hashable,
   /// used as the default base.
   public func toString(base: Base = BigInt.decBase) -> String {
     // Determine base
-    let radix = base.radix
+    let radix = UInt32(base.radix)
     // Shortcut handling of zero
     if isZero {
       return "0"
@@ -247,7 +260,7 @@ public struct BigInt: Hashable,
     var radixPow: UInt32 = 1
     var digits = 0
     while true {
-      let (pow, overflow) = UInt32.multiplyWithOverflow(radixPow, UInt32(radix))
+      let (pow, overflow) = radixPow.multipliedReportingOverflow(by: radix)
       if !overflow || pow == 0 {
         digits += 1
         radixPow = pow
@@ -258,12 +271,12 @@ public struct BigInt: Hashable,
     }
     var res = ""
     if radixPow == 0 {
-      for i in words.indices.dropLast() {
-        BigInt.toString(words[i], prepend: &res, length: digits, base: base)
+      for i in uwords.indices.dropLast() {
+        BigInt.toString(uwords[i], prepend: &res, length: digits, base: base)
       }
-      BigInt.toString(words.last!, prepend: &res, length: 0, base: base)
+      BigInt.toString(uwords.last!, prepend: &res, length: 0, base: base)
     } else {
-      var words = self.words
+      var words = self.uwords
       while words.count > 0 {
         var rem: UInt32 = 0
         for i in words.indices.reversed() {
@@ -302,9 +315,9 @@ public struct BigInt: Hashable,
   
   /// Returns a string representation of this `BigInt` number for debugging purposes.
   public var debugDescription: String {
-    var res = "{\(words.count): \(words[0])"
-    for i in 1..<words.count {
-      res += ", \(words[i])"
+    var res = "{\(uwords.count): \(uwords[0])"
+    for i in 1..<uwords.count {
+      res += ", \(uwords[i])"
     }
     return res + "}"
   }
@@ -312,12 +325,12 @@ public struct BigInt: Hashable,
   /// Returns the `BigInt` as a `Int64` value if this is possible. If the number is outside
   /// the `Int64` range, the property will contain `nil`.
   public var intValue: Int64? {
-    guard words.count <= 2 else {
+    guard uwords.count <= 2 else {
       return nil
     }
-    var value: UInt64 = UInt64(words[0])
-    if words.count == 2 {
-      value += UInt64(words[1]) * BigInt.base
+    var value: UInt64 = UInt64(uwords[0])
+    if uwords.count == 2 {
+      value += UInt64(uwords[1]) * BigInt.base
     }
     if negative && value == BigInt.int64Max + 1 {
       return Int64.min
@@ -331,12 +344,12 @@ public struct BigInt: Hashable,
   /// Returns the `BigInt` as a `UInt64` value if this is possible. If the number is outside
   /// the `UInt64` range, the property will contain `nil`.
   public var uintValue: UInt64? {
-    guard words.count <= 2 && !negative else {
+    guard uwords.count <= 2 && !negative else {
       return nil
     }
-    var value: UInt64 = UInt64(words[0])
-    if words.count == 2 {
-      value += UInt64(words[1]) * BigInt.base
+    var value: UInt64 = UInt64(uwords[0])
+    if uwords.count == 2 {
+      value += UInt64(uwords[1]) * BigInt.base
     }
     return value
   }
@@ -345,7 +358,7 @@ public struct BigInt: Hashable,
   /// precision, but this operation is always possible.
   public var doubleValue: Double {
     var res: Double = 0.0
-    for word in words.reversed() {
+    for word in uwords.reversed() {
       res = res * Double(BigInt.base) + Double(word)
     }
     return self.negative ? -res : res
@@ -354,8 +367,8 @@ public struct BigInt: Hashable,
   /// The hash value of this `BigInt` object.
   public var hashValue: Int {
     var hash: Int = 0
-    for i in 0..<words.count {
-      hash = (31 &* hash) &+ words[i].hashValue
+    for i in 0..<uwords.count {
+      hash = (31 &* hash) &+ uwords[i].hashValue
     }
     return hash
   }
@@ -367,22 +380,22 @@ public struct BigInt: Hashable,
   
   /// Returns true if this `BigInt` represents zero.
   public var isZero: Bool {
-    return self.words.count == 1 && self.words[0] == 0
+    return self.uwords.count == 1 && self.uwords[0] == 0
   }
   
   /// Returns true if this `BigInt` represents one.
   public var isOne: Bool {
-    return self.words.count == 1 && self.words[0] == 1 && !self.negative
+    return self.uwords.count == 1 && self.uwords[0] == 1 && !self.negative
   }
   
   /// Returns a `BigInt` with swapped sign.
   public var negate: BigInt {
-    return BigInt(words: words, negative: !negative)
+    return BigInt(words: uwords, negative: !negative)
   }
   
   /// Returns the absolute value of this `BigInt`.
   public var abs: BigInt {
-    return BigInt(words: words, negative: false)
+    return BigInt(words: uwords, negative: false)
   }
   
   /// Returns -1 if `self` is less than `rhs`,
@@ -396,12 +409,12 @@ public struct BigInt: Hashable,
   }
   
   private func compareDigits(with rhs: BigInt) -> Int {
-    guard words.count == rhs.words.count else {
-      return words.count < rhs.words.count ? -1 : 1
+    guard uwords.count == rhs.uwords.count else {
+      return uwords.count < rhs.uwords.count ? -1 : 1
     }
-    for i in 1...words.count {
-      let a = words[words.count - i]
-      let b = rhs.words[words.count - i]
+    for i in 1...uwords.count {
+      let a = uwords[uwords.count - i]
+      let b = rhs.uwords[uwords.count - i]
       if a != b {
         return a < b ? -1 : 1
       }
@@ -414,18 +427,18 @@ public struct BigInt: Hashable,
     guard self.negative == rhs.negative else {
       return self.minus(rhs.negate)
     }
-    let (b1, b2) = self.words.count < rhs.words.count ? (rhs, self) : (self, rhs)
+    let (b1, b2) = self.uwords.count < rhs.uwords.count ? (rhs, self) : (self, rhs)
     var res = [UInt32]()
-    res.reserveCapacity(b1.words.count)
+    res.reserveCapacity(b1.uwords.count)
     var sum: UInt64 = 0
-    for i in 0..<b2.words.count {
-      sum += UInt64(b1.words[i])
-      sum += UInt64(b2.words[i])
+    for i in 0..<b2.uwords.count {
+      sum += UInt64(b1.uwords[i])
+      sum += UInt64(b2.uwords[i])
       res.append(BigInt.loword(sum))
       sum = UInt64(BigInt.hiword(sum))
     }
-    for i in b2.words.count..<b1.words.count {
-      sum += UInt64(b1.words[i])
+    for i in b2.uwords.count..<b1.uwords.count {
+      sum += UInt64(b1.uwords[i])
       res.append(BigInt.loword(sum))
       sum = UInt64(BigInt.hiword(sum))
     }
@@ -448,21 +461,21 @@ public struct BigInt: Hashable,
     let (b1, b2) = cmp < 0 ? (rhs, self) : (self, rhs)
     var res = [UInt32]()
     var carry: UInt64 = 0
-    for i in 0..<b2.words.count {
-      if UInt64(b1.words[i]) < UInt64(b2.words[i]) + carry {
-        res.append(UInt32(BigInt.base + UInt64(b1.words[i]) - UInt64(b2.words[i]) - carry))
+    for i in 0..<b2.uwords.count {
+      if UInt64(b1.uwords[i]) < UInt64(b2.uwords[i]) + carry {
+        res.append(UInt32(BigInt.base + UInt64(b1.uwords[i]) - UInt64(b2.uwords[i]) - carry))
         carry = 1
       } else {
-        res.append(b1.words[i] - b2.words[i] - UInt32(carry))
+        res.append(b1.uwords[i] - b2.uwords[i] - UInt32(carry))
         carry = 0
       }
     }
-    for i in b2.words.count..<b1.words.count {
-      if b1.words[i] < UInt32(carry) {
+    for i in b2.uwords.count..<b1.uwords.count {
+      if b1.uwords[i] < UInt32(carry) {
         res.append(UInt32.max)
         carry = 1
       } else {
-        res.append(b1.words[i] - UInt32(carry))
+        res.append(b1.uwords[i] - UInt32(carry))
         carry = 0
       }
     }
@@ -471,16 +484,17 @@ public struct BigInt: Hashable,
   
   /// Returns the result of mulitplying `self` with `rhs` as a `BigInt`
   public func times(_ rhs: BigInt) -> BigInt {
-    let (b1, b2) = self.words.count < rhs.words.count ? (rhs, self) : (self, rhs)
-    var res = [UInt32](repeating: 0, count: b1.words.count + b2.words.count)
-    for i in 0..<b2.words.count {
+    let (b1, b2) = self.uwords.count < rhs.uwords.count ? (rhs, self) : (self, rhs)
+    var res = [UInt32](repeating: 0, count: b1.uwords.count + b2.uwords.count)
+    for i in 0..<b2.uwords.count {
       var sum: UInt64 = 0
-      for j in 0..<b1.words.count {
-        sum += UInt64(res[i + j]) + UInt64(b1.words[j]) * UInt64(b2.words[i])
+      for j in 0..<b1.uwords.count {
+        let mult = UInt64(b1.uwords[j]) * UInt64(b2.uwords[i])
+        sum += UInt64(res[i + j]) + mult
         res[i + j] = BigInt.loword(sum)
         sum = UInt64(BigInt.hiword(sum))
       }
-      res[i + b1.words.count] = BigInt.loword(sum)
+      res[i + b1.uwords.count] = BigInt.loword(sum)
     }
     return BigInt(words: res, negative: b1.negative != b2.negative)
   }
@@ -525,18 +539,13 @@ public struct BigInt: Hashable,
     return true
   }
   
-  @available(*, deprecated, renamed: "divided(by:)")
-  public func dividedBy(_ rhs: BigInt) -> (quotient: BigInt, remainder: BigInt) {
-    return self.divided(by: rhs)
-  }
-  
   /// Divides `self` by `rhs` and returns the result as a `BigInt`.
   public func divided(by rhs: BigInt) -> (quotient: BigInt, remainder: BigInt) {
-    guard rhs.words.count <= self.words.count else {
+    guard rhs.uwords.count <= self.uwords.count else {
       return (BigInt(0), self.abs)
     }
     let neg = self.negative != rhs.negative
-    if rhs.words.count == self.words.count {
+    if rhs.uwords.count == self.uwords.count {
       let cmp = compare(to: rhs)
       if cmp == 0 {
         return (BigInt(neg ? -1 : 1), BigInt(0))
@@ -544,12 +553,12 @@ public struct BigInt: Hashable,
         return (BigInt(0), self.abs)
       }
     }
-    var rem = [UInt32](self.words)
+    var rem = [UInt32](self.uwords)
     rem.append(0)
-    var divis = [UInt32](rhs.words)
+    var divis = [UInt32](rhs.uwords)
     divis.append(0)
-    var sizediff = self.words.count - rhs.words.count
-    let div = UInt64(rhs.words[rhs.words.count - 1]) + 1
+    var sizediff = self.uwords.count - rhs.uwords.count
+    let div = UInt64(rhs.uwords[rhs.uwords.count - 1]) + 1
     var res = [UInt32](repeating: 0, count: sizediff + 1)
     var divident = rem.count - 2
     repeat {
@@ -571,14 +580,19 @@ public struct BigInt: Hashable,
     return (BigInt(words: res, negative: neg), BigInt(words: rem, negative: self.negative))
   }
   
-  @available(*, deprecated, renamed: "toPower(of:)")
-  public func toPowerOf(_ exp: BigInt) -> BigInt {
-    return self.toPower(of: exp)
-  }
-  
   /// Raises this `BigInt` value to the radixPow of `exp`.
   public func toPower(of exp: BigInt) -> BigInt {
-    return pow(self, exp)
+    precondition(exp >= 0, "toPower(of:) with negative exponent")
+    var (expo, radix) = (exp, self)
+    var res = BigInt(1)
+    while expo != 0 {
+      if (expo & 1) != 0 {
+        res *= radix
+      }
+      expo /= 2
+      radix *= radix
+    }
+    return res
   }
   
   /// Computes the square root; this is the largest `BigInt` value `x` such that `x * x` is
@@ -602,23 +616,23 @@ public struct BigInt: Hashable,
   
   /// Computes the bitwise `and` between this value and `rhs`.
   public func and(_ rhs: BigInt) -> BigInt {
-    let size = min(self.words.count, rhs.words.count)
+    let size = Swift.min(self.uwords.count, rhs.uwords.count)
     var res = [UInt32]()
     res.reserveCapacity(size)
     for i in 0..<size {
-      res.append(self.words[i] & rhs.words[i])
+      res.append(self.uwords[i] & rhs.uwords[i])
     }
     return BigInt(words: res, negative: self.negative && rhs.negative)
   }
   
   /// Computes the bitwise `or` between this value and `rhs`.
   public func or(_ rhs: BigInt) -> BigInt {
-    let size = max(self.words.count, rhs.words.count)
+    let size = Swift.max(self.uwords.count, rhs.uwords.count)
     var res = [UInt32]()
     res.reserveCapacity(size)
     for i in 0..<size {
-      let fst = i < self.words.count ? self.words[i] : 0
-      let snd = i < rhs.words.count ? rhs.words[i] : 0
+      let fst = i < self.uwords.count ? self.uwords[i] : 0
+      let snd = i < rhs.uwords.count ? rhs.uwords[i] : 0
       res.append(fst | snd)
     }
     return BigInt(words: res, negative: self.negative || rhs.negative)
@@ -626,12 +640,12 @@ public struct BigInt: Hashable,
   
   /// Computes the bitwise `xor` between this value and `rhs`.
   public func xor(_ rhs: BigInt) -> BigInt {
-    let size = max(self.words.count, rhs.words.count)
+    let size = Swift.max(self.uwords.count, rhs.uwords.count)
     var res = [UInt32]()
     res.reserveCapacity(size)
     for i in 0..<size {
-      let fst = i < self.words.count ? self.words[i] : 0
-      let snd = i < rhs.words.count ? rhs.words[i] : 0
+      let fst = i < self.uwords.count ? self.uwords[i] : 0
+      let snd = i < rhs.uwords.count ? rhs.uwords[i] : 0
       res.append(fst ^ snd)
     }
     return BigInt(words: res, negative: self.negative || rhs.negative)
@@ -640,11 +654,58 @@ public struct BigInt: Hashable,
   /// Inverts the bits in this `BigInt`.
   public var invert: BigInt {
     var res = [UInt32]()
-    res.reserveCapacity(self.words.count)
-    for word in self.words {
+    res.reserveCapacity(self.uwords.count)
+    for word in self.uwords {
       res.append(~word)
     }
     return BigInt(words: res, negative: !self.negative)
+  }
+  
+  /// Shifts the bits in this `BigInt` to the left if `n` is positive, or to the right
+  /// if `n` is negative. Bits are shifted as if this `BigInt` is an unsigned number.
+  public func shift(_ n: Int) -> BigInt {
+    if n < 0 {
+      return self.shiftRight(-n)
+    } else if n > 0 {
+      return self.shiftLeft(n)
+    } else {
+      return self
+    }
+  }
+  
+  private func shiftLeft(_ x: Int) -> BigInt {
+    let swords = x / UInt.bitWidth
+    let sbits = x % UInt.bitWidth
+    var res = [UInt32]()
+    res.reserveCapacity(Int(self.uwords.count) + swords)
+    for _ in 0..<swords {
+      res.append(0)
+    }
+    var carry: UInt32 = 0
+    for word in self.uwords {
+      res.append((word << sbits) | carry)
+      carry = word >> (UInt.bitWidth - sbits)
+    }
+    if carry > 0 {
+      res.append(carry)
+    }
+    return BigInt(words: res, negative: self.negative)
+  }
+  
+  private func shiftRight(_ x: Int) -> BigInt {
+    let swords = x / UInt.bitWidth
+    let sbits = x % UInt.bitWidth
+    var res = [UInt32]()
+    res.reserveCapacity(Int(self.uwords.count) - swords)
+    var carry: UInt32 = 0
+    var i = self.uwords.count - 1
+    while i >= swords {
+      let word = self.uwords[i]
+      res.append((word >> sbits) | carry)
+      carry = word << (UInt.bitWidth - sbits)
+      i -= 1
+    }
+    return BigInt(words: res, negative: self.negative)
   }
 }
 
@@ -653,13 +714,113 @@ public struct BigInt: Hashable,
 /// to the applicable Swift 3 protocols. `BigInt` is convertible from integer literals,
 /// convertible from Strings, it's a signed number, equatable, comparable, and implements
 /// all integer arithmetic functions.
-extension BigInt: ExpressibleByIntegerLiteral,
-                  ExpressibleByStringLiteral,
-                  Equatable,
-                  IntegerArithmetic,
-                  SignedInteger {
+extension BigInt: IntegerNumber,
+                  ExpressibleByIntegerLiteral,
+                  ExpressibleByStringLiteral {
   
-  public typealias Distance = BigInt
+  /// This is a signed type
+  public static let isSigned: Bool = true
+  
+  /// Returns the number of bits used to represent this `BigInt`.
+  public var bitWidth: Int {
+    return self.uwords.count * UInt32.bitWidth
+  }
+  
+  /// Returns the number of trailing zero bits in the representation of this `BigInt`.
+  public var trailingZeroBitCount: Int {
+    var i = 0
+    while i < self.uwords.count && self.uwords[i] == 0 {
+      i += 1
+    }
+    return i < self.uwords.count ? i * UInt32.bitWidth + self.uwords[i].trailingZeroBitCount
+                                 : i * UInt32.bitWidth
+  }
+  
+  /// Returns the words in the binary representation of the magnitude of this number in the
+  /// format expected by Swift 4.
+  /// IMPORTANT: This is not returning the expected result for negative numbers.
+  public var words: [UInt] {
+    var res = [UInt]()
+    res.reserveCapacity((self.uwords.count + 1) / 2)
+    var i = 0
+    while i < self.uwords.count {
+      let current = UInt(self.uwords[i])
+      i += 1
+      let next = i == self.uwords.count ? 0 : (UInt(self.uwords[i]) << UInt32.bitWidth)
+      i += 1
+      res.append(current | next)
+    }
+    return res
+  }
+  
+  /// Returns zero as a `BigInt`.
+  public static let zero: BigInt = BigInt(0)
+  
+  /// Returns one as a `BigInt`.
+  public static let one: BigInt = BigInt(1)
+  
+  /// Returns two as a `BigInt`.
+  public static let two: BigInt = BigInt(2)
+  
+  /// Returns true if this is an odd `BigInt` number.
+  public var isOdd: Bool {
+    return (self & 1) == 1
+  }
+  
+  /// Returns the magnitude of this `BigInt`.
+  public var magnitude: BigInt {
+    return BigInt(words: uwords, negative: false)
+  }
+  
+  /// Generic constructor for all binary integers
+  public init<T>(_ source: T) where T: BinaryInteger {
+    if T.isSigned {
+      if let value = Int64(exactly: source) {
+        self.init(value)
+      } else if source < 0 {
+        self.init(words: [UInt]((0 - source).words), negative: true)
+      } else {
+        self.init(words: [UInt](source.words), negative: false)
+      }
+    } else {
+      if let value = UInt64(exactly: source) {
+        self.init(value)
+      } else {
+        self.init(words: [UInt](source.words), negative: false)
+      }
+    }
+  }
+  
+  /// Generic constructor for all binary integers
+  public init?<T>(exactly: T) where T: BinaryInteger {
+    self.init(exactly)
+  }
+  
+  /// Generic constructor for all binary integers
+  public init<T>(clamping: T) where T: BinaryInteger {
+    self.init(clamping)
+  }
+  
+  /// Generic constructor for all binary integers
+  public init<T>(truncatingIfNeeded: T) where T: BinaryInteger {
+    self.init(truncatingIfNeeded)
+  }
+  
+  /* TODO to make this compatible with BinaryInteger
+  
+  public init<T>(_ value: T) where T: BinaryFloatingPoint {
+    self.init(0)
+  }
+  
+  public init?<T>(exactly source: T) where T: BinaryFloatingPoint {
+    if let value = Int64(exactly: source) {
+      self.init(value)
+    } else {
+      return nil
+    }
+  }
+  
+  */
   
   public init(_ value: UInt) {
     self.init(Int64(value))
@@ -703,7 +864,7 @@ extension BigInt: ExpressibleByIntegerLiteral,
   
   public init(stringLiteral value: String) {
     if let bi = BigInt(from: value) {
-      self.init(words: bi.words, negative: bi.negative)
+      self.init(words: bi.uwords, negative: bi.negative)
     } else {
       self.init(0)
     }
@@ -717,39 +878,29 @@ extension BigInt: ExpressibleByIntegerLiteral,
     self.init(stringLiteral: String(value))
   }
   
-  public static func addWithOverflow(_ lhs: BigInt, _ rhs: BigInt) -> (BigInt, overflow: Bool) {
-    return (lhs.plus(rhs), overflow: false)
+  public func addingReportingOverflow(_ rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+    return (self.plus(rhs), overflow: false)
   }
   
-  public static func subtractWithOverflow(_ lhs: BigInt, _ rhs: BigInt) -> (BigInt, overflow: Bool) {
-    return (lhs.minus(rhs), overflow: false)
+  public func subtractingReportingOverflow(_ rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+    return (self.minus(rhs), overflow: false)
   }
   
-  public static func multiplyWithOverflow(_ lhs: BigInt, _ rhs: BigInt) -> (BigInt, overflow: Bool) {
-    return (lhs.times(rhs), overflow: false)
+  public func multipliedReportingOverflow(by rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+    return (self.times(rhs), overflow: false)
   }
   
-  public static func divideWithOverflow(_ lhs: BigInt, _ rhs: BigInt) -> (BigInt, overflow: Bool) {
-    let res = lhs.divided(by: rhs)
-    return (res.quotient, overflow: false)
+  public func dividedReportingOverflow(by rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+    return (self.divided(by: rhs).quotient, overflow: false)
   }
   
-  public static func remainderWithOverflow(_ lhs: BigInt, _ rhs: BigInt) -> (BigInt, overflow: Bool) {
-    let res = lhs.divided(by: rhs)
-    return (res.remainder, overflow: false)
+  public func remainderReportingOverflow(dividingBy rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+    return (self.divided(by: rhs).remainder, overflow: false)
   }
   
   /// The empty bitset.
   public static var allZeros: BigInt {
     return BigInt(0)
-  }
-  
-  /// Returns this number as an `IntMax` number
-  public func toIntMax() -> IntMax {
-    if let res = self.intValue {
-      return res
-    }
-    preconditionFailure("`BigInt` value cannot be converted to `IntMax`")
   }
   
   /// Adds `n` and returns the result.
@@ -763,29 +914,54 @@ extension BigInt: ExpressibleByIntegerLiteral,
   }
 }
 
-
 /// Returns the sum of `lhs` and `rhs`
-///
-/// - Note: Without this declaration, the compiler complains that `+` is declared
-///         multiple times.
 public func +(lhs: BigInt, rhs: BigInt) -> BigInt {
   return lhs.plus(rhs)
 }
 
 /// Returns the difference between `lhs` and `rhs`
-///
-/// - Note: Without this declaration, the compiler complains that `+` is declared
-///         multiple times.
 public func -(lhs: BigInt, rhs: BigInt) -> BigInt {
   return lhs.minus(rhs)
 }
 
+/// Returns the result of multiplying `lhs` with `rhs`
+public func *(lhs: BigInt, rhs: BigInt) -> BigInt {
+  return lhs.times(rhs)
+}
+
+/// Returns the quotient of `lhs` and `rhs`
+public func /(lhs: BigInt, rhs: BigInt) -> BigInt {
+  return lhs.divided(by: rhs).quotient
+}
+
+/// Returns the remainder of `lhs` when divided by `rhs`
+public func %(lhs: BigInt, rhs: BigInt) -> BigInt {
+  return lhs.divided(by: rhs).remainder
+}
+
 /// Adds `rhs` to `lhs` and stores the result in `lhs`.
-///
-/// - Note: Without this declaration, the compiler complains that `+` is declared
-///         multiple times.
 public func +=(lhs: inout BigInt, rhs: BigInt) {
   lhs = lhs.plus(rhs)
+}
+
+/// Subtracts `rhs` from `lhs` and stores the result in `lhs`.
+public func -=(lhs: inout BigInt, rhs: BigInt) {
+  lhs = lhs.minus(rhs)
+}
+
+/// Multiplies `rhs` and `lhs` and stores the result in `lhs`.
+public func *=(lhs: inout BigInt, rhs: BigInt) {
+  lhs = lhs.times(rhs)
+}
+
+/// Divides `lhs` by `rhs` and stores the result in `lhs`.
+public func /=(lhs: inout BigInt, rhs: BigInt) {
+  lhs = lhs.divided(by: rhs).quotient
+}
+
+/// Computes the remainder of `lhs` when divided by `rhs` and stores the result in `lhs`.
+public func %=(lhs: inout BigInt, rhs: BigInt) {
+  lhs = lhs % rhs
 }
 
 /// Returns true if `lhs` is less than `rhs`, false otherwise.
@@ -818,11 +994,6 @@ public func !=(lhs: BigInt, rhs: BigInt) -> Bool {
   return lhs.compare(to: rhs) != 0
 }
 
-/// Negates `self`.
-public prefix func -(num: BigInt) -> BigInt {
-  return num.negate
-}
-
 /// Returns the intersection of bits set in `lhs` and `rhs`.
 public func &(lhs: BigInt, rhs: BigInt) -> BigInt {
   return lhs.and(rhs)
@@ -836,6 +1007,47 @@ public func |(lhs: BigInt, rhs: BigInt) -> BigInt {
 /// Returns the bits that are set in exactly one of `lhs` and `rhs`.
 public func ^(lhs: BigInt, rhs: BigInt) -> BigInt {
   return lhs.xor(rhs)
+}
+
+/// Shifts the bits of `lhs` by `rhs` to the left and returns the result.
+public func << <T>(lhs: BigInt, rhs: T) -> BigInt where T: BinaryInteger {
+  return lhs.shift(Int(rhs))
+}
+
+/// Shifts the bits of `lhs` by `rhs` to the right and returns the result.
+public func >> <T>(lhs: BigInt, rhs: T) -> BigInt where T: BinaryInteger {
+  return lhs.shift(-Int(rhs))
+}
+
+/// Intersects the bits set in `lhs` and `rhs` and stores the result in `lhs`.
+public func &=(lhs: inout BigInt, rhs: BigInt) {
+  lhs = lhs & rhs
+}
+
+/// Unifies the bits set in `lhs` and `rhs` and stores the result in `lhs`.
+public func |=(lhs: inout BigInt, rhs: BigInt) {
+  lhs = lhs | rhs
+}
+
+/// Computes the bits that are set in exactly one of `lhs` and `rhs` and stores the
+/// result in `lhs`.
+public func ^=(lhs: inout BigInt, rhs: BigInt) {
+  lhs = lhs ^ rhs
+}
+
+/// Shifts the bits of `lhs` by `rhs` to the left and stores the result in `lhs`.
+public func <<=<T>(lhs: inout BigInt, rhs: T) where T: BinaryInteger {
+  lhs = lhs.shift(Int(rhs))
+}
+
+/// Shifts the bits of `lhs` by `rhs` to the right and stores the result in `rhs`.
+public func >>=<T>(lhs: inout BigInt, rhs: T) where T: BinaryInteger {
+  lhs = lhs.shift(-Int(rhs))
+}
+
+/// Negates `self`.
+public prefix func -(num: BigInt) -> BigInt {
+  return num.negate
 }
 
 /// Returns the bitwise inverted BigInt
@@ -852,3 +1064,4 @@ public func max(_ fst: BigInt, _ snd: BigInt) -> BigInt {
 public func min(_ fst: BigInt, _ snd: BigInt) -> BigInt {
   return fst.compare(to: snd) <= 0 ? fst : snd
 }
+

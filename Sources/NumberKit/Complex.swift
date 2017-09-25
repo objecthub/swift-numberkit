@@ -28,6 +28,8 @@ import Darwin
 ///
 /// - Note: The `ComplexNumber` protocol abstracts over the floating point type on which
 ///         the complex type implementation is based on.
+/// - Todo: Implement the `Arithmetic` protocol. This requires that complex numbers are
+///         mutable.
 public protocol ComplexNumber: Equatable {
   
   /// The floating point number type on which this complex number is based.
@@ -111,41 +113,15 @@ public protocol ComplexNumber: Equatable {
 }
 
 
-/// Protocol `FloatNumber` is supposed to be used in combination with struct
-/// `Complex<T>`. It defines the functionality needed for a floating point
-/// implementation to build complex numbers on top. The `FloatingPoint`
-/// protocol from the Swift 3 standard library is not sufficient currently.
-///
-/// - Note: For some reason, `_ExpressibleByBuiltinFloatLiteral` is needed here to
-///         allow `Complex<T>` to implement protocol `ExpressibleByFloatLiteral`.
-///         Replacing it with `ExpressibleByFloatLiteral` does not work either.
-public protocol FloatNumber: Hashable,
-                             Comparable,
-                             FloatingPoint,
-                             AbsoluteValuable,
-                             _ExpressibleByBuiltinFloatLiteral {
-  var i: Complex<Self> { get }
-  var abs: Self { get }
-  var sqrt: Self { get }
-  var sin: Self { get }
-  var cos: Self { get }
-  var exp: Self { get }
-  var log: Self { get }
-  func pow(_ ex: Self) -> Self
-  func hypot(_ y: Self) -> Self
-  func atan2(_ y: Self) -> Self
-}
-
-
 /// Struct `Complex<T>` implements the `ComplexNumber` interface on top of the
 /// floating point type `T`; i.e. both the rational and the imaginary part of the
 /// complex number are represented as values of type `T`.
 ///
-/// - Note: `T` needs to implement the `FloatNumber` protocol. The `FloatingPoint`
+/// - Note: `T` needs to implement the `FloatingPointNumber` protocol. The `FloatingPoint`
 ///         protocol that is defined in the Swift standard library is not sufficient to
 ///         implement a complex number as it does not define interfaces for trigonometric
 ///         functions.
-public struct Complex<T: FloatNumber>: ComplexNumber,
+public struct Complex<T: FloatingPointNumber>: ComplexNumber,
                                        Hashable,
                                        ExpressibleByIntegerLiteral,
                                        ExpressibleByFloatLiteral,
@@ -164,7 +140,7 @@ public struct Complex<T: FloatNumber>: ComplexNumber,
   }
   
   /// Creates a complex number with the given real and integer imaginary parts.
-  public init(_ re: T, _ im: IntMax) {
+  public init(_ re: T, _ im: Int64) {
     self.init(re, T(im))
   }
 
@@ -181,7 +157,7 @@ public struct Complex<T: FloatNumber>: ComplexNumber,
   }
   
   /// Creates a real number initialized to integer `value`.
-  public init(integerLiteral value: IntMax) {
+  public init(integerLiteral value: Int64) {
     self.init(T(value))
   }
   
@@ -549,7 +525,7 @@ public func atan<C: ComplexNumber>(_ z: C) -> C {
 }
 
 /// Returns `cos(r)` for the given floating point number `r`.
-public func atan<T: FloatNumber>(_ r: T) -> T {
+public func atan<T: FloatingPointNumber>(_ r: T) -> T {
   return atan(Complex(r)).re
 }
 
@@ -592,72 +568,3 @@ public func atanh<C: ComplexNumber>(_ z: C) -> C {
   return log(x.divided(by: y)).divided(by: C.Float(2))
 }
 
-
-/// Make `Float` implement protocol `FloatNumber` for usage with `Complex<T>`.
-extension Float: FloatNumber {
-  public var i: Complex<Float> {
-    return Complex(0.0, self)
-  }
-  public var abs: Float {
-    return Swift.abs(self)
-  }
-  public var sqrt: Float {
-    return Darwin.sqrt(self)
-  }
-  public var sin: Float {
-    return Darwin.sin(self)
-  }
-  public var cos: Float {
-    return Darwin.cos(self)
-  }
-  public var exp: Float {
-    return Darwin.exp(self)
-  }
-  public var log: Float {
-    return Darwin.log(self)
-  }
-  public func pow(_ ex: Float) -> Float {
-    return Darwin.pow(self, ex)
-  }
-  public func hypot(_ y: Float) -> Float {
-    return Darwin.hypot(self, y)
-  }
-  public func atan2(_ y: Float) -> Float {
-    return Darwin.atan2(self, y)
-  }
-}
-
-
-/// Make `Double` implement protocol `FloatNumber` for usage with `Complex<T>`.
-extension Double: FloatNumber {
-  public var i: Complex<Double> {
-    return Complex(0.0, self)
-  }
-  public var abs: Double {
-    return Swift.abs(self)
-  }
-  public var sqrt: Double {
-    return Darwin.sqrt(self)
-  }
-  public var sin: Double {
-    return Darwin.sin(self)
-  }
-  public var cos: Double {
-    return Darwin.cos(self)
-  }
-  public var exp: Double {
-    return Darwin.exp(self)
-  }
-  public var log: Double {
-    return Darwin.log(self)
-  }
-  public func pow(_ ex: Double) -> Double {
-    return Darwin.pow(self, ex)
-  }
-  public func hypot(_ y: Double) -> Double {
-    return Darwin.hypot(self, y)
-  }
-  public func atan2(_ y: Double) -> Double {
-    return Darwin.atan2(self, y)
-  }
-}

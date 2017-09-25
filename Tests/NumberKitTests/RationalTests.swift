@@ -53,14 +53,17 @@ class RationalTests: XCTestCase {
   
   func testPlus() {
     let r1 = Rational(16348, 343).plus(24/7)
+    XCTAssertEqual(r1, 17524/343)
+    Swift.print("r1 = \(r1), other = \(17524/343)")
+    XCTAssert(r1 == Rational(from: "17524/343"))
     XCTAssert(r1 == 17524/343)
     let r2: Rational<Int> = (74433/215).plus(312/15)
     XCTAssert(r2 == 367)
     let r3: Rational<Int> = (458200/50).plus(3440/17)
     XCTAssert(r3 == 159228/17)
     let x = Rational(BigInt(458200)/BigInt(50))
-    let r4: Rational<BigInt> = x.plus(BigInt(3440)/BigInt(17))
-    XCTAssert(r4 == BigInt(159228)/BigInt(17))
+    let r4: Rational<BigInt> = x.plus(Rational(BigInt(3440)/BigInt(17)))
+    XCTAssert(r4 == Rational(BigInt(159228)/BigInt(17)))
   }
   
   func testMinus() {

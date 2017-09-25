@@ -25,35 +25,36 @@ import XCTest
 class NumberUtilTests: XCTestCase {
 
   func testPow() {
-    XCTAssert(pow(1, 1) == 1)
-    XCTAssert(pow(1, 9) == 1)
-    XCTAssert(pow(7, 3) == 7 * 7 * 7)
-    XCTAssert(pow(31, 7) == 27512614111)
-    XCTAssert(pow(-5, 2) == 25)
-    XCTAssert(pow(-5, 3) == -125)
-    XCTAssert(pow(-5, 0) == 1)
-    XCTAssert(pow(5, 0) == 1)
+    XCTAssertEqual(1.toPower(of: 1), 1)
+    XCTAssertEqual(1.toPower(of: 9), 1)
+    XCTAssertEqual(7.toPower(of: 3), 7 * 7 * 7)
+    XCTAssertEqual(31.toPower(of: 7), 27512614111)
+    XCTAssertEqual((-5).toPower(of: 2), 25)
+    XCTAssertEqual((-5).toPower(of: 3), -125)
+    XCTAssertEqual((-5).toPower(of: 0), 1)
+    XCTAssertEqual(5.toPower(of: 0), 1)
   }
   
   func testPowOperator() {
-    XCTAssert(1 ** 1 == 1)
-    XCTAssert(1 ** 9 == 1)
-    XCTAssert(7 ** 3 == 7 * 7 * 7)
-    XCTAssert((29 + 2) ** 7 == 31 * 31 * 31 * 31 * 31 * 31 * 31)
-    XCTAssert(-5 ** (1 + 1) == 25)
-    XCTAssert(-5 ** 3 == -125)
-    XCTAssert(-5 ** 0 == 1)
-    XCTAssert(5 ** 0 == 1)
+    XCTAssertEqual(1 ** 1, 1)
+    XCTAssertEqual(1 ** 9, 1)
+    XCTAssertEqual(7 ** 3, 7 * 7 * 7)
+    let many = 31 * 31 * 31 * 31
+    XCTAssertEqual((29 + 2) ** 7, many * 31 * 31 * 31)
+    XCTAssertEqual(-5 ** (1 + 1), 25)
+    XCTAssertEqual(-5 ** 3, -125)
+    XCTAssertEqual(-5 ** 0, 1)
+    XCTAssertEqual(5 ** 0, 1)
   }
   
   func testMinMax() {
-    XCTAssert(min(0, 1) == 0)
-    XCTAssert(min(1, 0) == 0)
-    XCTAssert(min(-1, 0) == -1)
-    XCTAssert(min(0, -1) == -1)
-    XCTAssert(max(0, 1) == 1)
-    XCTAssert(max(1, 0) == 1)
-    XCTAssert(max(-1, 0) == 0)
-    XCTAssert(max(0, -1) == 0)
+    XCTAssertEqual(min(0, 1), 0)
+    XCTAssertEqual(min(1, 0), 0)
+    XCTAssertEqual(min(-1, 0), -1)
+    XCTAssertEqual(min(0, -1), -1)
+    XCTAssertEqual(max(0, 1), 1)
+    XCTAssertEqual(max(1, 0), 1)
+    XCTAssertEqual(max(-1, 0), 0)
+    XCTAssertEqual(max(0, -1), 0)
   }
 }
