@@ -18,13 +18,13 @@ language. The current version provides three new numeric types:
 
 **Requirements**: Xcode 9/Swift Package Manager, Swift 4
 
-**Note** So far, with every major version of Swift, Apple decided to change the foundational APIs of the numeric
+**Note**: So far, with every major version of Swift, Apple decided to change the foundational APIs of the numeric
 types in Swift significantly and consistently in a backward incompatible way. In order to be more isolated from
 such changes in future, I decided to introduce a distinct integer type used in NumberKit using a new protocol
 `IntegerNumber`. All standard numeric integer types implement this protocol. This is now consistent with the
 usage of protocol `FloatingPointNumber` for floating point numbers, where there was, so far, never a good,
 generic enough foundation (and still isn't). Unfortunately, this is a change that might break some client usage
-of NumberKit. Adaptations should be straighforward.
+of NumberKit. Adaptations should be straightforward.
 
 
 ## BigInt
