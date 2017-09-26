@@ -79,10 +79,30 @@ public protocol RationalNumber: SignedNumeric,
 
   /// Raises this rational value to the power of `exp`.
   func toPower(of exp: Integer) -> Self
+  
+  /// Adds `rhs` to `self` and reports the result together with a boolean indicating an overflow.
+  func addingReportingOverflow(_ rhs: Self) -> (partialValue: Self, overflow: Bool)
+  
+  /// Subtracts `rhs` from `self` and reports the result together with a boolean indicating
+  /// an overflow.
+  func subtractingReportingOverflow(_ rhs: Self) -> (partialValue: Self, overflow: Bool)
+  
+  /// Multiplies `rhs` with `self` and reports the result together with a boolean indicating
+  /// an overflow.
+  func multipliedReportingOverflow(by rhs: Self) -> (partialValue: Self, overflow: Bool)
+  
+  /// Divides `self` by `rhs` and reports the result together with a boolean indicating
+  /// an overflow.
+  func dividedReportingOverflow(by rhs: Self) -> (partialValue: Self, overflow: Bool)
+  
+  /// Returns the greatest common denominator for `self` and `y` and a boolean which indicates
+  /// whether there was an overflow.
+  func gcdReportingOverflow(with y: Self) -> (partialValue: Self, overflow: Bool)
+  
+  /// Returns the least common multiplier for `self` and `y` and a boolean which indicates
+  /// whether there was an overflow.
+  func lcmReportingOverflow(with y: Self) -> (partialValue: Self, overflow: Bool)
 }
-
-// TODO: make this a static member of `Rational` once this is supported
-private let rationalSeparator: Character = "/"
 
 
 /// Struct `Rational<T>` implements the `RationalNumber` interface on top of the
@@ -354,47 +374,7 @@ extension Rational: ExpressibleByStringLiteral {
     let (dn, overflow4) = dp.multipliedReportingOverflow(by: div)
     return (n1, n2, dn, overflow1 || overflow2 || overflow3 || overflow4)
   }
-
-  /// Add `lhs` and `rhs` and return a tuple consisting of the result and a boolean which
-  /// indicates whether there was an overflow.
-  public static func addWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
-                                 -> (Rational<T>, Bool) {
-    let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(lhs, rhs)
-    let (numer, overflow2) = n1.addingReportingOverflow(n2)
-    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
-    return (res, overflow1 || overflow2 || overflow3)
-  }
-
-  /// Subtract `rhs` from `lhs` and return a tuple consisting of the result and a boolean which
-  /// indicates whether there was an overflow.
-  public static func subtractWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
-                                      -> (Rational<T>, Bool) {
-    let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(lhs, rhs)
-    let (numer, overflow2) = n1.subtractingReportingOverflow(n2)
-    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
-    return (res, overflow1 || overflow2 || overflow3)
-  }
-
-  /// Multiply `lhs` and `rhs` and return a tuple consisting of the result and a boolean which
-  /// indicates whether there was an overflow.
-  public static func multiplyWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
-                                      -> (Rational<T>, Bool) {
-    let (numer, overflow1) = lhs.numerator.multipliedReportingOverflow(by: rhs.numerator)
-    let (denom, overflow2) = lhs.denominator.multipliedReportingOverflow(by: rhs.denominator)
-    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
-    return (res, overflow1 || overflow2 || overflow3)
-  }
-
-  /// Divide `lhs` by `rhs` and return a tuple consisting of the result and a boolean which
-  /// indicates whether there was an overflow.
-  public static func divideWithOverflow(_ lhs: Rational<T>, _ rhs: Rational<T>)
-                                    -> (Rational<T>, Bool) {
-    let (numer, overflow1) = lhs.numerator.multipliedReportingOverflow(by: rhs.denominator)
-    let (denom, overflow2) = lhs.denominator.multipliedReportingOverflow(by: rhs.numerator)
-    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
-    return (res, overflow1 || overflow2 || overflow3)
-  }
-
+  
   /// Compute the greatest common divisor for `x` and `y`.
   public static func gcdWithOverflow(_ x: T, _ y: T) -> (T, Bool) {
     var (x, y, (rest, overflow)) = (x, y, x.remainderReportingOverflow(dividingBy: y))
@@ -407,26 +387,68 @@ extension Rational: ExpressibleByStringLiteral {
     }
     return (y, overflow)
   }
-
+  
   /// Compute the least common multiplier of `x` and `y`.
   public static func lcmWithOverflow(_ x: T, _ y: T) -> (T, Bool) {
     let (abs, overflow1) = x.multipliedReportingOverflow(by: y)
     let (gcd, overflow2) = Rational.gcdWithOverflow(x, y)
     return ((abs < 0 ? -abs : abs) / gcd, overflow1 || overflow2)
   }
-
-  /// Returns the greatest common denominator for the two given rational numbers and a boolean
-  /// which indicates whether there was an overflow.
-  public static func gcdWithOverflow(_ x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
-    let (numer, overflow1) = Rational.gcdWithOverflow(x.numerator, y.numerator)
-    let (denom, overflow2) = Rational.lcmWithOverflow(x.denominator, y.denominator)
-    return (Rational(numer, denom), overflow1 || overflow2)
+  
+  /// Add `self` and `rhs` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public func addingReportingOverflow(_ rhs: Rational<T>)
+                                  -> (partialValue: Rational<T>, overflow: Bool) {
+    let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(self, rhs)
+    let (numer, overflow2) = n1.addingReportingOverflow(n2)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
+  }
+  
+  /// Subtract `rhs` from `self` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public func subtractingReportingOverflow(_ rhs: Rational<T>)
+                                       -> (partialValue: Rational<T>, overflow: Bool) {
+    let (n1, n2, denom, overflow1) = Rational.commonDenomWithOverflow(self, rhs)
+    let (numer, overflow2) = n1.subtractingReportingOverflow(n2)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
+  }
+  
+  /// Multiply `self` and `rhs` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public func multipliedReportingOverflow(by rhs: Rational<T>)
+                                      -> (partialValue: Rational<T>, overflow: Bool) {
+    let (numer, overflow1) = self.numerator.multipliedReportingOverflow(by: rhs.numerator)
+    let (denom, overflow2) = self.denominator.multipliedReportingOverflow(by: rhs.denominator)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
   }
 
-  /// Returns the least common multiplier for the two given rational numbers and a boolean
-  /// which indicates whether there was an overflow.
-  public static func lcmWithOverflow(_ x: Rational<T>, _ y: Rational<T>) -> (Rational<T>, Bool) {
-    let (xn, yn, denom, overflow1) = Rational.commonDenomWithOverflow(x, y)
+  /// Divide `lhs` by `rhs` and return a tuple consisting of the result and a boolean which
+  /// indicates whether there was an overflow.
+  public func dividedReportingOverflow(by rhs: Rational<T>)
+                                   -> (partialValue: Rational<T>, overflow: Bool) {
+    let (numer, overflow1) = self.numerator.multipliedReportingOverflow(by: rhs.denominator)
+    let (denom, overflow2) = self.denominator.multipliedReportingOverflow(by: rhs.numerator)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
+  }
+  
+  /// Returns the greatest common denominator for `self` and `y` and a boolean which indicates
+  /// whether there was an overflow.
+  public func gcdReportingOverflow(with y: Rational<T>)
+                               -> (partialValue: Rational<T>, overflow: Bool) {
+    let (numer, overflow1) = Rational.gcdWithOverflow(self.numerator, y.numerator)
+    let (denom, overflow2) = Rational.lcmWithOverflow(self.denominator, y.denominator)
+    return (Rational(numer, denom), overflow1 || overflow2)
+  }
+  
+  /// Returns the least common multiplier for `self` and `y` and a boolean which indicates
+  /// whether there was an overflow.
+  public func lcmReportingOverflow(with y: Rational<T>)
+                               -> (partialValue: Rational<T>, overflow: Bool) {
+    let (xn, yn, denom, overflow1) = Rational.commonDenomWithOverflow(self, y)
     let (numer, overflow2) = Rational.lcmWithOverflow(xn, yn)
     return (Rational(numer, denom), overflow1 || overflow2)
   }
@@ -492,6 +514,21 @@ public func **= <R: RationalNumber>(lhs: inout R, exp: R.Integer) {
   lhs = lhs.toPower(of: exp)
 }
 
+/// Returns the sum of `lhs` and `rhs`.
+public func &+ <R: RationalNumber>(lhs: R, rhs: R) -> R {
+  return lhs.addingReportingOverflow(rhs).partialValue
+}
+
+/// Returns the difference between `lhs` and `rhs`.
+public func &- <R: RationalNumber>(lhs: R, rhs: R) -> R {
+  return lhs.subtractingReportingOverflow(rhs).partialValue
+}
+
+/// Multiplies `lhs` with `rhs` and returns the result.
+public func &* <R: RationalNumber>(lhs: R, rhs: R) -> R {
+  return lhs.multipliedReportingOverflow(by: rhs).partialValue
+}
+
 /// Returns true if `lhs` is less than `rhs`, false otherwise.
 public func < <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
   return lhs.compare(to: rhs) < 0
@@ -522,3 +559,5 @@ public func != <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
   return lhs.compare(to: rhs) != 0
 }
 
+// TODO: make this a static member of `Rational` once this is supported
+private let rationalSeparator: Character = "/"
