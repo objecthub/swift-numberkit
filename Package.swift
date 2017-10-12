@@ -1,4 +1,4 @@
-// swift-tools-version:3.1
+// swift-tools-version:4.0
 //
 //  Package.swift
 //  NumberKit
@@ -25,6 +25,6 @@ let package = Package(
   name: "NumberKit",
   targets: [Target(name: "NumberKit")],
   dependencies: [],
-  swiftLanguageVersions: [3],
+  swiftLanguageVersions: [4],
   exclude: []
 )
