@@ -164,10 +164,9 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
   ///    Denominator = SignedInteger
   public init?(from str: String, radix: Int = 10) {
     precondition(radix >= 2, "radix >= 2 required")
-    let chars = str.characters
-    if let idx = chars.index(of: rationalSeparator) {
+    if let idx = str.index(of: rationalSeparator) {
       if let numVal = Int64(str[..<idx], radix: radix),
-         let denomVal = Int64(str[chars.index(after: idx)...], radix: radix) {
+         let denomVal = Int64(str[str.index(after: idx)...], radix: radix) {
         self.init(T(numVal), T(denomVal))
       } else {
         return nil

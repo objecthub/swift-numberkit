@@ -38,7 +38,7 @@ public struct BigInt: Hashable,
   
   // This is an array of `UInt32` words. The lowest significant word comes first in
   // the array.
-  private let uwords: [UInt32]
+  private let uwords: ContiguousArray<UInt32>
   
   // `negative` signals whether the number is positive or negative.
   private let negative: Bool
@@ -125,7 +125,7 @@ public struct BigInt: Hashable,
   
   /// Internal primary constructor. It removes superfluous words and normalizes the
   /// representation of zero.
-  internal init(words: [UInt32], negative: Bool) {
+  internal init(words: ContiguousArray<UInt32>, negative: Bool) {
     var words = words
     while words.count > 1 && words[words.count - 1] == 0 {
       words.removeLast()
@@ -137,7 +137,7 @@ public struct BigInt: Hashable,
   /// Internal primary constructor. It removes superfluous words and normalizes the
   /// representation of zero.
   internal init(words: [UInt], negative: Bool) {
-    var uwords = [UInt32]()
+    var uwords = ContiguousArray<UInt32>()
     uwords.reserveCapacity(words.count * 2)
     for word in words {
       let myword = UInt64(word)
@@ -179,7 +179,7 @@ public struct BigInt: Hashable,
   /// `BigInt` numbers.
   public init(digits: [UInt8], negative: Bool = false, base: Base = BigInt.decBase) {
     var digits = digits
-    var words: [UInt32] = []
+    var words = ContiguousArray<UInt32>()
     var iterate: Bool
     repeat {
       var sum: UInt64 = 0
@@ -208,41 +208,40 @@ public struct BigInt: Hashable,
   /// Creates a `BigInt` from a string containing a number using the given base.
   public init?(from str: String, base: Base = BigInt.decBase) {
     var negative = false
-    let chars = str.characters
-    var i = chars.startIndex
-    while i < chars.endIndex && chars[i] == " " {
-      i = chars.index(after: i)
+    var i = str.startIndex
+    while i < str.endIndex && str[i] == " " {
+      i = str.index(after: i)
     }
-    if i < chars.endIndex {
-      if chars[i] == "-" {
+    if i < str.endIndex {
+      if str[i] == "-" {
         negative = true
-        i = chars.index(after: i)
-      } else if chars[i] == "+" {
-        i = chars.index(after: i)
+        i = str.index(after: i)
+      } else if str[i] == "+" {
+        i = str.index(after: i)
       }
     }
-    if i < chars.endIndex && chars[i] == "0" {
-      while i < chars.endIndex && chars[i] == "0" {
-        i = chars.index(after: i)
+    if i < str.endIndex && str[i] == "0" {
+      while i < str.endIndex && str[i] == "0" {
+        i = str.index(after: i)
       }
-      if i == chars.endIndex {
+      if i == str.endIndex {
         self.init(0)
         return
       }
     }
     var temp: [UInt8] = []
-    while i < chars.endIndex {
-      if let digit = base.digitMap[chars[i]] {
+    while i < str.endIndex {
+      if let digit = base.digitMap[str[i]] {
         temp.append(digit)
-        i = chars.index(after: i)
+        i = str.index(after: i)
       } else {
         break
       }
     }
-    while i < chars.endIndex && chars[i] == " " {
-      i = chars.index(after: i)
+    while i < str.endIndex && str[i] == " " {
+      i = str.index(after: i)
     }
-    guard i == chars.endIndex else {
+    guard i == str.endIndex else {
       return nil
     }
     self.init(digits: temp, negative: negative, base: base)
@@ -428,7 +427,7 @@ public struct BigInt: Hashable,
       return self.minus(rhs.negate)
     }
     let (b1, b2) = self.uwords.count < rhs.uwords.count ? (rhs, self) : (self, rhs)
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     res.reserveCapacity(b1.uwords.count)
     var sum: UInt64 = 0
     for i in 0..<b2.uwords.count {
@@ -459,7 +458,7 @@ public struct BigInt: Hashable,
     }
     let negative = cmp < 0 ? !self.negative : self.negative
     let (b1, b2) = cmp < 0 ? (rhs, self) : (self, rhs)
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     var carry: UInt64 = 0
     for i in 0..<b2.uwords.count {
       if UInt64(b1.uwords[i]) < UInt64(b2.uwords[i]) + carry {
@@ -485,7 +484,7 @@ public struct BigInt: Hashable,
   /// Returns the result of mulitplying `self` with `rhs` as a `BigInt`
   public func times(_ rhs: BigInt) -> BigInt {
     let (b1, b2) = self.uwords.count < rhs.uwords.count ? (rhs, self) : (self, rhs)
-    var res = [UInt32](repeating: 0, count: b1.uwords.count + b2.uwords.count)
+    var res = ContiguousArray<UInt32>(repeating: 0, count: b1.uwords.count + b2.uwords.count)
     for i in 0..<b2.uwords.count {
       var sum: UInt64 = 0
       for j in 0..<b1.uwords.count {
@@ -499,8 +498,10 @@ public struct BigInt: Hashable,
     return BigInt(words: res, negative: b1.negative != b2.negative)
   }
   
-  private static func multSub(_ approx: UInt32, _ divis: [UInt32],
-    _ rem: inout [UInt32], _ from: Int) {
+  private static func multSub(_ approx: UInt32,
+                              _ divis: ContiguousArray<UInt32>,
+                              _ rem: inout ContiguousArray<UInt32>,
+                              _ from: Int) {
       var sum: UInt64 = 0
       var carry: UInt64 = 0
       for j in 0..<divis.count {
@@ -517,7 +518,9 @@ public struct BigInt: Hashable,
       }
   }
   
-  private static func subIfPossible(divis: [UInt32], rem: inout [UInt32], from: Int) -> Bool {
+  private static func subIfPossible(divis: ContiguousArray<UInt32>,
+                                    rem: inout ContiguousArray<UInt32>,
+                                    from: Int) -> Bool {
     var i = divis.count
     while i > 0 && divis[i - 1] >= rem[from + i - 1] {
       if divis[i - 1] > rem[from + i - 1] {
@@ -553,13 +556,13 @@ public struct BigInt: Hashable,
         return (BigInt(0), self.abs)
       }
     }
-    var rem = [UInt32](self.uwords)
+    var rem = ContiguousArray<UInt32>(self.uwords)
     rem.append(0)
-    var divis = [UInt32](rhs.uwords)
+    var divis = ContiguousArray<UInt32>(rhs.uwords)
     divis.append(0)
     var sizediff = self.uwords.count - rhs.uwords.count
     let div = UInt64(rhs.uwords[rhs.uwords.count - 1]) + 1
-    var res = [UInt32](repeating: 0, count: sizediff + 1)
+    var res = ContiguousArray<UInt32>(repeating: 0, count: sizediff + 1)
     var divident = rem.count - 2
     repeat {
       var x = BigInt.joinwords(rem[divident], rem[divident + 1])
@@ -617,7 +620,7 @@ public struct BigInt: Hashable,
   /// Computes the bitwise `and` between this value and `rhs`.
   public func and(_ rhs: BigInt) -> BigInt {
     let size = Swift.min(self.uwords.count, rhs.uwords.count)
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     res.reserveCapacity(size)
     for i in 0..<size {
       res.append(self.uwords[i] & rhs.uwords[i])
@@ -628,7 +631,7 @@ public struct BigInt: Hashable,
   /// Computes the bitwise `or` between this value and `rhs`.
   public func or(_ rhs: BigInt) -> BigInt {
     let size = Swift.max(self.uwords.count, rhs.uwords.count)
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     res.reserveCapacity(size)
     for i in 0..<size {
       let fst = i < self.uwords.count ? self.uwords[i] : 0
@@ -641,7 +644,7 @@ public struct BigInt: Hashable,
   /// Computes the bitwise `xor` between this value and `rhs`.
   public func xor(_ rhs: BigInt) -> BigInt {
     let size = Swift.max(self.uwords.count, rhs.uwords.count)
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     res.reserveCapacity(size)
     for i in 0..<size {
       let fst = i < self.uwords.count ? self.uwords[i] : 0
@@ -653,7 +656,7 @@ public struct BigInt: Hashable,
   
   /// Inverts the bits in this `BigInt`.
   public var invert: BigInt {
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     res.reserveCapacity(self.uwords.count)
     for word in self.uwords {
       res.append(~word)
@@ -676,7 +679,7 @@ public struct BigInt: Hashable,
   private func shiftLeft(_ x: Int) -> BigInt {
     let swords = x / UInt32.bitWidth
     let sbits = x % UInt32.bitWidth
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     res.reserveCapacity(Int(self.uwords.count) + swords)
     for _ in 0..<swords {
       res.append(0)
@@ -695,7 +698,7 @@ public struct BigInt: Hashable,
   private func shiftRight(_ x: Int) -> BigInt {
     let swords = x / UInt32.bitWidth
     let sbits = x % UInt32.bitWidth
-    var res = [UInt32]()
+    var res = ContiguousArray<UInt32>()
     res.reserveCapacity(Int(self.uwords.count) - swords)
     var carry: UInt32 = 0
     var i = self.uwords.count - 1
@@ -705,7 +708,7 @@ public struct BigInt: Hashable,
       carry = word << (UInt32.bitWidth - sbits)
       i -= 1
     }
-    return BigInt(words: res.reversed(), negative: self.negative)
+    return BigInt(words: ContiguousArray<UInt32>(res.reversed()), negative: self.negative)
   }
 }
 
