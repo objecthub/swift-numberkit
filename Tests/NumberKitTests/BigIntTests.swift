@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 11/08/2015.
-//  Copyright © 2015-2017 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2018 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -85,6 +85,25 @@ class BigIntTests: XCTestCase {
     XCTAssert((x3 / (x3.times(10))) == BigInt(0))
   }
   
+  func testRemainder() {
+    let qp: BigInt = "76292485249"
+    let qn: BigInt = "-76292485249"
+    let x1p: BigInt = "12"
+    let x1n: BigInt = "-12"
+    let x2p: BigInt = "7629248524991"
+    let x2n: BigInt = "-7629248524991"
+    XCTAssert(x1p % qp == x1p)
+    XCTAssert(x1n % qp == x1n)
+    XCTAssert(x1p % qn == x1p)
+    XCTAssert(x1n % qn == x1n)
+    let rp: BigInt = "91"
+    let rn: BigInt = "-91"
+    XCTAssertEqual(x2p % qp, rp)
+    XCTAssertEqual(x2n % qp, rn)
+    XCTAssertEqual(x2p % qn, rp)
+    XCTAssertEqual(x2n % qn, rn)
+  }
+  
   func testSqrt() {
     let x1: BigInt = "987248974087420857240857208746297469247698798798798700"
     XCTAssert(x1.sqrt == "993604032845791572092520365")
@@ -144,6 +163,30 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x5 >> 1, x5 / 2)
     let x6: BigInt = "98724897408742085724085724524524524524524522454525245999098037580357603865"
     XCTAssertEqual(x6 >> 5, x6 / 32)
+  }
+  
+  func testBitCount() {
+    let x0: BigInt = "172"
+    XCTAssertEqual(x0.bitCount, 4)
+    let x1: BigInt = "4285720457204597"
+    XCTAssertEqual(x1.bitCount, 31)
+    let x2: BigInt = "8708356703856085653607835677770"
+    XCTAssertEqual(x2.bitCount, 55)
+    let x3: BigInt = "98724897408742085724085724524524524524524522454525245999"
+    XCTAssertEqual(x3.bitCount, 100)
+    let x4: BigInt = "9872489740874208572408572452452452452452452245452524599909803758035760386501"
+    XCTAssertEqual(x4.bitCount, 120)
+  }
+  
+  func testZeroBits() {
+    let x0: BigInt = "170"
+    XCTAssertEqual(x0.bitSize, 32)
+    XCTAssertEqual(x0.trailingZeroBits, 1)
+    XCTAssertEqual(x0.leadingZeroBits, 24)
+    let x1: BigInt = "4285720457200"
+    XCTAssertEqual(x1.bitSize, 64)
+    XCTAssertEqual(x1.trailingZeroBits, 4)
+    XCTAssertEqual(x1.leadingZeroBits, 22)
   }
   
   func testWords() {
