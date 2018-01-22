@@ -150,6 +150,37 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(Double(x3), y3.doubleValue)
   }
   
+  func testAnd() {
+    let x0: BigInt = "13"
+    let y0: BigInt = "-234245400000000001111"
+    XCTAssertEqual(x0.and(y0), BigInt(9))
+    let x1: BigInt = "234245400000000001111"
+    let y1: BigInt = "-9846504850258720458"
+    let z1: BigInt = "224984655330917548054"
+    XCTAssertEqual(x1.and(y1), z1)
+    XCTAssertEqual(BigInt(-1).and(BigInt(-2)), BigInt(-2))
+    let x2: BigInt = "-542455245094524566901"
+    let y2: BigInt = "-542455245094524566900"
+    let z2: BigInt = "-542455245094524566904"
+    XCTAssertEqual(x2.and(y2), z2)
+    let x3: BigInt = "9087536870576087630587630586735"
+    let y3: BigInt = "-783098795876350358367035603567035670358"
+    let z3: BigInt = "8879166037613449274055524745258"
+    XCTAssertEqual(x3.and(y3), z3)
+    let x4: BigInt = "-98040972987924857928456297456297659276249762976245659762459"
+    let y4: BigInt = "9864520842504292089860983506873560870"
+    let z4: BigInt = "58540432875177786070779388280897572"
+    XCTAssertEqual(x4.and(y4), z4)
+    let x5: BigInt = "-31"
+    let y5: BigInt = "-4444335366627281172636646645342263748485595"
+    let z5: BigInt = "-4444335366627281172636646645342263748485599"
+    XCTAssertEqual(x5.and(y5), z5)
+    let x6: BigInt = "-3453452461354444335366627281172636646645342263748485599"
+    let y6: BigInt = "1023"
+    let z6: BigInt = "545"
+    XCTAssertEqual(x6.and(y6), z6)
+  }
+  
   func testShifts() {
     let x1: BigInt = "987248974087420857"
     XCTAssertEqual(x1 << 1, x1 * 2)
@@ -176,6 +207,16 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x3.bitCount, 100)
     let x4: BigInt = "9872489740874208572408572452452452452452452245452524599909803758035760386501"
     XCTAssertEqual(x4.bitCount, 120)
+    let x5: BigInt = "-127"
+    XCTAssertEqual(x5.bitCount, -7)
+    let x6: BigInt = "-4285720457204597"
+    XCTAssertEqual(x6.bitCount, -31)
+    let x7: BigInt = "-8708356703856085653607835677770"
+    XCTAssertEqual(x7.bitCount, -56)
+    let x8: BigInt = "-98724897408742085724085724524524524524524522454525245999"
+    XCTAssertEqual(x8.bitCount, -100)
+    let x9: BigInt = "-987248974087420857240857245245245245245245224545252459990980375803576038650"
+    XCTAssertEqual(x9.bitCount, -115)
   }
   
   func testZeroBits() {
