@@ -194,6 +194,31 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x5 >> 1, x5 / 2)
     let x6: BigInt = "98724897408742085724085724524524524524524522454525245999098037580357603865"
     XCTAssertEqual(x6 >> 5, x6 / 32)
+    let x7: BigInt = "-234245400000000001111"
+    let r7: BigInt = "-1830042187500000009"
+    XCTAssertEqual(x7 >> 7, r7)
+    let x8: BigInt = "-987248974087420857240857245245245245245245224545252459990980375803576038650"
+    let r8: BigInt = "-28732726760424582090952237056488091045910411763041410012839489378"
+    XCTAssertEqual(x8 >> 35, r8)
+    let x9: BigInt = "-1"
+    XCTAssertEqual(x9 >> 1, x9)
+    let x10: BigInt = "-2"
+    XCTAssertEqual(x10 >> 1, x9)
+    let x11: BigInt = "-3"
+    XCTAssertEqual(x11 >> 1, x10)
+    let x12: BigInt = "-4"
+    XCTAssertEqual(x12 >> 1, x10)
+    let x13: BigInt = "-100000000000000000000000000000000"
+    let r13: BigInt = "-79"
+    XCTAssertEqual(x13 >> 100, r13)
+    let r14: BigInt = "-126765060022822940149670320537600000000000000000000000000000000"
+    XCTAssertEqual(x13 << 100, r14)
+    let x15: BigInt = "-9872489740874208572408572"
+    let r15: BigInt = "-1356864658148807688588085270081961984"
+    XCTAssertEqual(x15 << 37, r15)
+    let x16: BigInt = "-111308731087301939383033999999"
+    let r16: BigInt = "-131410155234356299897170703642124868710991004696576"
+    XCTAssertEqual(x16 << 70, r16)
   }
   
   func testBitCount() {
@@ -222,12 +247,69 @@ class BigIntTests: XCTestCase {
   func testZeroBits() {
     let x0: BigInt = "170"
     XCTAssertEqual(x0.bitSize, 32)
-    XCTAssertEqual(x0.trailingZeroBits, 1)
-    XCTAssertEqual(x0.leadingZeroBits, 24)
+    XCTAssertEqual(x0.trailingZeroBitCount, 1)
+    XCTAssertEqual(x0.firstBitSet, 1)
     let x1: BigInt = "4285720457200"
     XCTAssertEqual(x1.bitSize, 64)
-    XCTAssertEqual(x1.trailingZeroBits, 4)
-    XCTAssertEqual(x1.leadingZeroBits, 22)
+    XCTAssertEqual(x1.trailingZeroBitCount, 4)
+    XCTAssertEqual(x1.firstBitSet, 4)
+    let x2: BigInt = "-4"
+    XCTAssertEqual(x2.trailingZeroBitCount, 2)
+    XCTAssertEqual(x2.firstBitSet, 2)
+    let x3: BigInt = "81623247908021670355559786741760"
+    XCTAssertEqual(x3.trailingZeroBitCount, 74)
+    XCTAssertEqual(x3.firstBitSet, 74)
+    let x4: BigInt = "-157334116307980970279619537141760"
+    XCTAssertEqual(x4.trailingZeroBitCount, 74)
+    XCTAssertEqual(x4.firstBitSet, 74)
+    XCTAssertEqual(BigInt.zero.trailingZeroBitCount, BigInt.zero.bitWidth)
+    XCTAssertEqual(BigInt.zero.firstBitSet, -1)
+  }
+  
+  func testBitTest() {
+    let x0: BigInt = "2863311530"
+    for i in 0..<32 {
+      XCTAssertEqual(x0.isBitSet(i), i.isOdd)
+    }
+    XCTAssertEqual(x0.isBitSet(32), false)
+    XCTAssertEqual(x0.isBitSet(33), false)
+    XCTAssertEqual(x0.isBitSet(34), false)
+    XCTAssertEqual(x0.isBitSet(35), false)
+    let x1: BigInt = "64942224592110934030034938344746347339829000900128380"
+    let bits1: Set<Int> =
+      [2, 3, 4, 5, 6, 9, 10, 11, 13, 16, 17, 20, 22, 23, 24, 26, 27, 31, 33, 34, 35, 37,
+       38, 39, 41, 43, 44, 47, 48, 49, 50, 52, 54, 55, 59, 65, 68, 71, 72, 75, 77, 78,
+       79, 80, 82, 83, 84, 85, 87, 90, 91, 92, 94, 95, 100, 102, 103, 110, 111, 112,
+       113, 114, 123, 124, 127, 129, 130, 135, 136, 137, 138, 141, 142, 143, 145,
+       148, 149, 150, 151, 152, 154, 158, 160, 161, 164, 167, 168, 170, 171, 173, 175]
+    for i in 0..<300 {
+      XCTAssertEqual(x1.isBitSet(i), bits1.contains(i))
+    }
+    let x2: BigInt = "-1234567894257563210000294749382000039387453720000987383000032"
+    let zeros1: Set<Int> =
+      [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 15, 19, 20, 21, 23, 24, 27, 28, 32, 34, 35,
+       36, 37, 38, 40, 41, 42, 43, 44, 48, 49, 53, 58, 65, 66, 68, 71, 73, 75, 77, 79,
+       80, 81, 82, 85, 86, 88, 90, 92, 95, 96, 98, 99, 101, 102, 105, 106, 107, 108,
+       110, 111, 118, 121, 122, 123, 125, 130, 132, 135, 136, 139, 141, 144, 145,
+       146, 147, 150, 151, 154, 162, 163, 164, 165, 166, 167, 168, 169, 171, 172,
+       173, 177, 180, 183, 184, 186, 187, 189, 191, 194, 198, 199]
+    for i in 0..<400 {
+      XCTAssertEqual(x2.isBitSet(i), !zeros1.contains(i))
+    }
+  }
+  
+  func testBitSet() {
+    var x1 = BigInt.zero
+    for i in [2, 3, 4, 5, 6, 9, 10, 11, 13, 16, 17, 20, 22, 23, 24, 26, 27, 31, 33, 34, 35, 37,
+              38, 39, 41, 43, 44, 47, 48, 49, 50, 52, 54, 55, 59, 65, 68, 71, 72, 75, 77, 78,
+              79, 80, 82, 83, 84, 85, 87, 90, 91, 92, 94, 95, 100, 102, 103, 110, 111, 112,
+              113, 114, 123, 124, 127, 129, 130, 135, 136, 137, 138, 141, 142, 143, 145,
+              148, 149, 150, 151, 152, 154, 158, 160, 161, 164, 167, 168, 170, 171, 173, 175] {
+      x1 = x1.set(bit: i, to: true)
+    }
+    let y1: BigInt = "64942224592110934030034938344746347339829000900128380"
+    XCTAssertEqual(x1, y1)
+    XCTAssertEqual(x1.bitSize, y1.bitSize)
   }
   
   func testWords() {
