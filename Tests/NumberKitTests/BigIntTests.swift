@@ -275,6 +275,7 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x0.isBitSet(33), false)
     XCTAssertEqual(x0.isBitSet(34), false)
     XCTAssertEqual(x0.isBitSet(35), false)
+    XCTAssertEqual(x0.lastBitSet, 32)
     let x1: BigInt = "64942224592110934030034938344746347339829000900128380"
     let bits1: Set<Int> =
       [2, 3, 4, 5, 6, 9, 10, 11, 13, 16, 17, 20, 22, 23, 24, 26, 27, 31, 33, 34, 35, 37,
@@ -285,6 +286,7 @@ class BigIntTests: XCTestCase {
     for i in 0..<300 {
       XCTAssertEqual(x1.isBitSet(i), bits1.contains(i))
     }
+    XCTAssertEqual(x1.lastBitSet, 176)
     let x2: BigInt = "-1234567894257563210000294749382000039387453720000987383000032"
     let zeros1: Set<Int> =
       [0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 15, 19, 20, 21, 23, 24, 27, 28, 32, 34, 35,
@@ -296,6 +298,7 @@ class BigIntTests: XCTestCase {
     for i in 0..<400 {
       XCTAssertEqual(x2.isBitSet(i), !zeros1.contains(i))
     }
+    XCTAssertEqual(x2.lastBitSet, 200)
   }
   
   func testBitSet() {

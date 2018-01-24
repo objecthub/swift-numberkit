@@ -837,6 +837,21 @@ public struct BigInt: Hashable,
     return i * UInt32.bitWidth
   }
   
+  /// Returns the last bit that is set in the two-complement form of this number if it is
+  /// positive. For negative numbers, the last bit is computed of the negated number. For 0,
+  /// this method returns 0.
+  public var lastBitSet: Int {
+    guard !self.isZero else {
+      return 0
+    }
+    let number = self.negative ? self.not : self
+    var i = number.uwords.count - 1
+    while i >= 0 && number.uwords[i] == 0 {
+      i -= 1
+    }
+    return i * UInt32.bitWidth + UInt32.bitWidth - number.uwords[i].leadingZeroBitCount
+  }
+  
   /// Returns true if bit `n` is set
   public func isBitSet(_ n: Int) -> Bool {
     guard !self.isZero else {
