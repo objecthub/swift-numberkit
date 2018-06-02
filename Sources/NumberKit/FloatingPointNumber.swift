@@ -18,7 +18,7 @@
 //  limitations under the License.
 //
 
-import Darwin
+import Foundation
 
 
 /// Protocol `FloatingPointNumber` is used in combination with struct
@@ -51,28 +51,28 @@ extension Float: FloatingPointNumber {
     return Swift.abs(self)
   }
   public var sqrt: Float {
-    return Darwin.sqrt(self)
+    return Foundation.sqrt(self)
   }
   public var sin: Float {
-    return Darwin.sin(self)
+    return Foundation.sin(self)
   }
   public var cos: Float {
-    return Darwin.cos(self)
+    return Foundation.cos(self)
   }
   public var exp: Float {
-    return Darwin.exp(self)
+    return Foundation.exp(self)
   }
   public var log: Float {
-    return Darwin.log(self)
+    return Foundation.log(self)
   }
   public func pow(_ ex: Float) -> Float {
-    return Darwin.pow(self, ex)
+    return Foundation.pow(self, ex)
   }
   public func hypot(_ y: Float) -> Float {
-    return Darwin.hypot(self, y)
+    return Foundation.hypot(self, y)
   }
   public func atan2(_ y: Float) -> Float {
-    return Darwin.atan2(self, y)
+    return Foundation.atan2(self, y)
   }
 }
 
@@ -85,27 +85,27 @@ extension Double: FloatingPointNumber {
     return Swift.abs(self)
   }
   public var sqrt: Double {
-    return Darwin.sqrt(self)
+    return Foundation.sqrt(self)
   }
   public var sin: Double {
-    return Darwin.sin(self)
+    return Foundation.sin(self)
   }
   public var cos: Double {
-    return Darwin.cos(self)
+    return Foundation.cos(self)
   }
   public var exp: Double {
-    return Darwin.exp(self)
+    return Foundation.exp(self)
   }
   public var log: Double {
-    return Darwin.log(self)
+    return Foundation.log(self)
   }
   public func pow(_ ex: Double) -> Double {
-    return Darwin.pow(self, ex)
+    return Foundation.pow(self, ex)
   }
   public func hypot(_ y: Double) -> Double {
-    return Darwin.hypot(self, y)
+    return Foundation.hypot(self, y)
   }
   public func atan2(_ y: Double) -> Double {
-    return Darwin.atan2(self, y)
+    return Foundation.atan2(self, y)
   }
 }

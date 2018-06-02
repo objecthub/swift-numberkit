@@ -57,4 +57,10 @@ class NumberUtilTests: XCTestCase {
     XCTAssertEqual(max(-1, 0), 0)
     XCTAssertEqual(max(0, -1), 0)
   }
+  
+  static let allTests = [
+    ("testPow", testPow),
+    ("testPowOperator", testPowOperator),
+    ("testMinMax", testMinMax),
+  ]
 }

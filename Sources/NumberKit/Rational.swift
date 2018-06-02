@@ -18,7 +18,7 @@
 //  limitations under the License.
 //
 
-import Darwin
+import Foundation
 
 
 /// The `RationalNumber` protocol defines an interface for rational numbers. A rational

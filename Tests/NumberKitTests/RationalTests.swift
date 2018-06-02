@@ -54,7 +54,6 @@ class RationalTests: XCTestCase {
   func testPlus() {
     let r1 = Rational(16348, 343).plus(24/7)
     XCTAssertEqual(r1, 17524/343)
-    Swift.print("r1 = \(r1), other = \(17524/343)")
     XCTAssert(r1 == Rational(from: "17524/343"))
     XCTAssert(r1 == 17524/343)
     let r2: Rational<Int> = (74433/215).plus(312/15)
@@ -88,4 +87,12 @@ class RationalTests: XCTestCase {
     let r1 = Rational(10, -3).divided(by: -31/49)
     XCTAssertEqual(r1, Rational(10 * 49, 3 * 31))
   }
+  
+  static let allTests = [
+    ("testConstructors", testConstructors),
+    ("testPlus", testPlus),
+    ("testMinus", testMinus),
+    ("testTimes", testTimes),
+    ("testDividedBy", testDividedBy),
+  ]
 }

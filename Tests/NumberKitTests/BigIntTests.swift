@@ -356,4 +356,25 @@ class BigIntTests: XCTestCase {
     let x3n = BigInt(stringLiteral: x3s)
     XCTAssertEqual(x3n.description, x3s)
   }
+  
+  static let allTests = [
+    ("testConstructors", testConstructors),
+    ("testPlus", testPlus),
+    ("testMinus", testMinus),
+    ("testTimes", testTimes),
+    ("testDividedBy", testDividedBy),
+    ("testRemainder", testRemainder),
+    ("testSqrt", testSqrt),
+    ("testPowerOf", testPowerOf),
+    ("testDoubleConversion", testDoubleConversion),
+    ("testFloatConversion", testFloatConversion),
+    ("testAnd", testAnd),
+    ("testShifts", testShifts),
+    ("testBitCount", testBitCount),
+    ("testZeroBits", testZeroBits),
+    ("testBitTest", testBitTest),
+    ("testBitSet", testBitSet),
+    ("testWords", testWords),
+    ("testDescription", testDescription),
+  ]
 }

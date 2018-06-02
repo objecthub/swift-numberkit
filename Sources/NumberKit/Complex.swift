@@ -18,7 +18,7 @@
 //  limitations under the License.
 //
 
-import Darwin
+import Foundation
 
 
 /// The `ComplexNumber` protocol defines an interface for complex numbers. A complex

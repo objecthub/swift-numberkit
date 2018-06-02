@@ -37,4 +37,9 @@ class ComplexTests: XCTestCase {
     let c = 1.0.i
     XCTAssertEqual(c * c, -1)
   }
+  
+  static let allTests = [
+    ("testConstructors", testConstructors),
+    ("testImaginaryInvariant", testImaginaryInvariant),
+  ]
 }

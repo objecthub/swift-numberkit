@@ -18,7 +18,7 @@
 //  limitations under the License.
 //
 
-import Darwin
+import Foundation
 
 
 /// Class `BigInt` implements signed, arbitrary-precision integers. `BigInt` objects

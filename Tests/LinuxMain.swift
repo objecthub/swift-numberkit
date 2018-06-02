@@ -1,3 +1,5 @@
+#if os(Linux)
+
 import XCTest
 @testable import NumberKitTests
 
@@ -9,3 +11,5 @@ XCTMain(
     testCase(NumberUtilTests.allTests),
   ]
 )
+
+#endif
