@@ -9,7 +9,7 @@
 
 ## Overview
 
-This is a macOS framework implementing advanced numeric data types for the Swift 4 programming
+This is a framework implementing advanced numeric data types for the Swift 4 programming
 language. The current version provides three new numeric types:
 
   1. `BigInt`: arbitrary-precision signed integers
@@ -19,7 +19,8 @@ language. The current version provides three new numeric types:
 **Requirements**:
    - Xcode 9.3
    - Swift 4.1
-   - Optional: Swift Package Manager
+   - macOS with Xcode or Swift Package Manager
+   - Linux with Swift Package Manager
 
 **Note**: So far, with every major version of Swift, Apple decided to change the foundational APIs of the numeric
 types in Swift significantly and consistently in a backward incompatible way. In order to be more isolated from

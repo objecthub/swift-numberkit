@@ -36,6 +36,7 @@
 		CC0741581B8127B600406A43 /* Complex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Complex.swift; sourceTree = "<group>"; };
 		CC07415A1B813A0600406A43 /* RationalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RationalTests.swift; sourceTree = "<group>"; };
 		CC07415C1B813B0300406A43 /* ComplexTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexTests.swift; sourceTree = "<group>"; };
+		CC5E473320C428D500F21B03 /* LinuxMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LinuxMain.swift; path = Tests/LinuxMain.swift; sourceTree = SOURCE_ROOT; };
 		CC99F54F1B7AA6E200355E1E /* NumberKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NumberKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC99F5521B7AA6E200355E1E /* NumberKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NumberKit.h; sourceTree = "<group>"; };
 		CC99F5541B7AA6E200355E1E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -117,11 +118,12 @@
 		CC99F55D1B7AA6E200355E1E /* NumberKitTests */ = {
 			isa = PBXGroup;
 			children = (
-				CC99F5601B7AA6E200355E1E /* Info.plist */,
 				CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */,
 				CC99F5691B7AA76600355E1E /* BigIntTests.swift */,
 				CC07415A1B813A0600406A43 /* RationalTests.swift */,
 				CC07415C1B813B0300406A43 /* ComplexTests.swift */,
+				CC5E473320C428D500F21B03 /* LinuxMain.swift */,
+				CC99F5601B7AA6E200355E1E /* Info.plist */,
 			);
 			indentWidth = 2;
 			name = NumberKitTests;
