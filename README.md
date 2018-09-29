@@ -2,8 +2,8 @@
 
 <p>
 <a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-macOS-blue.svg?style=flat" alt="Platform: macOS" /></a>
-<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%204.1-green.svg?style=flat" alt="Language: Swift 4.1" /></a>
-<a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%209.3-orange.svg?style=flat" alt="IDE: Xcode 9.3" /></a>
+<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%204.2-green.svg?style=flat" alt="Language: Swift 4.2" /></a>
+<a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%2010.0-orange.svg?style=flat" alt="IDE: Xcode 10.0" /></a>
 <a href="https://raw.githubusercontent.com/objecthub/swift-lispkit/master/LICENSE"><img src="http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License: Apache" /></a>
 </p>
 
@@ -17,8 +17,8 @@ language. The current version provides three new numeric types:
   3. `Complex`: complex floating-point numbers
 
 **Requirements**:
-   - Xcode 9.3
-   - Swift 4.1
+   - Xcode 10.0
+   - Swift 4.2
    - macOS with Xcode or Swift Package Manager
    - Linux with Swift Package Manager
 
