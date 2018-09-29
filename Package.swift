@@ -23,7 +23,6 @@ import PackageDescription
 
 let package = Package(
   name: "NumberKit",
-  swiftLanguageVersions: [4],
   products: [
     .library(name: "NumberKit", targets: ["NumberKit"])
   ],
@@ -32,5 +31,6 @@ let package = Package(
   targets: [
     .target(name: "NumberKit", dependencies: []),
     .testTarget(name: "NumberKitTests", dependencies: ["NumberKit"]),
-  ]
+  ],
+  swiftLanguageVersions: [4]
 )
