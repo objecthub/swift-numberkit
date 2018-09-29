@@ -32,5 +32,5 @@ let package = Package(
     .target(name: "NumberKit", dependencies: []),
     .testTarget(name: "NumberKitTests", dependencies: ["NumberKit"]),
   ],
-  swiftLanguageVersions: [4]
+  swiftLanguageVersions: [.v4_2]
 )
