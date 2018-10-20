@@ -363,13 +363,11 @@ public struct BigInt: Hashable,
     return self.negative ? -res : res
   }
   
-  /// The hash value of this `BigInt` object.
-  public var hashValue: Int {
-    var hash: Int = 0
+  /// For hashing values.
+  public func hash(into hasher: inout Hasher) {
     for i in 0..<uwords.count {
-      hash = (31 &* hash) &+ uwords[i].hashValue
+      hasher.combine(uwords[i])
     }
-    return hash
   }
   
   /// Returns true if this `BigInt` is negative.

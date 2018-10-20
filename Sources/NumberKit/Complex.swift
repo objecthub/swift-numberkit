@@ -177,9 +177,10 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
     }
   }
   
-  /// Returns a hash value for this complex number
-  public var hashValue: Int {
-    return im.hashValue &* 31 &+ re.hashValue
+  /// For hashing values.
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(re)
+    hasher.combine(im)
   }
   
   /// Returns the real part of the complex number if the number has no complex

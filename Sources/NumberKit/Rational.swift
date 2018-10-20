@@ -232,12 +232,13 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
     let t2 = other.denominator / div
     return (self.numerator * t2, other.numerator * t1, t1 * t2 * div)
   }
-
-  /// The hash value of this rational value.
-  public var hashValue: Int {
-    return 31 &* denominator.hashValue &+ numerator.hashValue
+  
+  /// For hashing values.
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(numerator)
+    hasher.combine(denominator)
   }
-
+  
   /// The absolute rational value (without sign).
   public var abs: Rational<T> {
     return self.magnitude
