@@ -100,14 +100,14 @@
 		CC99F5511B7AA6E200355E1E /* NumberKit */ = {
 			isa = PBXGroup;
 			children = (
-				CC99F5541B7AA6E200355E1E /* Info.plist */,
-				CC99F5521B7AA6E200355E1E /* NumberKit.h */,
 				CC99F56D1B7AAAA300355E1E /* NumberUtil.swift */,
 				CCA8E8121F77814F00927A41 /* IntegerNumber.swift */,
 				CCA8E8101F7780C800927A41 /* FloatingPointNumber.swift */,
 				CC99F56B1B7AA81500355E1E /* BigInt.swift */,
 				CC0741561B81269200406A43 /* Rational.swift */,
 				CC0741581B8127B600406A43 /* Complex.swift */,
+				CC99F5521B7AA6E200355E1E /* NumberKit.h */,
+				CC99F5541B7AA6E200355E1E /* Info.plist */,
 			);
 			indentWidth = 2;
 			name = NumberKit;
