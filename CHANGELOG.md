@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.3 (2019-03-30)
+- Port to Swift 5
+- Migrated project to Xcode 10.2
+- Use new hashing API to improve hashing algorithm and to speed up hashing compound data structures
+
 ## 2.2 (2018-03-30)
 - Port to Swift 4.1
 - Migrated project to Xcode 9.3

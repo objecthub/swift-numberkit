@@ -2,8 +2,8 @@
 
 <p>
 <a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-macOS-blue.svg?style=flat" alt="Platform: macOS" /></a>
-<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%204.2-green.svg?style=flat" alt="Language: Swift 4.2" /></a>
-<a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%2010.0-orange.svg?style=flat" alt="IDE: Xcode 10.0" /></a>
+<a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%205-green.svg?style=flat" alt="Language: Swift 5" /></a>
+<a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%2010.2-orange.svg?style=flat" alt="IDE: Xcode 10.2" /></a>
 <a href="https://raw.githubusercontent.com/objecthub/swift-lispkit/master/LICENSE"><img src="http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License: Apache" /></a>
 </p>
 
@@ -17,8 +17,8 @@ language. The current version provides three new numeric types:
   3. `Complex`: complex floating-point numbers
 
 **Requirements**:
-   - Xcode 10.0
-   - Swift 4.2
+   - Xcode 10.2
+   - Swift 5
    - macOS with Xcode or Swift Package Manager
    - Linux with Swift Package Manager
 
@@ -27,8 +27,7 @@ types in Swift significantly and consistently in a backward incompatible way. In
 such changes in future, with Swift 3, I decided to introduce a distinct integer type used in NumberKit based on a
 new protocol `IntegerNumber`. All standard numeric integer types implement this protocol. This is now consistent
 with the usage of protocol `FloatingPointNumber` for floating point numbers, where there was, so far, never a
-real, generic enough foundation (and still isn't). Unfortunately, this is a change that might break some client usage
-of NumberKit. Adaptations should be straightforward.
+real, generic enough foundation (and still isn't).
 
 
 ## BigInt

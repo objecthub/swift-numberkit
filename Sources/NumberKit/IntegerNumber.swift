@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 23/09/2017.
-//  Copyright © 2015-2018 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2019 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.

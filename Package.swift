@@ -1,10 +1,10 @@
-// swift-tools-version:4.2
+// swift-tools-version:5.0
 //
 //  Package.swift
 //  NumberKit
 //
 //  Created by Matthias Zenger on 01/05/2017.
-//  Copyright © 2015-2017 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2019 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -32,5 +32,5 @@ let package = Package(
     .target(name: "NumberKit", dependencies: []),
     .testTarget(name: "NumberKitTests", dependencies: ["NumberKit"]),
   ],
-  swiftLanguageVersions: [.v4_2]
+  swiftLanguageVersions: [.v5]
 )
