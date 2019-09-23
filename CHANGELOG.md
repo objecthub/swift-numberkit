@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.1 (2019-09-23)
+- Port to Swift 5.1
+- Migrated project to Xcode 11
+
 ## 2.3 (2019-03-30)
 - Port to Swift 5
 - Migrated project to Xcode 10.2
