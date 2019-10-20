@@ -3,21 +3,21 @@
 <p>
 <a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-macOS-blue.svg?style=flat" alt="Platform: macOS" /></a>
 <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%205.1-green.svg?style=flat" alt="Language: Swift 5.1" /></a>
-<a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%2011.0-orange.svg?style=flat" alt="IDE: Xcode 11.0" /></a>
+<a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%2011.1-orange.svg?style=flat" alt="IDE: Xcode 11.1" /></a>
 <a href="https://raw.githubusercontent.com/objecthub/swift-lispkit/master/LICENSE"><img src="http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License: Apache" /></a>
 </p>
 
 ## Overview
 
-This is a framework implementing advanced numeric data types for the Swift 4 programming
-language. The current version provides three new numeric types:
+This is a framework implementing advanced numeric data types for the Swift programming
+language. Currently, the framework provides three new numeric types, each represented as a struct:
 
   1. `BigInt`: arbitrary-precision signed integers
   2. `Rational`: signed rational numbers
   3. `Complex`: complex floating-point numbers
 
 **Requirements**:
-   - Xcode 11.0
+   - Xcode 11.1
    - Swift 5.1
    - macOS with Xcode or Swift Package Manager
    - Linux with Swift Package Manager
@@ -33,7 +33,7 @@ real, generic enough foundation (and still isn't).
 ## BigInt
 
 `BigInt` objects are immutable, signed, arbitrary-precision integers that can be used as a
-drop-in replacement for the existing binary integer types of Swift 4. Struct `BigInt` defines all
+drop-in replacement for the existing binary integer types of Swift 5. Struct `BigInt` defines all
 the standard arithmetic integer operations and implements the corresponding protocols defined
 in the standard library.
 

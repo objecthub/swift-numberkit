@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.2 (2019-10-20)
+- Migrated project to Xcode 11.1
+- Removed non-shared scheme from project
+
 ## 2.3.1 (2019-09-23)
 - Port to Swift 5.1
 - Migrated project to Xcode 11
