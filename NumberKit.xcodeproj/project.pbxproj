@@ -17,6 +17,7 @@
 		CC99F56C1B7AA81500355E1E /* BigInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56B1B7AA81500355E1E /* BigInt.swift */; };
 		CC99F56E1B7AAAA300355E1E /* NumberUtil.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56D1B7AAAA300355E1E /* NumberUtil.swift */; };
 		CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */; };
+		CCA2651723EF73B700483329 /* CodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA2651623EF73B700483329 /* CodableTests.swift */; };
 		CCA8E8111F7780C800927A41 /* FloatingPointNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA8E8101F7780C800927A41 /* FloatingPointNumber.swift */; };
 		CCA8E8131F77814F00927A41 /* IntegerNumber.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCA8E8121F77814F00927A41 /* IntegerNumber.swift */; };
 /* End PBXBuildFile section */
@@ -48,6 +49,7 @@
 		CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NumberUtilTests.swift; sourceTree = "<group>"; };
 		CC99F5711B7AB5E600355E1E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		CC99F5721B7AB66E00355E1E /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		CCA2651623EF73B700483329 /* CodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodableTests.swift; sourceTree = "<group>"; };
 		CCA8E8101F7780C800927A41 /* FloatingPointNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingPointNumber.swift; sourceTree = "<group>"; };
 		CCA8E8121F77814F00927A41 /* IntegerNumber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegerNumber.swift; sourceTree = "<group>"; };
 		CCB691501EB7710700B32D55 /* Package.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				CC99F5691B7AA76600355E1E /* BigIntTests.swift */,
 				CC07415A1B813A0600406A43 /* RationalTests.swift */,
 				CC07415C1B813B0300406A43 /* ComplexTests.swift */,
+				CCA2651623EF73B700483329 /* CodableTests.swift */,
 				CC5E473320C428D500F21B03 /* LinuxMain.swift */,
 				CC99F5601B7AA6E200355E1E /* Info.plist */,
 			);
@@ -255,6 +258,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CCA2651723EF73B700483329 /* CodableTests.swift in Sources */,
 				CC07415D1B813B0300406A43 /* ComplexTests.swift in Sources */,
 				CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */,
 				CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */,
@@ -397,7 +401,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Sources/NumberKit/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MARKETING_VERSION = 2.3.2;
+				MARKETING_VERSION = 2.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -419,7 +423,7 @@
 				INFOPLIST_FILE = "$(SRCROOT)/Sources/NumberKit/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
-				MARKETING_VERSION = 2.3.2;
+				MARKETING_VERSION = 2.3.3;
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

@@ -559,5 +559,16 @@ public func != <R: RationalNumber>(lhs: R, rhs: R) -> Bool {
   return lhs.compare(to: rhs) != 0
 }
 
+/// This extension implements the logic to make `Rational<T>` codable if `T` is codable.
+extension Rational: Codable where T: Codable {
+  
+  // Make coding key names explicit to avoid automatic extension.
+  enum CodingKeys: String, CodingKey {
+      case numerator
+      case denominator
+  }
+  
+}
+
 // TODO: make this a static member of `Rational` once this is supported
 private let rationalSeparator: Character = "/"

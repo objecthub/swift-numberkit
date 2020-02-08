@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.3 (2020-02-09)
+- Made all numeric types support protocol `Codable`
+- Migrated project to Xcode 11.3
+
 ## 2.3.2 (2019-10-20)
 - Migrated project to Xcode 11.1
 - Removed non-shared scheme from project

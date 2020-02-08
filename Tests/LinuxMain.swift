@@ -9,6 +9,7 @@ XCTMain(
     testCase(ComplexTests.allTests),
     testCase(RationalTests.allTests),
     testCase(NumberUtilTests.allTests),
+    testCase(CodableTests.allTests),
   ]
 )
 

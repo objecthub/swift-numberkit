@@ -33,8 +33,15 @@ import Foundation
 ///         representing a `UInt64` value as a `BigInt` will result in an object that
 ///         requires more memory than the corresponding `UInt64` integer.
 public struct BigInt: Hashable,
+                      Codable,
                       CustomStringConvertible,
                       CustomDebugStringConvertible {
+  
+  // Redefine the coding key names.
+  enum CodingKeys: String, CodingKey {
+      case uwords = "words"
+      case negative
+  }
   
   // This is an array of `UInt32` words. The lowest significant word comes first in
   // the array.

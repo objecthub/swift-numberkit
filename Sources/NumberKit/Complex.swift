@@ -122,10 +122,10 @@ public protocol ComplexNumber: Equatable {
 ///         implement a complex number as it does not define interfaces for trigonometric
 ///         functions.
 public struct Complex<T: FloatingPointNumber>: ComplexNumber,
-                                       Hashable,
-                                       ExpressibleByIntegerLiteral,
-                                       ExpressibleByFloatLiteral,
-                                       CustomStringConvertible {
+                                               Hashable,
+                                               ExpressibleByIntegerLiteral,
+                                               ExpressibleByFloatLiteral,
+                                               CustomStringConvertible {
   
   /// The real part of thix complex number.
   public let re: T
@@ -569,3 +569,13 @@ public func atanh<C: ComplexNumber>(_ z: C) -> C {
   return log(x.divided(by: y)).divided(by: C.Float(2))
 }
 
+/// This extension implements the logic to make `Complex<T>` codable if `T` is codable.
+extension Complex: Codable where T: Codable {
+  
+  // Make coding key names explicit to avoid automatic extension.
+  enum CodingKeys: String, CodingKey {
+      case re = "real"
+      case im = "imaginary"
+  }
+  
+}
