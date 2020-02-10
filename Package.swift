@@ -4,7 +4,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 01/05/2017.
-//  Copyright © 2015-2019 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -25,10 +25,10 @@ let package = Package(
   name: "NumberKit",
   platforms: [
     .macOS(.v10_12),
-    .iOS(.v11)
+    .iOS(.v11),
   ],
   products: [
-    .library(name: "NumberKit", targets: ["NumberKit"])
+    .library(name: "NumberKit", targets: ["NumberKit"]),
   ],
   dependencies: [
   ],

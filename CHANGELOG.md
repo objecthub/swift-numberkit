@@ -1,5 +1,8 @@
 # Changelog
 
+## 2.3.4 (2020-02-11)
+- Include iOS build target
+
 ## 2.3.3 (2020-02-09)
 - Made all numeric types support protocol `Codable`
 - Migrated project to Xcode 11.3

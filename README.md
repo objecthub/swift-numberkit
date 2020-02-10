@@ -1,7 +1,7 @@
 # Swift NumberKit
 
 <p>
-<a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-macOS-blue.svg?style=flat" alt="Platform: macOS" /></a>
+<a href="https://developer.apple.com/osx/"><img src="https://img.shields.io/badge/Platform-macOS,%20iOS-blue.svg?style=flat" alt="Platform: macOS, iOS" /></a>
 <a href="https://developer.apple.com/swift/"><img src="https://img.shields.io/badge/Language-Swift%205.1-green.svg?style=flat" alt="Language: Swift 5.1" /></a>
 <a href="https://developer.apple.com/xcode/"><img src="https://img.shields.io/badge/IDE-Xcode%2011.3-orange.svg?style=flat" alt="IDE: Xcode 11.3" /></a>
 <a href="https://raw.githubusercontent.com/objecthub/swift-lispkit/master/LICENSE"><img src="http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat" alt="License: Apache" /></a>
@@ -11,7 +11,8 @@
 ## Overview
 
 This is a framework implementing advanced numeric data types for the Swift programming
-language. Currently, the framework provides three new numeric types, each represented as a struct:
+language on macOS and iOS. Currently, the framework provides three new numeric types,
+each represented as a struct:
 
   1. `BigInt`: arbitrary-precision signed integers
   2. `Rational`: signed rational numbers
