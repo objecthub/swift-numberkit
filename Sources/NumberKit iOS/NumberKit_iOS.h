@@ -1,10 +1,9 @@
-// swift-tools-version:5.1
 //
-//  Package.swift
-//  NumberKit
+//  NumberKit_iOS.h
+//  NumberKit-iOS
 //
-//  Created by Matthias Zenger on 01/05/2017.
-//  Copyright © 2015-2019 Matthias Zenger. All rights reserved.
+//  Created by Matthias Zenger on 10/02/2020.
+//  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -19,22 +18,14 @@
 //  limitations under the License.
 //
 
-import PackageDescription
+#import <Foundation/Foundation.h>
 
-let package = Package(
-  name: "NumberKit",
-  platforms: [
-    .macOS(.v10_12),
-    .iOS(.v11)
-  ],
-  products: [
-    .library(name: "NumberKit", targets: ["NumberKit"])
-  ],
-  dependencies: [
-  ],
-  targets: [
-    .target(name: "NumberKit", dependencies: []),
-    .testTarget(name: "NumberKitTests", dependencies: ["NumberKit"]),
-  ],
-  swiftLanguageVersions: [.v5]
-)
+//! Project version number for NumberKit_iOS.
+FOUNDATION_EXPORT double NumberKit_iOSVersionNumber;
+
+//! Project version string for NumberKit_iOS.
+FOUNDATION_EXPORT const unsigned char NumberKit_iOSVersionString[];
+
+// In this header, you should import all the public headers of your framework using statements like #import <NumberKit_iOS/PublicHeader.h>
+
+
