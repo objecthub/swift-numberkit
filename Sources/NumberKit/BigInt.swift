@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 12/08/2015.
-//  Copyright © 2015-2019 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ public struct BigInt: Hashable,
   
   // Redefine the coding key names.
   enum CodingKeys: String, CodingKey {
-      case uwords = "words"
-      case negative
+    case uwords = "words"
+    case negative
   }
   
   // This is an array of `UInt32` words. The lowest significant word comes first in
@@ -1136,11 +1136,13 @@ extension BigInt: IntegerNumber,
     return (self.plus(rhs), overflow: false)
   }
   
-  public func subtractingReportingOverflow(_ rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+  public func subtractingReportingOverflow(_ rhs: BigInt) -> (partialValue: BigInt,
+                                                              overflow: Bool) {
     return (self.minus(rhs), overflow: false)
   }
   
-  public func multipliedReportingOverflow(by rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+  public func multipliedReportingOverflow(by rhs: BigInt) -> (partialValue: BigInt,
+                                                              overflow: Bool) {
     return (self.times(rhs), overflow: false)
   }
   
@@ -1148,7 +1150,8 @@ extension BigInt: IntegerNumber,
     return (self.divided(by: rhs).quotient, overflow: false)
   }
   
-  public func remainderReportingOverflow(dividingBy rhs: BigInt) -> (partialValue: BigInt, overflow: Bool) {
+  public func remainderReportingOverflow(dividingBy rhs: BigInt) -> (partialValue: BigInt,
+                                                                     overflow: Bool) {
     return (self.divided(by: rhs).remainder, overflow: false)
   }
   

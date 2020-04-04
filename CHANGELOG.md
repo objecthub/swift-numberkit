@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.5 (2020-04-05)
+- Port to Swift 5.2
+- Migrated project to Xcode 11.4
+
 ## 2.3.4 (2020-02-11)
 - Include iOS build target
 
