@@ -1,6 +1,6 @@
 # Swift NumberKit
 
-[![Platforms](https://img.shields.io/badge/Platforms-macOS%20%7C%20iOS-blue.svg?style=flat)](https://developer.apple.com/osx/) [![Language](https://img.shields.io/badge/Language-Swift%205.2-green.svg?style=flat)](https://developer.apple.com/swift/) [![IDE](https://img.shields.io/badge/IDE-Xcode%2011.4-orange.svg?style=flat)](https://developer.apple.com/xcode/) [![Package managers](https://img.shields.io/badge/Package%20managers-SwiftPM%20%7C%20Carthage-8E64B0.svg?style=flat)](https://github.com/Carthage/Carthage) [![License](http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](https://raw.githubusercontent.com/objecthub/swift-numberkit/master/LICENSE)
+[![Platforms: macOS, iOS, Linux](https://img.shields.io/badge/Platforms-macOS,%20iOS,%20Linux-blue.svg?style=flat)](https://developer.apple.com/osx/) [![Language: Swift](https://img.shields.io/badge/Language-Swift%205.2-green.svg?style=flat)](https://developer.apple.com/swift/) [![IDE: Xcode 11.4](https://img.shields.io/badge/IDE-Xcode%2011.4-orange.svg?style=flat)](https://developer.apple.com/xcode/) [![Package managers: SwiftPM, Carthage](https://img.shields.io/badge/Package%20managers-SwiftPM,%20Carthage-8E64B0.svg?style=flat)](https://github.com/Carthage/Carthage) [![License: Apache](http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](https://raw.githubusercontent.com/objecthub/swift-numberkit/master/LICENSE)
 
 ## Overview
 
