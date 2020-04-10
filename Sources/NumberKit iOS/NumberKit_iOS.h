@@ -1,6 +1,6 @@
 //
 //  NumberKit_iOS.h
-//  NumberKit-iOS
+//  NumberKit
 //
 //  Created by Matthias Zenger on 10/02/2020.
 //  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
