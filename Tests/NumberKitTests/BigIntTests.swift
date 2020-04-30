@@ -356,6 +356,15 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x3n.description, x3s)
   }
   
+  func testBasicOpWithZero() {
+    let x1: BigInt = "0"
+    let x2: BigInt = "-1"
+    XCTAssertFalse(x1.isNegative)
+    XCTAssertFalse(x1.negate.isNegative)
+    XCTAssertEqual(x2.plus(x1), x2)
+    XCTAssertEqual(x2.minus(x1), x2)
+  }
+  
   static let allTests = [
     ("testConstructors", testConstructors),
     ("testPlus", testPlus),

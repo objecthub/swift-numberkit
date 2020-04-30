@@ -260,7 +260,7 @@ public struct BigInt: Hashable,
     // Determine base
     let radix = UInt32(base.radix)
     // Shortcut handling of zero
-    if isZero {
+    if self.isZero {
       return "0"
     }
     var radixPow: UInt32 = 1
@@ -428,6 +428,9 @@ public struct BigInt: Hashable,
   
   /// Returns the sum of `self` and `rhs` as a `BigInt`.
   public func plus(_ rhs: BigInt) -> BigInt {
+    guard !rhs.isZero else {
+      return self
+    }
     guard self.negative == rhs.negative else {
       return self.minus(rhs.negate)
     }
@@ -454,6 +457,9 @@ public struct BigInt: Hashable,
   
   /// Returns the difference between `self` and `rhs` as a `BigInt`.
   public func minus(_ rhs: BigInt) -> BigInt {
+    guard !rhs.isZero else {
+      return self
+    }
     guard self.negative == rhs.negative else {
       return self.plus(rhs.negate)
     }
@@ -606,7 +612,7 @@ public struct BigInt: Hashable,
   /// Computes the square root; this is the largest `BigInt` value `x` such that `x * x` is
   /// smaller than `self`.
   public var sqrt: BigInt {
-    guard !self.isNegative else {
+    guard !self.negative else {
       preconditionFailure("cannot compute square root of negative number")
     }
     guard !self.isZero && !self.isOne else {

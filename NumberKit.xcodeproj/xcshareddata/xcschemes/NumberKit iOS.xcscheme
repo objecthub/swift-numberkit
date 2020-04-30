@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "CCD2603823F20F7200DFE5A4"
-               BuildableName = "NumberKit iOS.framework"
+               BuildableName = "NumberKit.framework"
                BlueprintName = "NumberKit iOS"
                ReferencedContainer = "container:NumberKit.xcodeproj">
             </BuildableReference>
@@ -61,7 +61,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "CCD2603823F20F7200DFE5A4"
-            BuildableName = "NumberKit iOS.framework"
+            BuildableName = "NumberKit.framework"
             BlueprintName = "NumberKit iOS"
             ReferencedContainer = "container:NumberKit.xcodeproj">
          </BuildableReference>
