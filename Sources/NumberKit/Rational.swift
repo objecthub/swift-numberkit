@@ -141,7 +141,20 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
   public init(_ value: T) {
     self.init(numerator: value, denominator: T.one)
   }
-
+  
+  /// Creates a rational number by rationalizing a `Double` value.
+  public init(_ value: Double, precision: Double = 1.0e-8) {
+    var x = value
+    var a = Foundation.floor(x)
+    var (h1, k1, h, k) = (T.one, T.zero, T(a), T.one)
+    while x - a > precision * k.doubleValue * k.doubleValue {
+      x = 1.0/(x - a)
+      a = Foundation.floor(x)
+      (h1, k1, h, k) = (h, k, h1 + T(a) * h, k1 + T(a) * k)
+    }
+    self.init(numerator: h, denominator: k)
+  }
+  
   /// Create an instance initialized to `value`.
   public init(integerLiteral value: Int64) {
     self.init(T(value))
@@ -341,7 +354,7 @@ extension Rational: ExpressibleByStringLiteral {
   /// Compute absolute number of `num` and return a tuple consisting of the result and a
   /// boolean indicating whether there was an overflow.
   private static func absWithOverflow(_ num: T) -> (value: T, overflow: Bool) {
-    return num < 0 ? T(0).subtractingReportingOverflow(num) : (num, false)
+    return num < 0 ? T.zero.subtractingReportingOverflow(num) : (num, false)
   }
 
   /// Creates a rational number from a numerator and a denominator.
@@ -355,7 +368,7 @@ extension Rational: ExpressibleByStringLiteral {
     let (adenom, overflow2) = Rational.absWithOverflow(denominator)
     let div = Rational.gcd(anum, adenom)
     let (n, overflow3) = anum.dividedReportingOverflow(by: div)
-    let (numer, overflow4) = negative ? T(0).subtractingReportingOverflow(n) : (n, false)
+    let (numer, overflow4) = negative ? T.zero.subtractingReportingOverflow(n) : (n, false)
     let (denom, overflow5) = adenom.dividedReportingOverflow(by: div)
     return (Rational(numerator: numer, denominator: denom),
             overflow1 || overflow2 || overflow3 || overflow4 || overflow5)

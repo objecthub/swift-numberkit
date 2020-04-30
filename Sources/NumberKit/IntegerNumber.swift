@@ -57,9 +57,14 @@ public protocol IntegerNumber: SignedNumeric,
   static func %(lhs: Self, rhs: Self) -> Self
   
   /// Constructs an `IntegerNumber` from an `Int64` value. This constructor might crash if
+  /// the value cannot be converted to this type.
   ///
   /// - Note: This is a hack right now.
   init(_ value: Int64)
+  
+  /// Constructs an `IntegerNumber` from a `Double` value. This constructor might crash if
+  /// the value cannot be converted to this type.
+  init(_ value: Double)
   
   /// Returns the integer as a `Double`.
   var doubleValue: Double { get }

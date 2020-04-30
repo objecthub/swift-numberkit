@@ -87,6 +87,17 @@ class RationalTests: XCTestCase {
     XCTAssertEqual(r1, Rational(10 * 49, 3 * 31))
   }
   
+  func testRationalize() {
+    let r1 = Rational<Int>(1.0/3.0)
+    XCTAssertEqual(r1, Rational(1, 3))
+    let r2 = Rational<Int>(1931.0 / 9837491.0, precision: 1.0e-14)
+    XCTAssertEqual(r2, Rational(1931, 9837491))
+    let r3 = Rational<Int>(-17.0/3.0)
+    XCTAssertEqual(r3, -Rational(17, 3))
+    let r4 = Rational<BigInt>(1931.0 / 9837491.0, precision: 1.0e-14)
+    XCTAssertEqual(r4, Rational(BigInt(1931), BigInt(9837491)))
+  }
+  
   static let allTests = [
     ("testConstructors", testConstructors),
     ("testPlus", testPlus),

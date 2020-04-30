@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.3.6 (2020-05-01)
+- Fixed serious bug that was leading to a stack overflow if zero was added to a negative `BigInt` number
+- Introduced new `Rational` constructor for approximating a `Double` number as a `Rational` 
+
 ## 2.3.5 (2020-04-05)
 - Port to Swift 5.2
 - Migrated project to Xcode 11.4
