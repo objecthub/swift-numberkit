@@ -27,7 +27,7 @@ let package = Package(
   // Platforms define the operating systems for which this library can be compiled for.
   platforms: [
     .macOS(.v10_12),
-    .iOS(.v11),
+    .iOS(.v12),
   ],
   
   // Products define the executables and libraries produced by a package, and make them visible
