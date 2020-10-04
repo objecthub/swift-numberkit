@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.3.8 (2020-10-04)
+## 2.3.9 (2020-10-04)
 - Port to Swift 5.3
 - Migrated project to Xcode 12.0
 
