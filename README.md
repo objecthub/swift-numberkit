@@ -1,11 +1,11 @@
 # Swift NumberKit
 
-[![Platforms: macOS, iOS, Linux](https://img.shields.io/badge/Platforms-macOS,%20iOS,%20Linux-blue.svg?style=flat)](https://developer.apple.com/osx/) [![Language: Swift 5.3](https://img.shields.io/badge/Language-Swift%205.3-green.svg?style=flat)](https://developer.apple.com/swift/) [![IDE: Xcode 12.0](https://img.shields.io/badge/IDE-Xcode%2012.0-orange.svg?style=flat)](https://developer.apple.com/xcode/) [![Package managers: SwiftPM, Carthage](https://img.shields.io/badge/Package%20managers-SwiftPM,%20Carthage-8E64B0.svg?style=flat)](https://github.com/Carthage/Carthage) [![License: Apache](http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](https://raw.githubusercontent.com/objecthub/swift-numberkit/master/LICENSE)
+[![Platforms: macOS, iOS, Linux](https://img.shields.io/badge/Platforms-macOS,%20iOS,%20Linux-blue.svg?style=flat)](https://developer.apple.com/osx/) [![Language: Swift 5.4](https://img.shields.io/badge/Language-Swift%205.4-green.svg?style=flat)](https://developer.apple.com/swift/) [![IDE: Xcode 12.5](https://img.shields.io/badge/IDE-Xcode%2012.5-orange.svg?style=flat)](https://developer.apple.com/xcode/) [![Package managers: SwiftPM, Carthage](https://img.shields.io/badge/Package%20managers-SwiftPM,%20Carthage-8E64B0.svg?style=flat)](https://github.com/Carthage/Carthage) [![License: Apache](http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](https://raw.githubusercontent.com/objecthub/swift-numberkit/master/LICENSE)
 
 ## Overview
 
 This is a framework implementing advanced numeric data types for the Swift programming
-language on macOS and iOS. Currently, the framework provides three new numeric types,
+language on macOS, iOS and Linux. Currently, the framework provides three new numeric types,
 each represented as a struct:
 
   1. `BigInt`: arbitrary-precision signed integers
@@ -47,12 +47,12 @@ where _i_ is the _imaginary unit_.
 
 The following technologies are needed to build the components of the _Swift NumberKit_ framework:
 
-- [Xcode 12.0](https://developer.apple.com/xcode/)
-- [Swift 5.3](https://developer.apple.com/swift/)
+- [Xcode 12.5](https://developer.apple.com/xcode/)
+- [Swift 5.4](https://developer.apple.com/swift/)
 - [Swift Package Manager](https://swift.org/package-manager/)
-- macOS or Linux
+- macOS, iOS or Linux
 
 ## Copyright
 
 Author: Matthias Zenger (<matthias@objecthub.net>)  
-Copyright © 2016-2020 Matthias Zenger. All rights reserved.
+Copyright © 2016-2021 Matthias Zenger. All rights reserved.

@@ -56,10 +56,17 @@ public protocol ComplexNumber: Equatable {
   
   /// Returns true if either real or imaginary parts are not a number.
   var isNaN: Bool { get }
-  
+
+  /// Returns true if both real and imaginary parts are finite.
+  var isFinite: Bool { get }
+
   /// Returns true if either real or imaginary parts are infinite.
   var isInfinite: Bool { get }
-  
+
+  /// Returns the ∞-norm of this complex number. Use `norm` if the Euclidean norm
+  /// is needed.
+  var magnitude: Float { get }
+
   /// Returns the absolute value of this complex number.
   var abs: Float { get }
   
@@ -126,7 +133,7 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
                                                ExpressibleByIntegerLiteral,
                                                ExpressibleByFloatLiteral,
                                                CustomStringConvertible {
-  
+
   /// The real part of thix complex number.
   public let re: T
   
@@ -203,10 +210,25 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   public var isNaN: Bool {
     return re.isNaN || im.isNaN
   }
-  
+
+  /// Returns true if both real and imaginary parts are finite.
+  public var isFinite: Bool {
+    return re.isFinite && im.isFinite
+  }
+
   /// Returns true if either real or imaginary parts are infinite.
   public var isInfinite: Bool {
     return re.isInfinite || im.isInfinite
+  }
+
+  /// Returns the ∞-norm of this complex number. Use `norm` if the Euclidean norm
+  /// is needed.
+  public var magnitude: T {
+    if self.isFinite {
+      return max(self.re.abs, self.im.abs)
+    } else {
+      return .infinity
+    }
   }
   
   /// Returns the absolute value of this complex number.
@@ -567,6 +589,30 @@ public func atanh<C: ComplexNumber>(_ z: C) -> C {
   let x = C(C.Float(1)).plus(z)
   let y = C(C.Float(1)).minus(z)
   return log(x.divided(by: y)).divided(by: C.Float(2))
+}
+
+/// This extensions provides access to a few complex constants.
+extension Complex {
+
+  /// The additive identity for complex numbers.
+  public static var zero: Complex {
+    Complex(0, 0)
+  }
+
+  /// The multiplicative identity for complex numbers.
+  public static var one: Complex {
+    Complex(1, 0)
+  }
+
+  /// The imaginary unit.
+  public static var i: Complex {
+    Complex(0, 1)
+  }
+
+  /// One representation of infinity.
+  public static var infinity: Complex {
+    Complex(.infinity, 0)
+  }
 }
 
 /// This extension implements the logic to make `Complex<T>` codable if `T` is codable.
