@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.4
 //
 //  Package.swift
 //  NumberKit
@@ -45,8 +45,12 @@ let package = Package(
   // a test suite. Targets can depend on other targets in this package, and on products
   // in packages which this package depends on.
   targets: [
-    .target(name: "NumberKit", dependencies: []),
-    .testTarget(name: "NumberKitTests", dependencies: ["NumberKit"]),
+    .target(name: "NumberKit",
+            dependencies: [],
+            exclude: ["Info.plist"]),
+    .testTarget(name: "NumberKitTests",
+                dependencies: ["NumberKit"],
+                exclude: ["Info.plist"]),
   ],
   
   // Required Swift language version.
