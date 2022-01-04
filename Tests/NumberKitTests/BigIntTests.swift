@@ -342,6 +342,21 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x7.words, [0, 1, 0])
   }
   
+  func testRandom() {
+    let rnd1 = BigInt.random(withMaxBits: 218)
+    XCTAssert(rnd1.bitCount <= 218)
+    XCTAssert(rnd1.bitSize < 218 + UInt32.bitWidth)
+    let rnd2 = BigInt.random(withMaxBits: 22)
+    XCTAssert(rnd2.bitCount <= 22)
+    XCTAssert(rnd2.bitSize < 22 + UInt32.bitWidth)
+    let bound: BigInt = "9856024857249581231765137423436847588346498948545927456"
+    let rnd3 = BigInt.random(below: bound)
+    XCTAssert(rnd3 < bound)
+    let bound2: BigInt = "123123"
+    let rnd4 = BigInt.random(below: bound2)
+    XCTAssert(rnd4 < bound2)
+  }
+  
   func testDescription() {
     let x1s = "1234"
     let x1n = BigInt(stringLiteral: x1s)

@@ -180,7 +180,7 @@ public struct BigInt: Hashable,
       self.init(words: y.uwords, negative: value < 0.0)
     }
   }
-  
+    
   /// Creates a `BigInt` from a sequence of digits for a given base. The first digit in the
   /// array of digits is the least significant one. `negative` is used to indicate negative
   /// `BigInt` numbers.
@@ -252,6 +252,26 @@ public struct BigInt: Hashable,
       return nil
     }
     self.init(digits: temp, negative: negative, base: base)
+  }
+  
+  /// Initializes a `BigInt` randomly with a given number of bits
+  public init<R: RandomNumberGenerator>(randomWithMaxBits bitWidth: Int,
+                                        using generator: inout R) {
+    var words = ContiguousArray<UInt32>()
+    let capacity = (bitWidth + UInt32.bitWidth - 1)/UInt32.bitWidth
+    if capacity > 2 {
+      words.reserveCapacity(capacity)
+    }
+    var bits = bitWidth
+    while bits >= UInt32.bitWidth {
+      words.append(generator.next())
+      bits -= UInt32.bitWidth
+    }
+    if bits > 0 {
+      let mask: UInt32 = (1 << bits) - 1
+      words.append((generator.next() as UInt32) & mask)
+    }
+    self.init(words: words, negative: false)
   }
   
   /// Converts the `BigInt` object into a string using the given base. `BigInt.DEC` is
@@ -929,6 +949,39 @@ public struct BigInt: Hashable,
       words[nword] &= ~(1 << nbit)
     }
     return BigInt.fromTwoComplement(&words)
+  }
+  
+  /// Returns a random `BigInt` with up to `bitWidth` bits using the random number
+  /// generator `generator`.
+  public static func random<R: RandomNumberGenerator>(withMaxBits bitWidth: Int,
+                                                      using generator: inout R) -> BigInt {
+    return BigInt(randomWithMaxBits: bitWidth, using: &generator)
+  }
+  
+  /// Returns a random `BigInt` with up to `bitWidth` bits using the system random number
+  /// generator.
+  public static func random(withMaxBits bitWidth: Int) -> BigInt {
+    var generator = SystemRandomNumberGenerator()
+    return BigInt(randomWithMaxBits: bitWidth, using: &generator)
+  }
+  
+  /// Returns a random `BigInt` below the given upper bound `bound` using the random number
+  /// generator `generator`.
+  public static func random<R: RandomNumberGenerator>(below bound: BigInt,
+                                                      using generator: inout R) -> BigInt {
+    let bitWidth = bound.bitSize
+    var res = BigInt(randomWithMaxBits: bitWidth, using: &generator)
+    while res >= bound {
+      res = BigInt(randomWithMaxBits: bitWidth, using: &generator)
+    }
+    return res
+  }
+  
+  /// Returns a random `BigInt` below the given upper bound `bound` using the system random
+  /// number generator.
+  public static func random(below bound: BigInt) -> BigInt {
+    var generator = SystemRandomNumberGenerator()
+    return BigInt.random(below: bound, using: &generator)
   }
 }
 
