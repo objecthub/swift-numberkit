@@ -27,7 +27,8 @@ import Foundation
 /// not be zero.
 public protocol RationalNumber: SignedNumeric,
                                 Comparable,
-                                Hashable {
+                                Hashable,
+                                CustomStringConvertible {
 
   /// The integer type on which this rational number is based.
   associatedtype Integer: IntegerNumber

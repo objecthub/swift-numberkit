@@ -30,7 +30,8 @@ import Foundation
 ///         the complex type implementation is based on.
 /// - Todo: Implement the `Arithmetic` protocol. This requires that complex numbers are
 ///         mutable.
-public protocol ComplexNumber: Equatable {
+public protocol ComplexNumber: Hashable,
+                               CustomStringConvertible {
   
   /// The floating point number type on which this complex number is based.
   associatedtype Float: FloatingPoint
@@ -153,14 +154,29 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
 
   /// Creates a complex number with the given real and imaginary parts.
   public init(_ re: T, _ im: T) {
-    self.re = re
-    self.im = im
+    // Normalize complex numbers involving NaN
+    if re.isNaN {
+      self.re = re
+      self.im = T(0)
+    } else if im.isNaN {
+      self.re = im
+      self.im = T(0)
+    // Normalize infinite complex numbers
+    } else if re.isInfinite {
+      self.re = re
+      self.im = T(0)
+    } else if im.isInfinite {  // imaginary parts are never infinity
+      self.re = .nan
+      self.im = T(0)
+    } else {
+      self.re = re
+      self.im = im
+    }
   }
   
   /// Creates a complex number from polar coordinates
   public init(abs: T, arg: T) {
-    self.re = abs * arg.cos
-    self.im = abs * arg.sin
+    self.init(abs * arg.cos, abs * arg.sin)
   }
   
   /// Creates a real number initialized to integer `value`.
@@ -175,7 +191,7 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   
   /// Returns a textual representation of this complex number
   public var description: String {
-    if im.isZero {
+    if im.isZero || re.isNaN || re.isInfinite {
       return String(describing: re)
     } else if re.isZero {
       return String(describing: im) + "i"
@@ -224,7 +240,9 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   /// Returns the ∞-norm of this complex number. Use `norm` if the Euclidean norm
   /// is needed.
   public var magnitude: T {
-    if self.isFinite {
+    if self.isNaN {
+      return .nan
+    } else if self.isFinite {
       return max(self.re.abs, self.im.abs)
     } else {
       return .infinity
@@ -258,8 +276,16 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   
   /// Returns the reciprocal of this complex number.
   public var reciprocal: Complex<T> {
-    let s = re * re + im * im
-    return Complex(re / s, -im / s)
+    if self.isNaN {
+      return self
+    } else if self.isZero {
+      return .infinity
+    } else if self.isInfinite {
+      return .zero
+    } else {
+      let s = re * re + im * im
+      return Complex(re / s, -im / s)
+    }
   }
   
   /// Returns the norm of this complex number.

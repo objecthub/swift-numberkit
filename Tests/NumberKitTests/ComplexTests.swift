@@ -37,8 +37,34 @@ class ComplexTests: XCTestCase {
     XCTAssertEqual(c * c, -1)
   }
   
+  func testSpecialCases() {
+    let c1: Complex<Double> = Complex(.infinity, 12.0)
+    XCTAssertTrue(c1.isInfinite)
+    XCTAssertFalse(c1.isNaN)
+    let c2: Complex<Double> = Complex(.infinity, -7.3)
+    XCTAssertEqual(c1, c2)
+    let c3: Complex<Double> = Complex(.nan, -1.2)
+    XCTAssertTrue(c3.isNaN)
+    XCTAssertFalse(c3.isInfinite)
+    XCTAssertEqual(c3.im, 0.0)
+    let c4: Complex<Double> = Complex(3.4, .nan)
+    XCTAssertTrue(c4.isNaN)
+    XCTAssertFalse(c4.isInfinite)
+    XCTAssertEqual(c4.im, 0.0)
+    XCTAssertNotEqual(c3, c4)
+    XCTAssertTrue(c4.abs.isNaN)
+    let c5: Complex<Double> = Complex(1.234, .infinity)
+    XCTAssertTrue(c5.isNaN)
+    XCTAssertFalse(c5.isInfinite)
+    XCTAssertTrue(c5.magnitude.isNaN)
+    let c6: Complex<Double> = .zero
+    XCTAssertTrue(c6.reciprocal.isInfinite)
+    XCTAssertTrue(c1.reciprocal.isZero)
+  }
+  
   static let allTests = [
     ("testConstructors", testConstructors),
     ("testImaginaryInvariant", testImaginaryInvariant),
+    ("testSpecialCases", testSpecialCases),
   ]
 }
