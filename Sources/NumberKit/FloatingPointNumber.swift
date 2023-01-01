@@ -40,6 +40,8 @@ public protocol FloatingPointNumber: FloatingPoint, _ExpressibleByBuiltinFloatLi
   func pow(_ ex: Self) -> Self
   func hypot(_ y: Self) -> Self
   func atan2(_ y: Self) -> Self
+  static func random<T: RandomNumberGenerator>(in range: Range<Self>,
+                                               using generator: inout T) -> Self
 }
 
 /// Make `Float` implement protocol `FloatingPointNumber`.

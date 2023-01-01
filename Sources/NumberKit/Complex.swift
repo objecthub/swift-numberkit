@@ -345,6 +345,14 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   public func divided(by rhs: T) -> Complex<T> {
     return Complex(self.re / rhs, self.im / rhs);
   }
+  
+  /// Returns a random complex number given a real and imaginary range.
+  public static func random<R>(realRange: Range<T>,
+                               imaginaryRange: Range<T>,
+                               using generator: inout R) -> Self where R: RandomNumberGenerator {
+    return Complex(T.random(in: realRange, using: &generator),
+                   T.random(in: imaginaryRange, using: &generator))
+  }
 }
 
 // Implement equality

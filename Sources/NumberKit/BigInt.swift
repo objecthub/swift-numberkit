@@ -254,7 +254,8 @@ public struct BigInt: Hashable,
     self.init(digits: temp, negative: negative, base: base)
   }
   
-  /// Initializes a `BigInt` randomly with a given number of bits
+  /// Initializes a non-negative `BigInt` randomly with a given number of bits using the
+  /// provided random number generator.
   public init<R: RandomNumberGenerator>(randomWithMaxBits bitWidth: Int,
                                         using generator: inout R) {
     var words = ContiguousArray<UInt32>()
@@ -951,22 +952,22 @@ public struct BigInt: Hashable,
     return BigInt.fromTwoComplement(&words)
   }
   
-  /// Returns a random `BigInt` with up to `bitWidth` bits using the random number
+  /// Returns a random non-negative `BigInt` with up to `bitWidth` bits using the random number
   /// generator `generator`.
   public static func random<R: RandomNumberGenerator>(withMaxBits bitWidth: Int,
                                                       using generator: inout R) -> BigInt {
     return BigInt(randomWithMaxBits: bitWidth, using: &generator)
   }
   
-  /// Returns a random `BigInt` with up to `bitWidth` bits using the system random number
-  /// generator.
+  /// Returns a random non-negative `BigInt` with up to `bitWidth` bits using the system
+  /// random number generator.
   public static func random(withMaxBits bitWidth: Int) -> BigInt {
     var generator = SystemRandomNumberGenerator()
     return BigInt(randomWithMaxBits: bitWidth, using: &generator)
   }
   
-  /// Returns a random `BigInt` below the given upper bound `bound` using the random number
-  /// generator `generator`.
+  /// Returns a random non-negative `BigInt` below the given upper bound `bound` using the
+  /// random number generator `generator`.
   public static func random<R: RandomNumberGenerator>(below bound: BigInt,
                                                       using generator: inout R) -> BigInt {
     let bitWidth = bound.bitSize
@@ -977,8 +978,8 @@ public struct BigInt: Hashable,
     return res
   }
   
-  /// Returns a random `BigInt` below the given upper bound `bound` using the system random
-  /// number generator.
+  /// Returns a random non-negative `BigInt` below the given upper bound `bound` using
+  /// the system random number generator.
   public static func random(below bound: BigInt) -> BigInt {
     var generator = SystemRandomNumberGenerator()
     return BigInt.random(below: bound, using: &generator)
