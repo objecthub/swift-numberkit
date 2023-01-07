@@ -23,14 +23,6 @@ import PackageDescription
 
 let package = Package(
   name: "NumberKit",
-  
-  // Platforms define the operating systems for which this library can be compiled for.
-  platforms: [
-    .macOS(.v10_12),
-    .iOS(.v12),
-    .tvOS(.v12),
-  ],
-  
   // Products define the executables and libraries produced by a package, and make them visible
   // to other packages.
   products: [
