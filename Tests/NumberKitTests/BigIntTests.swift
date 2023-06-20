@@ -371,6 +371,50 @@ class BigIntTests: XCTestCase {
     XCTAssertEqual(x3n.description, x3s)
   }
   
+  func testToString() {
+    let x0 = BigInt(stringLiteral: "1234")
+    XCTAssertEqual(x0.toString(base: .bin), "10011010010")
+    XCTAssertEqual(x0.toString(base: .oct), "2322")
+    XCTAssertEqual(x0.toString(base: .dec), "1234")
+    XCTAssertEqual(x0.toString(base: .hex), "4D2")
+    XCTAssertEqual(x0.toString(base: .dec, forceSign: true), "+1234")
+    let x1 = BigInt(stringLiteral: "9876543210")
+    XCTAssertEqual(x1.toString(groupSep: ","), "9,876,543,210")
+    XCTAssertEqual(x1.toString(groupSep: ":", groupSize: 2), "98:76:54:32:10")
+    XCTAssertEqual(x1.toString(base: .hex, groupSep: ".", groupSize: 1), "2.4.C.B.0.1.6.E.A")
+    XCTAssertEqual(BigInt(stringLiteral: "-9876543210").toString(groupSep: ","), "-9,876,543,210")
+    let x2s =
+      "9475620485742095824587024587249578098356095863059683095683560358605398039524642958276579245"
+    let x2 = BigInt(stringLiteral: x2s)
+    XCTAssertEqual(x2.toString(base: .bin), 
+                   "10010100110110100111110001101101111000111111110101000101001111000111111100000" +
+                   "11101000001000100001110110111010110001011001110100010011010101010101100101010" +
+                   "11100100010011000000101000110100010010000011001111011100100111111001000011111" +
+                   "000111001010111010100001100110000100100000110011111110000100111110101101")
+    XCTAssertEqual(x2.toString(base: .oct), 
+                   "45155076155707762424743760324042073353026350465251452710460110642203173223744" +
+                   "174342565031411006376047655")
+    XCTAssertEqual(x2.toString(base: .dec), x2s)
+    XCTAssertEqual(x2.toString(base: .hex), 
+                   "4A6D3E36F1FEA29E3F83A08876EB16744D55655C89814689067B93F21F1CAEA1984833F84FAD")
+    XCTAssertEqual(x2.toString(base: .dec, forceSign: true), "+\(x2s)")
+    let x3s =
+      "-495874504574059783459734085730678509678305968735867305978630697350673056497624524"
+    let x3 = BigInt(stringLiteral: x3s)
+    XCTAssertEqual(x3.toString(base: .bin), 
+                   "-1000010111010011101001010111110001100101101111100110111011110111110011110111" +
+                   "11001110110000001100001110001011110010011000010110101110101011010001001000100" +
+                   "10100100101000000001010101111100111001001010010000010111111000101000001101001" +
+                   "100110001001011110110110110010111001100")
+    XCTAssertEqual(x3.toString(base: .oct), 
+                  "-10272164537062673156757475723540303427223026565320442244500112763445101176120" +
+                   "3231411366662714")
+    XCTAssertEqual(x3.toString(base: .dec), x3s)
+    XCTAssertEqual(x3.toString(base: .hex), 
+                   "-10BA74AF8CB7CDDEF9EF9D818717930B5D5A244A4A0157CE4A417E2834CC4BDB65CC")
+    XCTAssertEqual(x3.toString(base: .dec, forceSign: true), x3s)
+  }
+  
   func testBasicOpWithZero() {
     let x1: BigInt = "0"
     let x2: BigInt = "-1"

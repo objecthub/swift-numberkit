@@ -75,6 +75,11 @@ public struct BigInt: Hashable,
   /// - Note: It is currently not possible to define custom `Base` objects. It needs
   ///         to be figured out first what safety checks need to be put in place.
   public final class Base {
+    public static let bin = BigInt.binBase
+    public static let oct = BigInt.octBase
+    public static let dec = BigInt.decBase
+    public static let hex = BigInt.hexBase
+    
     fileprivate let digitSpace: [Character]
     fileprivate let digitMap: [Character: UInt8]
     
@@ -275,14 +280,21 @@ public struct BigInt: Hashable,
     self.init(words: words, negative: false)
   }
   
-  /// Converts the `BigInt` object into a string using the given base. `BigInt.DEC` is
+  /// Converts the `BigInt` object into a string using the given base. `BigInt.decBase` is
   /// used as the default base.
-  public func toString(base: Base = BigInt.decBase) -> String {
+  public func toString(base: Base = BigInt.decBase,
+                       groupSep: String? = nil,
+                       groupSize: Int = 3,
+                       forceSign: Bool = false,
+                       plusSign: String = "+",
+                       minusSign: String = "-") -> String {
     // Determine base
     let radix = UInt32(base.radix)
     // Shortcut handling of zero
     if self.isZero {
-      return "0"
+      // In maths, zero does not have a sign, but it appears that when a sign is forced,
+      // a "+" is used normally in conjunction with zero.
+      return forceSign ? "\(plusSign)0" : "0"
     }
     var radixPow: UInt32 = 1
     var digits = 0
@@ -297,11 +309,28 @@ public struct BigInt: Hashable,
       }
     }
     var res = ""
+    var resDigits = 0
+    // Prepends a string representation of `word` to string `res`. `length` determines
+    // the least amount of characters. 0 is used for padding purposes.
+    func prepend(_ word: UInt32, length: Int) {
+      let radix = base.radix
+      var (value, n) = (Int(word), 0)
+      while n < length || value > 0 {
+        if resDigits > 0 && resDigits % groupSize == 0,
+           let groupSep = groupSep {
+          res.insert(contentsOf: groupSep, at: res.startIndex)
+        }
+        res.insert(base.digitSpace[value % radix], at: res.startIndex)
+        resDigits += 1
+        value /= radix
+        n += 1
+      }
+    }
     if radixPow == 0 {
       for i in uwords.indices.dropLast() {
-        BigInt.toString(uwords[i], prepend: &res, length: digits, base: base)
+        prepend(uwords[i], length: digits)
       }
-      BigInt.toString(uwords.last!, prepend: &res, length: 0, base: base)
+      prepend(uwords.last!, length: 0)
     } else {
       var words = self.uwords
       while words.count > 0 {
@@ -314,25 +343,15 @@ public struct BigInt: Hashable,
         while words.last == 0 {
           words.removeLast()
         }
-        BigInt.toString(rem, prepend: &res, length: words.count > 0 ? digits : 0, base: base)
+        prepend(rem, length: words.count > 0 ? digits : 0)
       }
     }
     if negative {
-      res.insert(Character("-"), at: res.startIndex)
+      res.insert(contentsOf: minusSign, at: res.startIndex)
+    } else if forceSign {
+      res.insert(contentsOf: plusSign, at: res.startIndex)
     }
     return res
-  }
-  
-  /// Prepends a string representation of `word` to string `prepend` for the given base.
-  /// `length` determines the least amount of characters. "0" is used for padding purposes.
-  private static func toString(_ word: UInt32, prepend: inout String, length: Int, base: Base) {
-    let radix = base.radix
-    var (value, n) = (Int(word), 0)
-    while n < length || value > 0 {
-      prepend.insert(base.digitSpace[value % radix], at: prepend.startIndex)
-      value /= radix
-      n += 1
-    }
   }
   
   /// Returns a string representation of this `BigInt` number using base 10.
