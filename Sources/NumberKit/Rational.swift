@@ -217,25 +217,17 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
              self.numerator.description :
              self.numerator.description + String(rationalSeparator) + self.denominator.description
   }
-  
-  /// Compute the greatest common divisor for `x` and `y`.
+
+  /// Returns the (non-negative) Greatest Common Divisor (GCD) of two `T: IntegerNumber` values `x` and `y`. Any
+  /// overflow occurring during the operation is ignored.
   public static func gcd(_ x: T, _ y: T) -> T {
-    var (x, y, rest) = (x, y, x % y)
-    while rest > 0 {
-      x = y
-      y = rest
-      rest = x % y
-    }
-    return y
+    return gcdWithOverflow(x, y).0
   }
 
-  /// Compute the least common multiplier of `x` and `y`.
+  /// Compute the (non-negative) Least Common Multiple (LCM) of two `T: IntegerNumber` values `x` and `y`. Any
+  /// overflow during the operation is ignored.
   public static func lcm(_ x: T, _ y: T) -> T {
-    var abs = x * y
-    if abs < 0 {
-      abs = -abs
-    }
-    return abs / Rational.gcd(x, y)
+    return lcmWithOverflow(x, y).0
   }
 
   /// Determine the smallest common denominator between `self` and `other` and return
@@ -388,27 +380,29 @@ extension Rational: ExpressibleByStringLiteral {
     let (dn, overflow4) = dp.multipliedReportingOverflow(by: div)
     return (n1, n2, dn, overflow1 || overflow2 || overflow3 || overflow4)
   }
-  
-  /// Compute the greatest common divisor for `x` and `y`.
+
+  /// Returns the (non-negative) Greatest Common Divisor (GCD) of two `T: IntegerNumber` values `x` and `y`, along with
+  /// a Boolean value indicating whether overflow occurred in the operation, in which case the result may be wrong.
   public static func gcdWithOverflow(_ x: T, _ y: T) -> (T, Bool) {
-    var (x, y, (rest, overflow)) = (x, y, x.remainderReportingOverflow(dividingBy: y))
-    while rest > 0 {
-      x = y
-      y = rest
-      let (rem, overflow1) = x.remainderReportingOverflow(dividingBy: y)
-      rest = rem
-      overflow = overflow || overflow1
+    var (x, y, gcdOverflow) = (x, y, false)
+    while y != 0 {
+      let (remainder, remainderOverflow) = x.remainderReportingOverflow(dividingBy: y)
+      (x, y, gcdOverflow) = (y, remainder, gcdOverflow || remainderOverflow)
     }
-    return (y, overflow)
+    let (absGcd, absOverflow) = absWithOverflow(x)
+    return (absGcd, gcdOverflow || absOverflow)
   }
-  
-  /// Compute the least common multiplier of `x` and `y`.
+
+  /// Returns the (non-negative) Least Common Multiple (LCM) of two `T: IntegerNumber` values `x` and `y`, along with
+  /// a Boolean value indicating whether overflow occurred in the operation, in which case the result may be wrong.
   public static func lcmWithOverflow(_ x: T, _ y: T) -> (T, Bool) {
-    let (abs, overflow1) = x.multipliedReportingOverflow(by: y)
-    let (gcd, overflow2) = Rational.gcdWithOverflow(x, y)
-    return ((abs < 0 ? -abs : abs) / gcd, overflow1 || overflow2)
+    if (x, y) == (0, 0) { return (0, false) }
+    let (gcd, gcdOverflow) = Rational.gcdWithOverflow(x, y)
+    let (lcm, lcmOverflow) = x.multipliedReportingOverflow(by: y / gcd)
+    let (absLcm, absOverflow) = absWithOverflow(lcm)
+    return (absLcm, gcdOverflow || lcmOverflow || absOverflow)
   }
-  
+
   /// Add `self` and `rhs` and return a tuple consisting of the result and a boolean which
   /// indicates whether there was an overflow.
   public func addingReportingOverflow(_ rhs: Rational<T>)
