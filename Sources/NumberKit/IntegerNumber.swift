@@ -20,7 +20,6 @@
 
 import Foundation
 
-
 /// Protocol `IntegerNumber` is used in combination with struct `Rational<T>`.
 /// It defines the functionality needed for a signed integer implementation to
 /// build rational numbers on top. The `SignedInteger` protocol from the Swift 4
@@ -34,62 +33,62 @@ public protocol IntegerNumber: SignedNumeric,
   
   /// Value zero
   static var zero: Self { get }
-  
+
   /// Value one
   static var one: Self { get }
-  
+
   /// Value two
   static var two: Self { get }
-  
+
   /// Division operation.
   ///
   /// - Note: It's inexplicable to me why this operation is missing in `SignedNumeric`.
   static func /(lhs: Self, rhs: Self) -> Self
-  
+
   /// Division operation.
   ///
   /// - Note: It's inexplicable to me why this operation is missing in `SignedNumeric`.
   static func /=(lhs: inout Self, rhs: Self)
-  
+
   /// Remainder operation.
   ///
   /// - Note: It's inexplicable to me why this operation is missing in `SignedNumeric`.
   static func %(lhs: Self, rhs: Self) -> Self
-  
+
   /// Constructs an `IntegerNumber` from an `Int64` value. This constructor might crash if
   /// the value cannot be converted to this type.
   ///
   /// - Note: This is a hack right now.
   init(_ value: Int64)
-  
+
   /// Constructs an `IntegerNumber` from a `Double` value. This constructor might crash if
   /// the value cannot be converted to this type.
   init(_ value: Double)
-  
+
   /// Returns the integer as a `Double`.
   var doubleValue: Double { get }
-  
+
   /// Computes the power of `self` with exponent `exp`.
   func toPower(of exp: Self) -> Self
-  
+
   /// Returns true if this is an odd number.
   var isOdd: Bool { get }
-  
+
   /// Adds `rhs` to `self` and reports the result together with a boolean indicating an overflow.
   func addingReportingOverflow(_ rhs: Self) -> (partialValue: Self, overflow: Bool)
-  
+
   /// Subtracts `rhs` from `self` and reports the result together with a boolean indicating
   /// an overflow.
   func subtractingReportingOverflow(_ rhs: Self) -> (partialValue: Self, overflow: Bool)
-  
+
   /// Multiplies `rhs` with `self` and reports the result together with a boolean indicating
   /// an overflow.
   func multipliedReportingOverflow(by rhs: Self) -> (partialValue: Self, overflow: Bool)
-  
+
   /// Divides `self` by `rhs` and reports the result together with a boolean indicating
   /// an overflow.
   func dividedReportingOverflow(by rhs: Self) -> (partialValue: Self, overflow: Bool)
-  
+
   /// Computes the remainder from dividing `self` by `rhs` and reports the result together
   /// with a boolean indicating an overflow.
   func remainderReportingOverflow(dividingBy rhs: Self) -> (partialValue: Self, overflow: Bool)
@@ -110,6 +109,42 @@ extension IntegerNumber {
     }
     return res
   }
+
+  /// Returns the (non-negative) Greatest Common Divisor (GCD) of `x` and `y`. Any overflow occurring during the
+  /// computation is ignored, iff the result cannot be represented in this type.
+  public static func gcd(_ x: Self, _ y: Self) -> Self { gcdWithOverflow(x, y).0 }
+
+  /// Compute the (non-negative) Least Common Multiple (LCM) of `x` and `y`. Any overflow occurring during the
+  /// computation is ignored, iff the result cannot be represented in this type.
+  public static func lcm(_ x: Self, _ y: Self) -> Self { lcmWithOverflow(x, y).0 }
+
+  /// Returns the (non-negative) Greatest Common Divisor (GCD) of `x` and `y`, with a Boolean indicating whether
+  /// overflow occurred in the computation, iff the result cannot be represented in this type.
+  public static func gcdWithOverflow(_ x: Self, _ y: Self) -> (Self, Bool) {
+    var (x, y, gcdOverflow) = (x, y, false)
+    while y != 0 {
+      let (remainder, remainderOverflow) = x.remainderReportingOverflow(dividingBy: y)
+      (x, y, gcdOverflow) = (y, remainder, gcdOverflow || remainderOverflow)
+    }
+    let (absGcd, absOverflow) = absWithOverflow(x)
+    return (absGcd, gcdOverflow || absOverflow)
+  }
+
+  /// Returns the (non-negative) Least Common Multiple (LCM) of `x` and `y`, with a Boolean indicating whether
+  /// overflow occurred in the computation, iff the result cannot be represented in this type.
+  public static func lcmWithOverflow(_ x: Self, _ y: Self) -> (Self, Bool) {
+    if (x, y) == (0, 0) { return (0, false) }
+    let (gcd, gcdOverflow) = gcdWithOverflow(x, y)
+    let (lcm, lcmOverflow) = x.multipliedReportingOverflow(by: y / gcd)
+    let (absLcm, absOverflow) = absWithOverflow(lcm)
+    return (absLcm, gcdOverflow || lcmOverflow || absOverflow)
+  }
+
+  /// Returns the absolute value of `num`, along with a Boolean indicating whether overflow occurred in the operation,
+  /// iff the absolute value cannot be represented in this type.
+  static func absWithOverflow(_ num: Self) -> (value: Self, overflow: Bool) {
+    num < 0 ? Self.zero.subtractingReportingOverflow(num) : (num, false)
+  }
 }
 
 /// Provide default implementations of fields needed by this protocol in all the fixed
@@ -118,15 +153,15 @@ extension FixedWidthInteger {
   public static var zero: Self {
     return 0
   }
-  
+
   public static var one: Self {
     return 1
   }
-  
+
   public static var two: Self {
     return 2
   }
-  
+
   public var isOdd: Bool {
     return (self & 1) == 1
   }
