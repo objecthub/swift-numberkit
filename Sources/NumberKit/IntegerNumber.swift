@@ -133,7 +133,9 @@ extension IntegerNumber {
   /// Returns the (non-negative) Least Common Multiple (LCM) of `x` and `y`, with a Boolean indicating whether
   /// overflow occurred in the computation, iff the result cannot be represented in this type.
   public static func lcmWithOverflow(_ x: Self, _ y: Self) -> (Self, Bool) {
-    if (x, y) == (0, 0) { return (0, false) }
+    if (x, y) == (0, 0) {
+        return (0, false)
+    }
     let (gcd, gcdOverflow) = gcdWithOverflow(x, y)
     let (lcm, lcmOverflow) = x.multipliedReportingOverflow(by: y / gcd)
     let (absLcm, absOverflow) = absWithOverflow(lcm)

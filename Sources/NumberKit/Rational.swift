@@ -342,12 +342,20 @@ extension Rational: ExpressibleByStringLiteral {
   public static func rationalWithOverflow(_ numerator: T, _ denominator: T)
     -> (value: Rational<T>, overflow: Bool)
   {
-    guard denominator != 0 else { return (0, true) }
+    guard denominator != 0 else {
+        return (0, true)
+    }
 
     // Eliminate special cases early that might otherwise report overflow.
-    if denominator == 1 { return (Rational(numerator), false) }
-    if numerator == 0 { return (0, false) }
-    if numerator == denominator { return (1, false) }
+    if denominator == 1 {
+        return (Rational(numerator), false)
+    }
+    if numerator == 0 {
+        return (0, false)
+    }
+    if numerator == denominator {
+        return (1, false)
+    }
 
     // Numerator and denominator are now both non-zero.
     let gcd = T.gcd(numerator, denominator) // Safe: numerator != denominator.
