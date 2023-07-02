@@ -48,7 +48,7 @@ where _i_ is the _imaginary unit_.
 The following technologies are needed to build the components of the _Swift NumberKit_ framework:
 
 - [Xcode 14](https://developer.apple.com/xcode/)
-- [Swift 5.7](https://developer.apple.com/swift/)
+- [Swift 5.8](https://developer.apple.com/swift/)
 - [Swift Package Manager](https://swift.org/package-manager/)
 - macOS, iOS or Linux
 

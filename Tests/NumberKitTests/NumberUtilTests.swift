@@ -57,6 +57,17 @@ class NumberUtilTests: XCTestCase {
     XCTAssertEqual(max(0, -1), 0)
   }
   
+  func testBitCount() {
+    XCTAssertEqual(bitcount(0), 0)
+    XCTAssertEqual(bitcount(1), 1)
+    XCTAssertEqual(bitcount(2), 1)
+    XCTAssertEqual(bitcount(3), 2)
+    XCTAssertEqual(bitcount(Int.max), 63)
+    XCTAssertEqual(bitcount(Int(-1)), 64)
+    XCTAssertEqual(bitcount(UInt.min), 0)
+    XCTAssertEqual(bitcount(UInt.max), 64)
+  }
+  
   static let allTests = [
     ("testPow", testPow),
     ("testPowOperator", testPowOperator),

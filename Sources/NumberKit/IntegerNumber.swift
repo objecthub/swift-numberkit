@@ -110,16 +110,23 @@ extension IntegerNumber {
     return res
   }
 
-  /// Returns the (non-negative) Greatest Common Divisor (GCD) of `x` and `y`. Any overflow occurring during the
-  /// computation is ignored, iff the result cannot be represented in this type.
-  public static func gcd(_ x: Self, _ y: Self) -> Self { gcdWithOverflow(x, y).0 }
+  /// Returns the (non-negative) Greatest Common Divisor (GCD) of `x` and `y`. Any overflow
+  /// occurring during the computation is ignored, iff the result cannot be represented in
+  /// this type.
+  public static func gcd(_ x: Self, _ y: Self) -> Self {
+    return gcdWithOverflow(x, y).0
+  }
 
-  /// Compute the (non-negative) Least Common Multiple (LCM) of `x` and `y`. Any overflow occurring during the
-  /// computation is ignored, iff the result cannot be represented in this type.
-  public static func lcm(_ x: Self, _ y: Self) -> Self { lcmWithOverflow(x, y).0 }
-
-  /// Returns the (non-negative) Greatest Common Divisor (GCD) of `x` and `y`, with a Boolean indicating whether
-  /// overflow occurred in the computation, iff the result cannot be represented in this type.
+  /// Compute the (non-negative) Least Common Multiple (LCM) of `x` and `y`. Any overflow
+  /// occurring during the computation is ignored, iff the result cannot be represented
+  /// in this type.
+  public static func lcm(_ x: Self, _ y: Self) -> Self {
+    return lcmWithOverflow(x, y).0
+  }
+  
+  /// Returns the (non-negative) Greatest Common Divisor (GCD) of `x` and `y`, with a Boolean
+  /// indicating whether overflow occurred in the computation, iff the result cannot be
+  /// represented in this type.
   public static func gcdWithOverflow(_ x: Self, _ y: Self) -> (Self, Bool) {
     var (x, y, gcdOverflow) = (x, y, false)
     while y != 0 {
@@ -130,11 +137,12 @@ extension IntegerNumber {
     return (absGcd, gcdOverflow || absOverflow)
   }
 
-  /// Returns the (non-negative) Least Common Multiple (LCM) of `x` and `y`, with a Boolean indicating whether
-  /// overflow occurred in the computation, iff the result cannot be represented in this type.
+  /// Returns the (non-negative) Least Common Multiple (LCM) of `x` and `y`, with a Boolean
+  /// indicating whether overflow occurred in the computation, iff the result cannot be
+  /// represented in this type.
   public static func lcmWithOverflow(_ x: Self, _ y: Self) -> (Self, Bool) {
     if (x, y) == (0, 0) {
-        return (0, false)
+      return (0, false)
     }
     let (gcd, gcdOverflow) = gcdWithOverflow(x, y)
     let (lcm, lcmOverflow) = x.multipliedReportingOverflow(by: y / gcd)
@@ -145,7 +153,7 @@ extension IntegerNumber {
   /// Returns the absolute value of `num`, along with a Boolean indicating whether overflow occurred in the operation,
   /// iff the absolute value cannot be represented in this type.
   static func absWithOverflow(_ num: Self) -> (value: Self, overflow: Bool) {
-    num < 0 ? Self.zero.subtractingReportingOverflow(num) : (num, false)
+    return num < 0 ? Self.zero.subtractingReportingOverflow(num) : (num, false)
   }
 }
 

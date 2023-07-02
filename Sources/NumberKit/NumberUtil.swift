@@ -89,5 +89,5 @@ public func bitcount(_ num: UInt) -> Int {
 
 // `bitCount` computes the number of bits set in the given `Int` value.
 public func bitcount(_ num: Int) -> Int {
-  return bitcount(UInt(num))
+  return bitcount(UInt(bitPattern: num))
 }
