@@ -26,17 +26,17 @@ real, generic enough foundation (and still isn't).
 `BigInt` values are immutable, signed, arbitrary-size integers that can be used as a
 drop-in replacement for the existing binary integer types of Swift 5.
 [Struct `BigInt`](https://github.com/objecthub/swift-numberkit/blob/master/Sources/NumberKit/BigInt.swift) defines all
-the standard arithmetic integer operations and implements the corresponding protocols provided
-by Swift.
+the standard arithmetic integer operations and implements the corresponding numeric
+protocols of Swift.
 
 ## Integer
 
 `Integer` values are immutable, signed, arbitrary-size integers that can be used as a
 drop-in replacement for the existing binary integer types of Swift 5. As opposed to `BigInt`,
 the representation of values is chosen to optimize for memory size and performance of
-airthmetic operations. [Enum `Integer`](https://github.com/objecthub/swift-numberkit/blob/master/Sources/NumberKit/Integer.swift)
-defines all the standard arithmetic integer operations and implements the corresponding protocols
-provided by the Swift standard library.
+arithmetic operations. [Enum `Integer`](https://github.com/objecthub/swift-numberkit/blob/master/Sources/NumberKit/Integer.swift)
+defines all the standard arithmetic integer operations and implements the corresponding
+numeric protocols of Swift.
 
 ## Rational
 
