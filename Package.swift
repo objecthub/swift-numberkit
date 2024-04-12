@@ -4,7 +4,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 01/05/2017.
-//  Copyright © 2015-2023 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2024 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -23,20 +23,16 @@ import PackageDescription
 
 let package = Package(
   name: "NumberKit",
-  // Products define the executables and libraries produced by a package, and make them visible
-  // to other packages.
+  platforms: [
+    .macOS("13.3"),
+    .iOS(.v13),
+    .tvOS(.v13)
+  ],
   products: [
     .library(name: "NumberKit", targets: ["NumberKit"]),
   ],
-  
-  // Dependencies declare other packages that this package depends on.
-  // e.g. `.package(url: /* package url */, from: "1.0.0"),`
   dependencies: [
   ],
-  
-  // Targets are the basic building blocks of a package. A target can define a module or
-  // a test suite. Targets can depend on other targets in this package, and on products
-  // in packages which this package depends on.
   targets: [
     .target(name: "NumberKit",
             dependencies: [],
@@ -45,7 +41,5 @@ let package = Package(
                 dependencies: ["NumberKit"],
                 exclude: ["Info.plist"]),
   ],
-  
-  // Required Swift language version.
   swiftLanguageVersions: [.v5]
 )
