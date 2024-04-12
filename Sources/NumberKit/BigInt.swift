@@ -34,6 +34,7 @@ import Foundation
 ///         requires more memory than the corresponding `UInt64` integer.
 public struct BigInt: Hashable,
                       Codable,
+                      Sendable,
                       CustomStringConvertible,
                       CustomDebugStringConvertible {
   
@@ -1202,8 +1203,30 @@ extension BigInt: IntegerNumber,
     self.init(Int64(value))
   }
   
+  /*
   public init(integerLiteral value: Int64) {
     self.init(Int64(integerLiteral: value))
+  }
+  */
+  
+  public init(integerLiteral value: StaticBigInt) {
+    var uwords = ContiguousArray<UInt32>()
+    let numWords = (value.bitWidth/UInt.bitWidth) + 1
+    for index in 0..<numWords {
+      let myword: UInt64 = UInt64(value[index])
+      uwords.append(BigInt.loword(myword))
+      uwords.append(BigInt.hiword(myword))
+    }
+    if value.signum() < 0 {
+      var subOne = true
+      for index in 0..<uwords.count {
+        if subOne {
+          (uwords[index], subOne) = uwords[index].subtractingReportingOverflow(1)
+        }
+        uwords[index] = ~uwords[index]
+      }
+    }
+    self.init(words: uwords, negative: value.signum() < 0)
   }
   
   public init(stringLiteral value: String) {

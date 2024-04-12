@@ -8,12 +8,13 @@
 
 import Foundation
 
-public enum Integer: Hashable,
+public enum Integer: IntegerNumber,
+                     SignedInteger,
+                     Hashable,
                      Codable,
+                     Sendable,
                      CustomStringConvertible,
                      CustomDebugStringConvertible,
-                     IntegerNumber,
-                     SignedInteger,
                      ExpressibleByIntegerLiteral,
                      ExpressibleByStringLiteral {
   case int(Int64)

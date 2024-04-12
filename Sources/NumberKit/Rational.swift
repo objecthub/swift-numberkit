@@ -572,5 +572,9 @@ extension Rational: Codable where T: Codable {
 
 }
 
+/// This extension implements the logic to make `Rational<T>` sendable if `T` is sendable.
+extension Rational: Sendable where T: Sendable {
+}
+
 // TODO: make this a static member of `Rational` once this is supported
 private let rationalSeparator: Character = "/"

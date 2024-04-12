@@ -659,3 +659,7 @@ extension Complex: Codable where T: Codable {
   }
   
 }
+
+/// This extension implements the logic to make `Complex<T>` sendable if `T` is sendable.
+extension Complex: Sendable where T: Sendable {
+}
