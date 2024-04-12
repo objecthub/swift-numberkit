@@ -3,11 +3,28 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 11/04/2024.
-//  Copyright © 2024 ObjectHub. All rights reserved.
+//  Copyright © 2024 Matthias Zenger. All rights reserved.
+//
+//  Licensed under the Apache License, Version 2.0 (the "License");
+//  you may not use this file except in compliance with the License.
+//  You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+//  Unless required by applicable law or agreed to in writing, software
+//  distributed under the License is distributed on an "AS IS" BASIS,
+//  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,x either express or implied.
+//  See the License for the specific language governing permissions and
+//  limitations under the License.
 //
 
 import Foundation
 
+/// `Integer` implements signed, arbitrary-size integers. As opposed to `BigInt`,
+///  the representation of `Integer` numbers falls back to `Int64` when possible,
+///  minimizing memory overhead and increasing the performance of arithmetic operations.
+///  `Integer` supports `StaticBigInt`literals, i.e. is is possible to use arbitrary
+///  length integer literals.
 public enum Integer: IntegerNumber,
                      SignedInteger,
                      Hashable,
@@ -15,10 +32,13 @@ public enum Integer: IntegerNumber,
                      Sendable,
                      CustomStringConvertible,
                      CustomDebugStringConvertible,
-                     ExpressibleByIntegerLiteral,
-                     ExpressibleByStringLiteral {
+                     ExpressibleByIntegerLiteral {
   case int(Int64)
   case bigInt(BigInt)
+  
+  public static var zero: Integer {
+    return .int(0)
+  }
   
   public static var one: Integer {
     return .int(1)
@@ -115,16 +135,8 @@ public enum Integer: IntegerNumber,
     }
   }
   
-  public init(integerLiteral value: Int64) {
-    self = .int(value)
-  }
-  
-  public init(stringLiteral value: String) {
-    if let num = BigInt(from: value) {
-      self = Integer(num)
-    } else {
-      self = .int(0)
-    }
+  public init(integerLiteral value: StaticBigInt) {
+    self = Integer(BigInt(integerLiteral: value))
   }
   
   public init<T: BinaryInteger>(_ source: T) {
@@ -221,8 +233,26 @@ public enum Integer: IntegerNumber,
     }
   }
   
-  public static prefix func -(x: Integer) -> Integer {
-    switch x {
+  public var isNegative: Bool {
+    switch self {
+      case .int(let num):
+        return num < 0
+      case .bigInt(let num):
+        return num.isNegative
+    }
+  }
+  
+  public var isZero: Bool {
+    switch self {
+      case .int(let num):
+        return num == 0
+      case .bigInt(let num):
+        return num.isZero
+    }
+  }
+  
+  public var negate: Integer {
+    switch self {
       case .int(let num):
         if num == .min {
           return Integer(BigInt(num).negate)
@@ -232,6 +262,105 @@ public enum Integer: IntegerNumber,
       case .bigInt(let num):
         return Integer(BigInt(num).negate)
     }
+  }
+  
+  public var abs: Integer {
+    switch self {
+      case .int(let num):
+        if num == .min {
+          return .bigInt(BigInt(num).abs)
+        } else {
+          return .int(Swift.abs(num))
+        }
+      case .bigInt(let num):
+        return Integer(num.abs)
+    }
+  }
+  
+  public func divided(by rhs: Integer) -> (quotient: Integer, remainder: Integer) {
+    let (q, r) = self.bigIntValue.divided(by: rhs.bigIntValue)
+    return (Integer(q), Integer(r))
+  }
+  
+  public func toPower(of exp: Integer) -> Integer {
+    return Integer(self.bigIntValue.toPower(of: exp.bigIntValue))
+  }
+  
+  public var sqrt: Integer {
+    return Integer(self.bigIntValue.sqrt)
+  }
+  
+  /// Adds `n` and returns the result.
+  public func advanced(by n: Integer) -> Integer {
+    return self + n
+  }
+  
+  /// Computes the distance to `other` and returns the result.
+  public func distance(to other: Integer) -> Integer {
+    return other - self
+  }
+  
+  /// Returns -1 if `self` is less than `rhs`,
+  ///          0 if `self` is equals to `rhs`,
+  ///         +1 if `self` is greater than `rhs`
+  public func compare(to rhs: Integer) -> Int {
+    switch self {
+      case .int(let lval):
+        switch rhs {
+          case .int(let rval):
+            return lval == rval ? 0 : lval < rval ? -1 : 1
+          case .bigInt(let rval):
+            return BigInt(lval).compare(to: rval)
+        }
+      case .bigInt(let lval):
+        switch rhs {
+          case .int(let rval):
+            return lval.compare(to: BigInt(rval))
+          case .bigInt(let rval):
+            return lval.compare(to: rval)
+        }
+    }
+  }
+  
+  /// Number of bits used to represent the (unsigned) `Integer` number.
+  public var bitSize: Int {
+    return self.bigIntValue.bitSize
+  }
+  
+  /// Number of bits set in this `Integer` number. For negative numbers, `n.bigCount` returns
+  /// `~n.not.bigCount`.
+  public var bitCount: Int {
+    return self.bigIntValue.bitCount
+  }
+  
+  /// Returns a random non-negative `Integer` with up to `bitWidth` bits using the random number
+  /// generator `generator`.
+  public static func random<R: RandomNumberGenerator>(withMaxBits bitWidth: Int,
+                                                      using generator: inout R) -> Integer {
+    return Integer(BigInt.random(withMaxBits: bitWidth, using: &generator))
+  }
+  
+  /// Returns a random non-negative `Integer` with up to `bitWidth` bits using the system
+  /// random number generator.
+  public static func random(withMaxBits bitWidth: Int) -> Integer {
+    return Integer(BigInt.random(withMaxBits: bitWidth))
+  }
+  
+  /// Returns a random non-negative `Integer` below the given upper bound `bound` using the
+  /// random number generator `generator`.
+  public static func random<R: RandomNumberGenerator>(below bound: Integer,
+                                                      using generator: inout R) -> Integer {
+    return Integer(BigInt.random(below: bound.bigIntValue, using: &generator))
+  }
+  
+  /// Returns a random non-negative `Integer` below the given upper bound `bound` using
+  /// the system random number generator.
+  public static func random(below bound: Integer) -> Integer {
+    return Integer(BigInt.random(below: bound.bigIntValue))
+  }
+  
+  public static prefix func -(x: Integer) -> Integer {
+    return x.negate
   }
   
   public static prefix func ~(x: Integer) -> Integer {
@@ -468,6 +597,30 @@ public enum Integer: IntegerNumber,
     lhs = lhs >> rhs
   }
   
+  public static func <(lhs: Integer, rhs: Integer) -> Bool {
+    return lhs.compare(to: rhs) < 0
+  }
+
+  public static func <=(lhs: Integer, rhs: Integer) -> Bool {
+    return lhs.compare(to: rhs) <= 0
+  }
+
+  public static func >=(lhs: Integer, rhs: Integer) -> Bool {
+    return lhs.compare(to: rhs) >= 0
+  }
+
+  public static func >(lhs: Integer, rhs: Integer) -> Bool {
+    return lhs.compare(to: rhs) > 0
+  }
+
+  public static func ==(lhs: Integer, rhs: Integer) -> Bool {
+    return lhs.compare(to: rhs) == 0
+  }
+
+  public static func !=(lhs: Integer, rhs: Integer) -> Bool {
+    return lhs.compare(to: rhs) != 0
+  }
+  
   public func addingReportingOverflow(_ rhs: Integer) -> (partialValue: Integer, overflow: Bool) {
     return (self + rhs, false)
   }
@@ -487,4 +640,14 @@ public enum Integer: IntegerNumber,
   public func remainderReportingOverflow(dividingBy rhs: Integer) -> (partialValue: Integer, overflow: Bool) {
     return (self % rhs, false)
   }
+}
+
+/// Returns the maximum of `fst` and `snd`.
+public func max(_ fst: Integer, _ snd: Integer) -> Integer {
+  return fst.compare(to: snd) >= 0 ? fst : snd
+}
+
+/// Returns the minimum of `fst` and `snd`.
+public func min(_ fst: Integer, _ snd: Integer) -> Integer {
+  return fst.compare(to: snd) <= 0 ? fst : snd
 }

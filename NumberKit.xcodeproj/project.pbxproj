@@ -13,6 +13,7 @@
 		CC07415D1B813B0300406A43 /* ComplexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC07415C1B813B0300406A43 /* ComplexTests.swift */; };
 		CC0A59F62BC889DF00F155FE /* Integer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0A59F52BC8891800F155FE /* Integer.swift */; };
 		CC0A59F72BC889E000F155FE /* Integer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0A59F52BC8891800F155FE /* Integer.swift */; };
+		CC0A59F92BC990FA00F155FE /* IntegerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0A59F82BC990AF00F155FE /* IntegerTests.swift */; };
 		CC99F5531B7AA6E200355E1E /* NumberKit.h in Headers */ = {isa = PBXBuildFile; fileRef = CC99F5521B7AA6E200355E1E /* NumberKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		CC99F55A1B7AA6E200355E1E /* NumberKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CC99F54F1B7AA6E200355E1E /* NumberKit.framework */; };
 		CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F5691B7AA76600355E1E /* BigIntTests.swift */; };
@@ -47,6 +48,7 @@
 		CC07415A1B813A0600406A43 /* RationalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RationalTests.swift; sourceTree = "<group>"; };
 		CC07415C1B813B0300406A43 /* ComplexTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ComplexTests.swift; sourceTree = "<group>"; };
 		CC0A59F52BC8891800F155FE /* Integer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Integer.swift; sourceTree = "<group>"; wrapsLines = 0; };
+		CC0A59F82BC990AF00F155FE /* IntegerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntegerTests.swift; sourceTree = "<group>"; };
 		CC5E473320C428D500F21B03 /* LinuxMain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = LinuxMain.swift; path = Tests/LinuxMain.swift; sourceTree = SOURCE_ROOT; };
 		CC99F54F1B7AA6E200355E1E /* NumberKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NumberKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC99F5521B7AA6E200355E1E /* NumberKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NumberKit.h; sourceTree = "<group>"; };
@@ -145,6 +147,7 @@
 			children = (
 				CC99F56F1B7AAB5300355E1E /* NumberUtilTests.swift */,
 				CC99F5691B7AA76600355E1E /* BigIntTests.swift */,
+				CC0A59F82BC990AF00F155FE /* IntegerTests.swift */,
 				CC07415A1B813A0600406A43 /* RationalTests.swift */,
 				CC07415C1B813B0300406A43 /* ComplexTests.swift */,
 				CCA2651623EF73B700483329 /* CodableTests.swift */,
@@ -334,6 +337,7 @@
 			files = (
 				CCA2651723EF73B700483329 /* CodableTests.swift in Sources */,
 				CC07415D1B813B0300406A43 /* ComplexTests.swift in Sources */,
+				CC0A59F92BC990FA00F155FE /* IntegerTests.swift in Sources */,
 				CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */,
 				CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */,
 				CC07415B1B813A0600406A43 /* RationalTests.swift in Sources */,

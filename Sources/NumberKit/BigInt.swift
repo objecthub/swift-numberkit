@@ -21,17 +21,19 @@
 import Foundation
 
 
-/// Class `BigInt` implements signed, arbitrary-precision integers. `BigInt` objects
-/// are immutable, i.e. all operations on `BigInt` objects return result objects.
-/// `BigInt` provides all the signed, integer arithmetic operations from Swift and
-/// implements the corresponding protocols. To make it easier to define large `BigInt`
-/// literals, `String` objects can be used for representing such numbers. They get
-/// implicitly coerced into `BigInt`.
+/// Struct `BigInt` implements signed, arbitrary-size integers. `BigInt` values
+/// are immutable, i.e. all operations on `BigInt` values return result values.
+/// There are no mutable methdos. `BigInt` provides all the signed, integer
+/// arithmetic operations from Swift and implements the corresponding protocols.
+/// `BigInt` supports `StaticBigInt`literals, i.e. is is possible to use arbitrary
+/// length integer literals. String literals containing `BigInt` numbers are still
+/// supported for backward compatibility.
 ///
 /// - Note: `BigInt` is internally implemented as a Swift array of UInt32 numbers
 ///         and a boolean to represent the sign. Due to this overhead, for instance,
 ///         representing a `UInt64` value as a `BigInt` will result in an object that
-///         requires more memory than the corresponding `UInt64` integer.
+///         requires more memory than the corresponding `UInt64` integer. Use enum
+///         `Integer` to avoid such overhead.
 public struct BigInt: Hashable,
                       Codable,
                       Sendable,
@@ -1202,12 +1204,6 @@ extension BigInt: IntegerNumber,
   public init(_ value: Int32) {
     self.init(Int64(value))
   }
-  
-  /*
-  public init(integerLiteral value: Int64) {
-    self.init(Int64(integerLiteral: value))
-  }
-  */
   
   public init(integerLiteral value: StaticBigInt) {
     var uwords = ContiguousArray<UInt32>()
