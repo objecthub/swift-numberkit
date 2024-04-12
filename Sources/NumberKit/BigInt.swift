@@ -37,12 +37,6 @@ public struct BigInt: Hashable,
                       CustomStringConvertible,
                       CustomDebugStringConvertible {
   
-  // Redefine the coding key names.
-  enum CodingKeys: String, CodingKey {
-    case uwords = "words"
-    case negative
-  }
-  
   // This is an array of `UInt32` words. The lowest significant word comes first in
   // the array.
   private let uwords: ContiguousArray<UInt32>
@@ -278,6 +272,23 @@ public struct BigInt: Hashable,
       words.append((generator.next() as UInt32) & mask)
     }
     self.init(words: words, negative: false)
+  }
+  
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.singleValueContainer()
+    if let object = try? container.decode(String.self),
+       let bigInt = BigInt(from: object) {
+      self = bigInt
+    } else {
+      throw DecodingError.dataCorrupted(
+        DecodingError.Context(codingPath: decoder.codingPath,
+                              debugDescription: "Invalid BigInt encoding"))
+    }
+  }
+  
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.singleValueContainer()
+    try container.encode(self.description)
   }
   
   /// Converts the `BigInt` object into a string using the given base. `BigInt.decBase` is
@@ -1196,8 +1207,8 @@ extension BigInt: IntegerNumber,
   }
   
   public init(stringLiteral value: String) {
-    if let bi = BigInt(from: value) {
-      self.init(words: bi.uwords, negative: bi.negative)
+    if let bigInt = BigInt(from: value) {
+      self = bigInt
     } else {
       self.init(0)
     }
