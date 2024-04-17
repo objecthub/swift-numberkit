@@ -31,8 +31,7 @@ public enum Integer: IntegerNumber,
                      Codable,
                      Sendable,
                      CustomStringConvertible,
-                     CustomDebugStringConvertible,
-                     ExpressibleByIntegerLiteral {
+                     CustomDebugStringConvertible {
   case int(Int64)
   case bigInt(BigInt)
   
@@ -133,10 +132,6 @@ public enum Integer: IntegerNumber,
     } else {
       self = .bigInt(bigIntNum)
     }
-  }
-  
-  public init(integerLiteral value: StaticBigInt) {
-    self = Integer(BigInt(integerLiteral: value))
   }
   
   public init<T: BinaryInteger>(_ source: T) {
@@ -641,6 +636,20 @@ public enum Integer: IntegerNumber,
     return (self % rhs, false)
   }
 }
+
+#if canImport(Swift.StaticBigInt)
+extension Integer: ExpressibleByIntegerLiteral {
+  public init(integerLiteral value: StaticBigInt) {
+    self = Integer(BigInt(integerLiteral: value))
+  }
+}
+#else
+extension Integer: ExpressibleByIntegerLiteral {
+  public init(integerLiteral value: Int64) {
+    self.init(value)
+  }
+}
+#endif
 
 /// Returns the maximum of `fst` and `snd`.
 public func max(_ fst: Integer, _ snd: Integer) -> Integer {

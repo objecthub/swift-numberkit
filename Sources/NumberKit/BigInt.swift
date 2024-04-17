@@ -1026,7 +1026,6 @@ public struct BigInt: Hashable,
 /// all signed integer arithmetic functions.
 extension BigInt: IntegerNumber,
                   SignedInteger,
-                  ExpressibleByIntegerLiteral,
                   ExpressibleByStringLiteral {
   
   /// This is a signed type
@@ -1205,26 +1204,6 @@ extension BigInt: IntegerNumber,
     self.init(Int64(value))
   }
   
-  public init(integerLiteral value: StaticBigInt) {
-    var uwords = ContiguousArray<UInt32>()
-    let numWords = (value.bitWidth/UInt.bitWidth) + 1
-    for index in 0..<numWords {
-      let myword: UInt64 = UInt64(value[index])
-      uwords.append(BigInt.loword(myword))
-      uwords.append(BigInt.hiword(myword))
-    }
-    if value.signum() < 0 {
-      var subOne = true
-      for index in 0..<uwords.count {
-        if subOne {
-          (uwords[index], subOne) = uwords[index].subtractingReportingOverflow(1)
-        }
-        uwords[index] = ~uwords[index]
-      }
-    }
-    self.init(words: uwords, negative: value.signum() < 0)
-  }
-  
   public init(stringLiteral value: String) {
     if let bigInt = BigInt(from: value) {
       self = bigInt
@@ -1279,6 +1258,36 @@ extension BigInt: IntegerNumber,
     return other.minus(self)
   }
 }
+
+#if canImport(Swift.StaticBigInt)
+extension BigInt: ExpressibleByIntegerLiteral {
+  public init(integerLiteral value: StaticBigInt) {
+    var uwords = ContiguousArray<UInt32>()
+    let numWords = (value.bitWidth/UInt.bitWidth) + 1
+    for index in 0..<numWords {
+      let myword: UInt64 = UInt64(value[index])
+      uwords.append(BigInt.loword(myword))
+      uwords.append(BigInt.hiword(myword))
+    }
+    if value.signum() < 0 {
+      var subOne = true
+      for index in 0..<uwords.count {
+        if subOne {
+          (uwords[index], subOne) = uwords[index].subtractingReportingOverflow(1)
+        }
+        uwords[index] = ~uwords[index]
+      }
+    }
+    self.init(words: uwords, negative: value.signum() < 0)
+  }
+}
+#else
+extension BigInt: ExpressibleByIntegerLiteral {
+  public init(integerLiteral value: Int64) {
+    self.init(Int64(value))
+  }
+}
+#endif
 
 /// Returns the sum of `lhs` and `rhs`
 public func +(lhs: BigInt, rhs: BigInt) -> BigInt {
@@ -1430,4 +1439,3 @@ public func max(_ fst: BigInt, _ snd: BigInt) -> BigInt {
 public func min(_ fst: BigInt, _ snd: BigInt) -> BigInt {
   return fst.compare(to: snd) <= 0 ? fst : snd
 }
-

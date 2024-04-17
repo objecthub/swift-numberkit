@@ -21,6 +21,7 @@
 import XCTest
 @testable import NumberKit
 
+@available(macOS 13.3, macCatalyst 16.4, iOS 16.4, watchOS 9.4, tvOS 9.4, *)
 class IntegerTests: XCTestCase {
   
   func testConstructors() {
@@ -33,6 +34,7 @@ class IntegerTests: XCTestCase {
               Int64(Int32.max) * Int64(Int32.max - 17))
   }
   
+#if canImport(Swift.StaticBigInt)
   func testPlus() {
     let x1: Integer = 314159265358979323846264338328
     XCTAssertEqual(x1 + x1, 628318530717958647692528676656)
@@ -45,14 +47,18 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(x2 + x2 + 9234567890123456789012345678901234567890,
       9234767018865286542195788146602543645444)
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testPlusLiteral() {
     let x1: Integer = 31415926535897932384626433832809454874529274584894502801830108383756373931835
     XCTAssertEqual(x1 + x1, 62831853071795864769252867665618909749058549169789005603660216767512747863670)
     XCTAssertEqual(x1 + x1 + x1, 94247779607693797153879301498428364623587823754683508405490325151269121795505)
     XCTAssertEqual(x1 + x1 + x1 + x1, 125663706143591729538505735331237819498117098339578011207320433535025495727340)
   }
-  
+#endif
+
+#if canImport(Swift.StaticBigInt)
   func testMinus() {
     let x1: Integer = 1134345924505409852113434
     let x2: Integer = 38274945700000001034304000024002450
@@ -65,7 +71,9 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(x2 - x3, 1)
     XCTAssertEqual(x3 - x2 + 18, 17)
   }
-  
+#endif
+
+#if canImport(Swift.StaticBigInt)
   func testMinusLiteral() {
     let x1: Integer = -9999998765438765432131415926535897932384626433832809454874529274584894502801830108383756373931835
     let x2: Integer = -19999998765438765432131415926535897932384626433832809454874529274584894502801830108383756373931835
@@ -73,7 +81,9 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(x1 + x1 + x1, -29999996296316296296394247779607693797153879301498428364623587823754683508405490325151269121795505)
     XCTAssertEqual(-10 + x1 + x1 + x1 + x2, -49999995061755061728525663706143591729538505735331237819498117098339578011207320433535025495727350)
   }
-  
+#endif
+
+#if canImport(Swift.StaticBigInt)
   func testTimes() {
     let x1: Integer = 89248574598402980294572048572242498123
     let x2: Integer = 84759720710000012134
@@ -82,7 +92,9 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(x1 * x3,
       -75537574353998534693615828134454330968785329792741330257228043492082567)
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testTimesLiteral() {
     let x1: Integer = 89248574598402980294572048572242498123
     let x2: Integer = 84759720710000012134
@@ -91,7 +103,9 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(-100 * x1 * 1 * x3,
       7553757435399853469361582813445433096878532979274133025722804349208256700)
   }
-  
+#endif
+
+#if canImport(Swift.StaticBigInt)
   func testDividedBy() {
     let x1: Integer = 38274945700000001034304000022452452525224002449
     let x2: Integer = 1234567890123456789
@@ -106,7 +120,9 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(x3 / x3, 1)
     XCTAssertEqual(x3 / (x3 * 10), 0)
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testRemainder() {
     let qp: Integer = 76292485249
     let qn: Integer = -76292485249
@@ -125,7 +141,9 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(x2p % qn, rp)
     XCTAssertEqual(x2n % qn, rn)
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testSqrt() {
     let x1: Integer = 987248974087420857240857208746297469247698798798798700
     XCTAssertEqual(x1.sqrt, 993604032845791572092520365)
@@ -134,12 +152,15 @@ class IntegerTests: XCTestCase {
     let x3: Integer = 1000000000000
     XCTAssertEqual(x3.sqrt, 1000000)
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testPowerOf() {
     let x1: Integer = 84570248572048572408572048572048
     let y1 = x1 * x1 * x1 * x1
     XCTAssert(x1.toPower(of: Integer(4)) == y1)
   }
+#endif
   
   func testDoubleConversion() {
     let x1: Double = 34134342324888777666555444333.1343141341341 * 10000000000000000.0
@@ -172,6 +193,7 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(Double(x3), y3.doubleValue)
   }
   
+#if canImport(Swift.StaticBigInt)
   func testAnd() {
     let x0: Integer = 13
     let y0: Integer = -234245400000000001111
@@ -202,7 +224,9 @@ class IntegerTests: XCTestCase {
     let z6: Integer = 545
     XCTAssertEqual(x6 & y6, z6)
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testShifts() {
     let x1: Integer = 987248974087420857
     XCTAssertEqual(x1 << 1, x1 * 2)
@@ -242,7 +266,9 @@ class IntegerTests: XCTestCase {
     let r16: Integer = -131410155234356299897170703642124868710991004696576
     XCTAssertEqual(x16 << 70, r16)
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testBitCount() {
     let x0: Integer = 172
     XCTAssertEqual(x0.bitCount, 4)
@@ -265,7 +291,9 @@ class IntegerTests: XCTestCase {
     let x9: Integer = -987248974087420857240857245245245245245245224545252459990980375803576038650
     XCTAssertEqual(x9.bitCount, -115)
   }
-  
+#endif
+
+#if canImport(Swift.StaticBigInt)
   func testWords() {
     let x1: Integer = 39998740587340080087986767562130873870358038157034635280980314708375001
     XCTAssertEqual(x1.words, [17444856893563336153,
@@ -293,7 +321,9 @@ class IntegerTests: XCTestCase {
     let x7: Integer = Integer(UInt.max) + 1
     XCTAssertEqual(x7.words, [0, 1, 0])
   }
+#endif
   
+#if canImport(Swift.StaticBigInt)
   func testRandom() {
     let rnd1 = Integer.random(withMaxBits: 218)
     XCTAssert(rnd1.bitCount <= 218)
@@ -308,6 +338,7 @@ class IntegerTests: XCTestCase {
     let rnd4 = Integer.random(below: bound2)
     XCTAssert(rnd4 < bound2)
   }
+#endif
   
   func testBasicOpWithZero() {
     let x1: Integer = 0
@@ -318,6 +349,7 @@ class IntegerTests: XCTestCase {
     XCTAssertEqual(x2 - x1, x2)
   }
   
+#if canImport(Swift.StaticBigInt)
   static let allTests = [
     ("testConstructors", testConstructors),
     ("testPlus", testPlus),
@@ -334,4 +366,12 @@ class IntegerTests: XCTestCase {
     ("testBitCount", testBitCount),
     ("testWords", testWords)
   ]
+#else
+  static let allTests = [
+    ("testConstructors", testConstructors),
+    ("testDoubleConversion", testDoubleConversion),
+    ("testFloatConversion", testFloatConversion),
+    ("testBasicOpWithZero", testBasicOpWithZero)
+  ]
+#endif
 }
