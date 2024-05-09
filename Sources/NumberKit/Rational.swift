@@ -142,7 +142,6 @@ public protocol RationalNumber: SignedNumeric,
 /// is always 1. In addition, the sign of the rational number is defined by the
 /// numerator. The denominator is always positive.
 public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertible {
-
   /// The numerator of this rational number. This is a signed integer.
   public let numerator: T
 
@@ -443,7 +442,7 @@ extension Rational: ExpressibleByStringLiteral {
             return (1, false)
         }
         // Numerator and denominator are now both non-zero.
-        let gcd = T.gcd(numerator, denominator) // Safe: numerator != denominator.
+        let (gcd, gcdOverflow) = T.gcdWithOverflow(numerator, denominator) // Safe: numerator != denominator.
         let normalizedNumerator = numerator / gcd // Safe: gcd is positive and divides numerator.
         let normalizedDenominator = denominator / gcd // Safe: gcd is positive and divides denominator.
         // Overflows if numerator == T.min and denominator is odd.
@@ -452,7 +451,7 @@ extension Rational: ExpressibleByStringLiteral {
         let (absDenominator, denominatorOverflow) = T.absWithOverflow(normalizedDenominator)
         // The rational value `absNumerator / absDenominator` is already normalized.
         let resultNumerator = (numerator > 0) == (denominator > 0) ? absNumerator : -absNumerator
-        let resultOverflow = numeratorOverflow || denominatorOverflow
+        let resultOverflow = gcdOverflow || numeratorOverflow || denominatorOverflow
         return (Rational(numerator: resultNumerator, denominator: absDenominator), resultOverflow)
     }
 
@@ -495,6 +494,8 @@ extension Rational: ExpressibleByStringLiteral {
     private static func commonDenomWithOverflow(_ this: Rational<T>, _ that: Rational<T>) -> (
         num0: T, num1: T, denom: T, overflow: Bool
     ) {
+        let this = this.normalized, that = that.normalized
+        
         let (lcmOfDenominators, lcmOverflow) = T.lcmWithOverflow(this.denominator, that.denominator)
         if lcmOverflow {
             return (0, 0, 0, true) // Early return on LCM overflow
@@ -517,6 +518,7 @@ extension Rational: ExpressibleByStringLiteral {
 
         return (num0, num1, lcmOfDenominators, totalOverflow)
     }
+
 
     /// Returns the (non-negative) Greatest Common Divisor (GCD) of two `T: IntegerNumber`
     /// values `x` and `y`, together with a Boolean indicating whether overflow occurred
