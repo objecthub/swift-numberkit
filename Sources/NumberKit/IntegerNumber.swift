@@ -22,14 +22,18 @@ import Foundation
 
 /// Protocol `IntegerNumber` is used in combination with struct `Rational<T>`.
 /// It defines the functionality needed for a signed integer implementation to
-/// build rational numbers on top. The `SignedInteger` protocol from the Swift 4
+/// build rational numbers on top. The `SignedInteger` protocol from the Swift 6
 /// standard library is unfortunately not sufficient as it doesn't provide access
-/// to methods reporting overflows explicitly. Furthermore, `BigInt` is not yet
-/// compliant with `SignedInteger`.
-public protocol IntegerNumber: SignedNumeric,
-                               Comparable,
-                               Hashable,
-                               CustomStringConvertible {
+/// to methods reporting overflows explicitly.
+public protocol IntegerNumber: SomeIntegerNumber, SignedInteger {
+}
+
+/// Protocol `SomeIntegerNumber` defines new numeric functionality for all
+/// integer types, including unsigned integer types.
+public protocol SomeIntegerNumber: Numeric,
+                                   Comparable,
+                                   Hashable,
+                                   CustomStringConvertible {
   
   /// Value zero
   static var zero: Self { get }
@@ -41,18 +45,12 @@ public protocol IntegerNumber: SignedNumeric,
   static var two: Self { get }
 
   /// Division operation.
-  ///
-  /// - Note: It's inexplicable to me why this operation is missing in `SignedNumeric`.
   static func /(lhs: Self, rhs: Self) -> Self
 
   /// Division operation.
-  ///
-  /// - Note: It's inexplicable to me why this operation is missing in `SignedNumeric`.
   static func /=(lhs: inout Self, rhs: Self)
 
   /// Remainder operation.
-  ///
-  /// - Note: It's inexplicable to me why this operation is missing in `SignedNumeric`.
   static func %(lhs: Self, rhs: Self) -> Self
 
   /// Constructs an `IntegerNumber` from an `Int64` value. This constructor might crash if
@@ -95,7 +93,7 @@ public protocol IntegerNumber: SignedNumeric,
 }
 
 /// Provide default implementations of this protocol
-extension IntegerNumber {
+extension SomeIntegerNumber {
   public func toPower(of exp: Self) -> Self {
     precondition(exp >= 0, "IntegerNumber.toPower(of:) with negative exponent")
     var (expo, radix) = (exp, self)
@@ -183,7 +181,7 @@ extension Int: IntegerNumber {
   }
 }
 
-extension UInt: IntegerNumber {
+extension UInt: SomeIntegerNumber {
   public var doubleValue: Double {
     return Double(self)
   }
@@ -195,7 +193,7 @@ extension Int8: IntegerNumber {
   }
 }
 
-extension UInt8: IntegerNumber {
+extension UInt8: SomeIntegerNumber {
   public var doubleValue: Double {
     return Double(self)
   }
@@ -207,7 +205,7 @@ extension Int16: IntegerNumber {
   }
 }
 
-extension UInt16: IntegerNumber {
+extension UInt16: SomeIntegerNumber {
   public var doubleValue: Double {
     return Double(self)
   }
@@ -219,7 +217,7 @@ extension Int32: IntegerNumber {
   }
 }
 
-extension UInt32: IntegerNumber {
+extension UInt32: SomeIntegerNumber {
   public var doubleValue: Double {
     return Double(self)
   }
@@ -231,7 +229,7 @@ extension Int64: IntegerNumber {
   }
 }
 
-extension UInt64: IntegerNumber {
+extension UInt64: SomeIntegerNumber {
   public var doubleValue: Double {
     return Double(self)
   }

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5 (2024-08-18)
+- Fixes a serious bug which made unsigned integers implement the `IntegerNumber` protocol (which is designed for signed integers only)
+- Enabled `IntegerNumberTests` also for Xcode
+- Ready for usage with Swift 6
+
 ## 2.4.2 (2023-01-01)
 - Support random number generation for Complex
 - Migrated project to Swift 5.7 and Xcode 14

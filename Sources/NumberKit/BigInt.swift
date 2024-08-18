@@ -1021,7 +1021,7 @@ public struct BigInt: Hashable,
 
 
 /// This extension implements all the boilerplate to make `BigInt` compatible
-/// to the applicable Swift 4 numeric protocols. `BigInt` is convertible from integer literals,
+/// to the applicable Swift 6 numeric protocols. `BigInt` is convertible from integer literals,
 /// convertible from Strings, it's a signed number, equatable, comparable, and implements
 /// all signed integer arithmetic functions.
 extension BigInt: IntegerNumber,
