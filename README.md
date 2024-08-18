@@ -1,6 +1,6 @@
 # Swift NumberKit
 
-[![Platforms: macOS, iOS, Linux](https://img.shields.io/badge/Platforms-macOS,%20iOS,%20Linux-blue.svg?style=flat)](https://developer.apple.com/osx/) [![Language: Swift 5.9](https://img.shields.io/badge/Language-Swift%205.9-green.svg?style=flat)](https://developer.apple.com/swift/) [![IDE: Xcode 15](https://img.shields.io/badge/IDE-Xcode%2015-orange.svg?style=flat)](https://developer.apple.com/xcode/) [![Package managers: SwiftPM, Carthage](https://img.shields.io/badge/Package%20managers-SwiftPM,%20Carthage-8E64B0.svg?style=flat)](https://github.com/Carthage/Carthage) [![License: Apache](http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](https://raw.githubusercontent.com/objecthub/swift-numberkit/master/LICENSE)
+[![Platforms: macOS, iOS, Linux](https://img.shields.io/badge/Platforms-macOS,%20iOS,%20Linux-blue.svg?style=flat)](https://developer.apple.com/osx/) [![Language: Swift 5/6](https://img.shields.io/badge/Language-Swift%206-green.svg?style=flat)](https://developer.apple.com/swift/) [![IDE: Xcode 15/16](https://img.shields.io/badge/IDE-Xcode%2016-orange.svg?style=flat)](https://developer.apple.com/xcode/) [![Package managers: SwiftPM, Carthage](https://img.shields.io/badge/Package%20managers-SwiftPM,%20Carthage-8E64B0.svg?style=flat)](https://github.com/Carthage/Carthage) [![License: Apache](http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](https://raw.githubusercontent.com/objecthub/swift-numberkit/master/LICENSE)
 
 ## Overview
 
@@ -56,8 +56,8 @@ where _i_ is the _imaginary unit_.
 
 The following technologies are needed to build the components of the _Swift NumberKit_ framework:
 
-- [Xcode 15](https://developer.apple.com/xcode/)
-- [Swift 5.9](https://developer.apple.com/swift/)
+- [Xcode 15 or Xcode 16](https://developer.apple.com/xcode/)
+- [Swift 5 or Swift 6](https://developer.apple.com/swift/)
 - [Swift Package Manager](https://swift.org/package-manager/)
 - macOS, iOS or Linux
 

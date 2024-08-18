@@ -1,9 +1,19 @@
 # Changelog
 
-## 2.5 (2024-08-18)
+## 2.6 (2024-08-18)
 - Fixes a serious bug which made unsigned integers implement the `IntegerNumber` protocol (which is designed for signed integers only)
 - Enabled `IntegerNumberTests` also for Xcode
 - Ready for usage with Swift 6
+
+## 2.5.1 (2024-04-17)
+- Reduce minimum deployment targets down to macOS 10.13 and iOS 11.
+- Include `StaticBigInt` only when available.
+
+## 2.5 (2024-04-12)
+- Support arbitrary length integer literals via `StaticBigInt`. This requires at least macOS 13.3.
+- Make `Codable` implementation of `BigInt` compatible to JSON use cases
+- Introduce enum `Integer` wrapping `BigInt` and the native `Int64` implementation
+- Migrate project to Xcode 15
 
 ## 2.4.2 (2023-01-01)
 - Support random number generation for Complex
