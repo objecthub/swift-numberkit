@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.6.1 (2026-06-12)
+- Migrated project to Xcode 26
+- Increased minimum platform requirements in Xcode project to macOS 11 and iOS 15
+
 ## 2.6 (2024-08-18)
 - Fixes a serious bug which made unsigned integers implement the `IntegerNumber` protocol (which is designed for signed integers only)
 - Enabled `IntegerNumberTests` also for Xcode
