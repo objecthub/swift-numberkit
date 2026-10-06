@@ -243,4 +243,45 @@ class RegressionTests: XCTestCase {
     XCTAssertEqual(Rational<Int>(big, 3) * Rational<Int>(3, big), Rational<Int>(1, 1))
     XCTAssertEqual(Rational<Int>(big, 3) / Rational<Int>(big, 3), Rational<Int>(1, 1))
   }
+
+  func testLargeDecimalConversion() {
+    var generator = SystemRandomNumberGenerator()
+    // Random numbers well above the divide-and-conquer threshold
+    for words in [40, 41, 79, 80, 150, 400] {
+      let n = randomNumber(words: words, using: &generator)
+      XCTAssertEqual(BigInt(from: n.description), n, "\(words) words")
+    }
+    // Numbers with long runs of zeros in the middle require padded digit groups
+    let ten = BigInt(10)
+    for exp in [200, 360, 361, 720, 1000, 2900] {
+      let p = ten.toPower(of: BigInt(exp))
+      XCTAssertEqual(p.description, "1" + String(repeating: "0", count: exp))
+      XCTAssertEqual((p + BigInt(1)).description,
+                     "1" + String(repeating: "0", count: exp - 1) + "1")
+      XCTAssertEqual((p - BigInt(1)).description, String(repeating: "9", count: exp))
+      XCTAssertEqual((-p).description, "-1" + String(repeating: "0", count: exp))
+      let mixed = p * p + BigInt(7)
+      XCTAssertEqual(mixed.description,
+                     "1" + String(repeating: "0", count: 2 * exp - 1) + "7")
+    }
+    // Digit grouping
+    let big = ten.toPower(of: BigInt(1000)) + BigInt(1)
+    let grouped = big.toString(groupSep: ",")
+    XCTAssertEqual(grouped.filter { $0 != "," }, big.description)
+    let parts = grouped.components(separatedBy: ",")
+    XCTAssertEqual(parts[0].count, 1001 % 3 == 0 ? 3 : 1001 % 3)
+    XCTAssert(parts.dropFirst().allSatisfy { $0.count == 3 })
+  }
+
+  func testPowerOfTwoBaseConversion() {
+    var generator = SystemRandomNumberGenerator()
+    for _ in 0..<100 {
+      let n = randomNumber(words: Int.random(in: 1...60, using: &generator), using: &generator)
+      for base in [BigInt.binBase, BigInt.octBase, BigInt.hexBase] {
+        XCTAssertEqual(BigInt(from: n.toString(base: base), base: base), n)
+      }
+    }
+    XCTAssertEqual((BigInt(1) << 100).toString(base: .oct), "2" + String(repeating: "0", count: 33))
+    XCTAssertEqual((BigInt(1) << 100).toString(base: .hex), "1" + String(repeating: "0", count: 25))
+  }
 }

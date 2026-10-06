@@ -313,6 +313,133 @@ public struct BigInt: Hashable,
     try container.encode(self.description)
   }
   
+  /// Divides the magnitude in `words[0..<count]` in place by `divisor` and returns the
+  /// remainder. `count` is reduced such that it excludes superfluous high zero words. This
+  /// is inlined such that a constant `divisor` is turned into multiplications.
+  @inline(__always)
+  private static func divideInPlace(_ words: inout ContiguousArray<UInt32>,
+                                    _ count: inout Int,
+                                    by divisor: UInt64) -> UInt32 {
+    var rem: UInt64 = 0
+    var i = count - 1
+    while i >= 0 {
+      let x = (rem << 32) | UInt64(words[i])
+      let q = x / divisor
+      words[i] = UInt32(truncatingIfNeeded: q)
+      rem = x &- q &* divisor
+      i -= 1
+    }
+    while count > 0 && words[count - 1] == 0 {
+      count -= 1
+    }
+    return UInt32(truncatingIfNeeded: rem)
+  }
+  
+  /// Appends the decimal digits (as ASCII characters, most significant digit first) of
+  /// the non-negative number `value` to `out`. If `width` is greater than 0, the number
+  /// is padded with leading zeros up to `width` digits.
+  private static func appendDecimalSimple(_ value: ContiguousArray<UInt32>,
+                                          width: Int,
+                                          to out: inout [UInt8]) {
+    var words = value
+    var count = words.count
+    while count > 0 && words[count - 1] == 0 {
+      count -= 1
+    }
+    var reversed: [UInt8] = []
+    reversed.reserveCapacity(Swift.max(width, count * 10))
+    while count > 0 {
+      var chunk = BigInt.divideInPlace(&words, &count, by: 1_000_000_000)
+      if count > 0 {
+        for _ in 0..<9 {
+          reversed.append(UInt8(truncatingIfNeeded: chunk % 10) &+ 48)
+          chunk /= 10
+        }
+      } else {
+        while chunk > 0 {
+          reversed.append(UInt8(truncatingIfNeeded: chunk % 10) &+ 48)
+          chunk /= 10
+        }
+      }
+    }
+    if reversed.count < width {
+      out.append(contentsOf: repeatElement(48 as UInt8, count: width - reversed.count))
+    }
+    out.append(contentsOf: reversed.reversed())
+  }
+  
+  /// Numbers with at least this many words are converted to decimal digits by divide and
+  /// conquer.
+  private static let divideAndConquerThreshold = 40
+  
+  /// Appends the decimal digits of non-negative `value` to `out` using divide and conquer.
+  /// `powers[i]` contains 10^(9 * 2^i). If `width` is greater than 0, the result is padded
+  /// with leading zeros up to `width` digits.
+  private static func appendDecimal(_ value: BigInt,
+                                    width: Int,
+                                    powers: inout [BigInt],
+                                    to out: inout [UInt8]) {
+    let n = value.uwords.count
+    guard n >= BigInt.divideAndConquerThreshold else {
+      BigInt.appendDecimalSimple(value.uwords, width: width, to: &out)
+      return
+    }
+    // Find the largest power with at most half the size of `value`
+    var level = 0
+    while true {
+      if level + 1 == powers.count {
+        powers.append(powers[level] * powers[level])
+      }
+      if powers[level + 1].uwords.count > (n + 1) / 2 {
+        break
+      }
+      level += 1
+    }
+    let (high, low) = value.divided(by: powers[level])
+    let lowWidth = 9 << level
+    if high.isZero {
+      // Only possible if `width` forces leading zeros
+      out.append(contentsOf: repeatElement(48 as UInt8, count: width - lowWidth))
+    } else {
+      BigInt.appendDecimal(high, width: width > 0 ? width - lowWidth : 0,
+                           powers: &powers, to: &out)
+    }
+    BigInt.appendDecimal(low, width: lowWidth, powers: &powers, to: &out)
+  }
+  
+  /// Returns the digits of the magnitude of this number for the given base as ASCII
+  /// characters; the most significant digit comes first.
+  private func magnitudeDigits(base: Base) -> [UInt8] {
+    let radix = base.radix
+    var out: [UInt8] = []
+    if radix & (radix - 1) == 0 {
+      // Power of two: extract digits directly from the bits
+      let bitsPerDigit = radix.trailingZeroBitCount
+      let table = base.digitSpace.map { $0.asciiValue! }
+      let bits = (self.uwords.count - 1) * UInt32.bitWidth +
+                 (UInt32.bitWidth - self.uwords[self.uwords.count - 1].leadingZeroBitCount)
+      let digits = (bits + bitsPerDigit - 1) / bitsPerDigit
+      out.reserveCapacity(digits)
+      var k = digits - 1
+      while k >= 0 {
+        let bit = k * bitsPerDigit
+        let (w, offset) = (bit / UInt32.bitWidth, bit % UInt32.bitWidth)
+        var value = self.uwords[w] >> offset
+        if offset + bitsPerDigit > UInt32.bitWidth && w + 1 < self.uwords.count {
+          value |= self.uwords[w + 1] << (UInt32.bitWidth - offset)
+        }
+        out.append(table[Int(value) & (radix - 1)])
+        k -= 1
+      }
+    } else {
+      precondition(radix == 10, "unsupported base \(radix)")
+      out.reserveCapacity(self.uwords.count * 10)
+      var powers = [BigInt(1_000_000_000)]
+      BigInt.appendDecimal(self.abs, width: 0, powers: &powers, to: &out)
+    }
+    return out
+  }
+  
   /// Converts the `BigInt` object into a string using the given base. `BigInt.decBase` is
   /// used as the default base.
   public func toString(base: Base = BigInt.decBase,
@@ -321,63 +448,32 @@ public struct BigInt: Hashable,
                        forceSign: Bool = false,
                        plusSign: String = "+",
                        minusSign: String = "-") -> String {
-    // Determine base
-    let radix = UInt32(base.radix)
     // Shortcut handling of zero
     if self.isZero {
       // In maths, zero does not have a sign, but it appears that when a sign is forced,
       // a "+" is used normally in conjunction with zero.
       return forceSign ? "\(plusSign)0" : "0"
     }
-    // Determine the largest power of the radix that fits into a word
-    let radixValue = UInt64(radix)
-    var chunkRadix: UInt64 = 1
-    var chunkDigits = 0
-    while chunkRadix * radixValue <= UInt64(UInt32.max) {
-      chunkRadix *= radixValue
-      chunkDigits += 1
-    }
-    // Digits are generated starting with the least significant one; the string is
-    // reversed at the end.
-    let reversedSep = groupSep.map { String($0.reversed()) }
-    var res = ""
-    res.reserveCapacity(self.uwords.count * 10 + 2)
-    var resDigits = 0
-    func append(_ word: UInt32, length: Int) {
-      var (value, n) = (Int(word), 0)
-      while n < length || value > 0 {
-        if resDigits > 0 && resDigits % groupSize == 0,
-           let sep = reversedSep {
-          res.append(sep)
-        }
-        res.append(base.digitSpace[value % Int(radix)])
-        resDigits += 1
-        value /= Int(radix)
-        n += 1
-      }
-    }
-    var words = self.uwords
-    var count = words.count
-    while count > 0 {
-      var rem: UInt64 = 0
-      var i = count - 1
-      while i >= 0 {
-        let x = (rem << 32) | UInt64(words[i])
-        words[i] = UInt32(truncatingIfNeeded: x / chunkRadix)
-        rem = x % chunkRadix
-        i -= 1
-      }
-      while count > 0 && words[count - 1] == 0 {
-        count -= 1
-      }
-      append(UInt32(truncatingIfNeeded: rem), length: count > 0 ? chunkDigits : 0)
-    }
+    let digits = self.magnitudeDigits(base: base)
+    var res: [UInt8] = []
+    res.reserveCapacity(digits.count + digits.count / Swift.max(groupSize, 1) + 4)
     if negative {
-      res.append(contentsOf: minusSign.reversed())
+      res.append(contentsOf: minusSign.utf8)
     } else if forceSign {
-      res.append(contentsOf: plusSign.reversed())
+      res.append(contentsOf: plusSign.utf8)
     }
-    return String(res.reversed())
+    if let groupSep = groupSep, groupSize > 0 {
+      let sep = Array(groupSep.utf8)
+      for (i, digit) in digits.enumerated() {
+        if i > 0 && (digits.count - i) % groupSize == 0 {
+          res.append(contentsOf: sep)
+        }
+        res.append(digit)
+      }
+    } else {
+      res.append(contentsOf: digits)
+    }
+    return String(decoding: res, as: UTF8.self)
   }
   
   /// Returns a string representation of this `BigInt` number using base 10.
