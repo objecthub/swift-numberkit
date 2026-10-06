@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 04/08/2015.
-//  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2026 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -245,12 +245,12 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
 
   /// The magnitude of the rational value.
   public var magnitude: Rational<T> {
-    return Rational(numerator < 0 ? -numerator : numerator, denominator)
+    return numerator < 0 ? Rational(numerator: -numerator, denominator: denominator) : self
   }
 
   /// The negated rational value.
   public var negate: Rational<T> {
-    return Rational(-numerator, denominator)
+    return Rational(numerator: -numerator, denominator: denominator)
   }
 
   /// Is true if the rational value is negative.
@@ -270,6 +270,9 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
     // Both values are normalized, so equal values have identical components.
     if self.numerator == rhs.numerator && self.denominator == rhs.denominator {
       return 0
+    }
+    if self.denominator == rhs.denominator {
+      return self.numerator < rhs.numerator ? -1 : 1
     }
     let (c1, c2, _, overflow) = Rational.commonDenomWithOverflow(self, rhs)
     if !overflow {
@@ -314,12 +317,27 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
 
   /// Multiplies this rational value with `rhs` and returns the result.
   public func times(_ rhs: Rational<T>) -> Rational<T> {
-    return Rational(self.numerator * rhs.numerator, self.denominator * rhs.denominator)
+    if self.numerator == 0 || rhs.numerator == 0 {
+      return Rational(numerator: 0, denominator: 1)
+    }
+    // Reducing crosswise first yields a normalized result, avoids overflows and keeps
+    // the numbers smaller.
+    let (g1, overflow1) = T.gcdWithOverflow(self.numerator, rhs.denominator)
+    let (g2, overflow2) = T.gcdWithOverflow(rhs.numerator, self.denominator)
+    guard !overflow1 && !overflow2 else {
+      return Rational(self.numerator * rhs.numerator, self.denominator * rhs.denominator)
+    }
+    return Rational(numerator: (self.numerator / g1) * (rhs.numerator / g2),
+                    denominator: (self.denominator / g2) * (rhs.denominator / g1))
   }
 
   /// Divides this rational value by `rhs` and returns the result.
   public func divided(by rhs: Rational<T>) -> Rational<T> {
-    return Rational(self.numerator * rhs.denominator, self.denominator * rhs.numerator)
+    precondition(rhs.numerator != 0, "division by zero")
+    let reciprocal = rhs.numerator < 0 ?
+        Rational(numerator: -rhs.denominator, denominator: -rhs.numerator) :
+        Rational(numerator: rhs.denominator, denominator: rhs.numerator)
+    return self.times(reciprocal)
   }
 
   /// Raises this rational value to the power of `exp`.

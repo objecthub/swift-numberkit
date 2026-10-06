@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 12/08/2015.
-//  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2026 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -147,6 +147,13 @@ public struct BigInt: Hashable,
     self.negative = words.count == 1 && words[0] == 0 ? false : negative
   }
   
+  /// Internal constructor for words that are known to be normalized (no superfluous
+  /// high words, and `negative` is false for zero).
+  private init(normalized words: ContiguousArray<UInt32>, negative: Bool) {
+    self.uwords = words
+    self.negative = negative
+  }
+  
   /// Internal primary constructor. It removes superfluous words and normalizes the
   /// representation of zero.
   internal init(words: [UInt], negative: Bool) {
@@ -192,30 +199,37 @@ public struct BigInt: Hashable,
   /// array of digits is the least significant one. `negative` is used to indicate negative
   /// `BigInt` numbers.
   public init(digits: [UInt8], negative: Bool = false, base: Base = BigInt.decBase) {
-    var digits = digits
+    // Process as many digits as fit into a word at once
+    let radix = UInt64(base.radix)
+    var chunkDigits = 0
+    var chunkRadix: UInt64 = 1
+    while chunkRadix * radix <= UInt64(UInt32.max) {
+      chunkRadix *= radix
+      chunkDigits += 1
+    }
     var words = ContiguousArray<UInt32>()
-    var iterate: Bool
-    repeat {
-      var sum: UInt64 = 0
-      var res: [UInt8] = []
-      var j = 0
-      while j < digits.count && sum < BigInt.base {
-        sum = sum * UInt64(base.radix) + UInt64(digits[j])
-        j += 1
+    words.reserveCapacity(digits.count / Swift.max(chunkDigits, 1) + 1)
+    var i = 0
+    while i < digits.count {
+      let end = Swift.min(i + chunkDigits, digits.count)
+      var value: UInt64 = 0
+      var mult: UInt64 = 1
+      while i < end {
+        value = value * radix + UInt64(digits[i])
+        mult *= radix
+        i += 1
       }
-      res.append(UInt8(BigInt.hiword(sum)))
-      iterate = BigInt.hiword(sum) > 0
-      sum = UInt64(BigInt.loword(sum))
-      while j < digits.count {
-        sum = sum * UInt64(base.radix) + UInt64(digits[j])
-        j += 1
-        res.append(UInt8(BigInt.hiword(sum)))
-        iterate = true
-        sum = UInt64(BigInt.loword(sum))
+      // words = words * mult + value
+      var carry = value
+      for k in words.indices {
+        let x = UInt64(words[k]) * mult + carry
+        words[k] = UInt32(truncatingIfNeeded: x)
+        carry = x >> 32
       }
-      words.append(BigInt.loword(sum))
-      digits = res
-    } while iterate
+      if carry > 0 {
+        words.append(UInt32(truncatingIfNeeded: carry))
+      }
+    }
     self.init(words: words, negative: negative)
   }
   
@@ -315,62 +329,55 @@ public struct BigInt: Hashable,
       // a "+" is used normally in conjunction with zero.
       return forceSign ? "\(plusSign)0" : "0"
     }
-    var radixPow: UInt32 = 1
-    var digits = 0
-    while true {
-      let (pow, overflow) = radixPow.multipliedReportingOverflow(by: radix)
-      if !overflow || pow == 0 {
-        digits += 1
-        radixPow = pow
-      }
-      if overflow {
-        break
-      }
+    // Determine the largest power of the radix that fits into a word
+    let radixValue = UInt64(radix)
+    var chunkRadix: UInt64 = 1
+    var chunkDigits = 0
+    while chunkRadix * radixValue <= UInt64(UInt32.max) {
+      chunkRadix *= radixValue
+      chunkDigits += 1
     }
+    // Digits are generated starting with the least significant one; the string is
+    // reversed at the end.
+    let reversedSep = groupSep.map { String($0.reversed()) }
     var res = ""
+    res.reserveCapacity(self.uwords.count * 10 + 2)
     var resDigits = 0
-    // Prepends a string representation of `word` to string `res`. `length` determines
-    // the least amount of characters. 0 is used for padding purposes.
-    func prepend(_ word: UInt32, length: Int) {
-      let radix = base.radix
+    func append(_ word: UInt32, length: Int) {
       var (value, n) = (Int(word), 0)
       while n < length || value > 0 {
         if resDigits > 0 && resDigits % groupSize == 0,
-           let groupSep = groupSep {
-          res.insert(contentsOf: groupSep, at: res.startIndex)
+           let sep = reversedSep {
+          res.append(sep)
         }
-        res.insert(base.digitSpace[value % radix], at: res.startIndex)
+        res.append(base.digitSpace[value % Int(radix)])
         resDigits += 1
-        value /= radix
+        value /= Int(radix)
         n += 1
       }
     }
-    if radixPow == 0 {
-      for i in uwords.indices.dropLast() {
-        prepend(uwords[i], length: digits)
+    var words = self.uwords
+    var count = words.count
+    while count > 0 {
+      var rem: UInt64 = 0
+      var i = count - 1
+      while i >= 0 {
+        let x = (rem << 32) | UInt64(words[i])
+        words[i] = UInt32(truncatingIfNeeded: x / chunkRadix)
+        rem = x % chunkRadix
+        i -= 1
       }
-      prepend(uwords.last!, length: 0)
-    } else {
-      var words = self.uwords
-      while words.count > 0 {
-        var rem: UInt32 = 0
-        for i in words.indices.reversed() {
-          let x = BigInt.joinwords(words[i], rem)
-          words[i] = UInt32(x / UInt64(radixPow))
-          rem = UInt32(x % UInt64(radixPow))
-        }
-        while words.last == 0 {
-          words.removeLast()
-        }
-        prepend(rem, length: words.count > 0 ? digits : 0)
+      while count > 0 && words[count - 1] == 0 {
+        count -= 1
       }
+      append(UInt32(truncatingIfNeeded: rem), length: count > 0 ? chunkDigits : 0)
     }
     if negative {
-      res.insert(contentsOf: minusSign, at: res.startIndex)
+      res.append(contentsOf: minusSign.reversed())
     } else if forceSign {
-      res.insert(contentsOf: plusSign, at: res.startIndex)
+      res.append(contentsOf: plusSign.reversed())
     }
-    return res
+    return String(res.reversed())
   }
   
   /// Returns a string representation of this `BigInt` number using base 10.
@@ -454,12 +461,12 @@ public struct BigInt: Hashable,
   
   /// Returns a `BigInt` with swapped sign.
   public var negate: BigInt {
-    return BigInt(words: uwords, negative: !negative)
+    return BigInt(normalized: uwords, negative: !negative && !self.isZero)
   }
   
   /// Returns the absolute value of this `BigInt`.
   public var abs: BigInt {
-    return BigInt(words: uwords, negative: false)
+    return self.negative ? BigInt(normalized: uwords, negative: false) : self
   }
   
   /// Returns -1 if `self` is less than `rhs`,
@@ -569,109 +576,159 @@ public struct BigInt: Hashable,
     return BigInt(words: res, negative: b1.negative != b2.negative)
   }
   
-  private static func multSub(_ approx: UInt32,
-                              _ divis: ContiguousArray<UInt32>,
-                              _ rem: inout ContiguousArray<UInt32>,
-                              _ from: Int) {
-      var sum: UInt64 = 0
-      var carry: UInt64 = 0
-      for j in 0..<divis.count {
-        sum += UInt64(divis[j]) * UInt64(approx)
-        let x = UInt64(loword(sum)) + carry
-        if UInt64(rem[from + j]) < x {
-          rem[from + j] = UInt32(BigInt.base + UInt64(rem[from + j]) - x)
-          carry = 1
-        } else {
-          rem[from + j] = UInt32(UInt64(rem[from + j]) - x)
-          carry = 0
-        }
-        sum = UInt64(hiword(sum))
-      }
-  }
-  
-  private static func subIfPossible(divis: ContiguousArray<UInt32>,
-                                    rem: inout ContiguousArray<UInt32>,
-                                    from: Int) -> Bool {
-    var i = divis.count
-    while i > 0 && divis[i - 1] >= rem[from + i - 1] {
-      if divis[i - 1] > rem[from + i - 1] {
-        return false
-      }
+  /// Divides the magnitude `u` by the single word `v` in place. `u` must not be empty and
+  /// `v` must not be zero. Returns the remainder; `u` holds the quotient afterwards.
+  private static func shortDivide(_ u: inout ContiguousArray<UInt32>, by v: UInt32) -> UInt32 {
+    let divisor = UInt64(v)
+    var rem: UInt64 = 0
+    var i = u.count - 1
+    while i >= 0 {
+      let x = (rem << 32) | UInt64(u[i])
+      u[i] = UInt32(truncatingIfNeeded: x / divisor)
+      rem = x % divisor
       i -= 1
     }
-    var carry: UInt64 = 0
-    for j in 0..<divis.count {
-      let x = UInt64(divis[j]) + carry
-      if UInt64(rem[from + j]) < x {
-        rem[from + j] = UInt32(BigInt.base + UInt64(rem[from + j]) - x)
-        carry = 1
-      } else {
-        rem[from + j] = UInt32(UInt64(rem[from + j]) - x)
-        carry = 0
-      }
-    }
-    return true
+    return UInt32(truncatingIfNeeded: rem)
   }
   
-  /// Divides `self` by `rhs` and returns the quotient and the remainder as a `BigInt`.
+  /// Divides magnitude `u` by magnitude `v` (Knuth, TAOCP vol. 2, algorithm D) and returns
+  /// quotient and remainder as arrays of words without superfluous leading zeros being
+  /// removed. `v` must have at least two words and `u` must have at least as many words
+  /// as `v`; the highest word of `v` must not be zero.
+  private static func knuthDivide(_ u: ContiguousArray<UInt32>,
+                                  _ v: ContiguousArray<UInt32>)
+                                  -> (quotient: ContiguousArray<UInt32>,
+                                      remainder: ContiguousArray<UInt32>) {
+    let n = v.count
+    let m = u.count
+    // Normalize such that the highest bit of the divisor is set
+    let shift = v[n - 1].leadingZeroBitCount
+    var vn = ContiguousArray<UInt32>(repeating: 0, count: n)
+    var un = ContiguousArray<UInt32>(repeating: 0, count: m + 1)
+    if shift == 0 {
+      for i in 0..<n {
+        vn[i] = v[i]
+      }
+      for i in 0..<m {
+        un[i] = u[i]
+      }
+    } else {
+      let back = UInt32.bitWidth - shift
+      var i = n - 1
+      while i > 0 {
+        vn[i] = (v[i] << shift) | (v[i - 1] >> back)
+        i -= 1
+      }
+      vn[0] = v[0] << shift
+      un[m] = u[m - 1] >> back
+      i = m - 1
+      while i > 0 {
+        un[i] = (u[i] << shift) | (u[i - 1] >> back)
+        i -= 1
+      }
+      un[0] = u[0] << shift
+    }
+    var q = ContiguousArray<UInt32>(repeating: 0, count: m - n + 1)
+    let vtop = UInt64(vn[n - 1])
+    let vsecond = UInt64(vn[n - 2])
+    var j = m - n
+    while j >= 0 {
+      // Estimate the quotient digit
+      let num = (UInt64(un[j + n]) << 32) | UInt64(un[j + n - 1])
+      var qhat = num / vtop
+      var rhat = num % vtop
+      while qhat >= BigInt.base || qhat * vsecond > ((rhat << 32) | UInt64(un[j + n - 2])) {
+        qhat -= 1
+        rhat += vtop
+        if rhat >= BigInt.base {
+          break
+        }
+      }
+      // Multiply and subtract
+      var borrow: Int64 = 0
+      for i in 0..<n {
+        let p = qhat * UInt64(vn[i])
+        let t = Int64(un[i + j]) - borrow - Int64(p & 0xffffffff)
+        un[i + j] = UInt32(truncatingIfNeeded: t)
+        borrow = Int64(p >> 32) - (t >> 32)
+      }
+      let t = Int64(un[j + n]) - borrow
+      un[j + n] = UInt32(truncatingIfNeeded: t)
+      if t < 0 {
+        // The estimate was one too large: add the divisor back
+        qhat -= 1
+        var carry: UInt64 = 0
+        for i in 0..<n {
+          let x = UInt64(un[i + j]) + UInt64(vn[i]) + carry
+          un[i + j] = UInt32(truncatingIfNeeded: x)
+          carry = x >> 32
+        }
+        un[j + n] = UInt32(truncatingIfNeeded: UInt64(un[j + n]) + carry)
+      }
+      q[j] = UInt32(truncatingIfNeeded: qhat)
+      j -= 1
+    }
+    // Denormalize the remainder
+    var r = ContiguousArray<UInt32>(repeating: 0, count: n)
+    if shift == 0 {
+      for i in 0..<n {
+        r[i] = un[i]
+      }
+    } else {
+      for i in 0..<n {
+        r[i] = (un[i] >> shift) | (un[i + 1] << (UInt32.bitWidth - shift))
+      }
+    }
+    return (q, r)
+  }
+  
+  /// Divides `self` by `rhs` and returns the quotient and the remainder as a `BigInt`. The
+  /// quotient is truncated towards zero and the remainder has the sign of `self`.
   public func divided(by rhs: BigInt) -> (quotient: BigInt, remainder: BigInt) {
     precondition(!rhs.isZero, "division by zero")
     guard rhs.uwords.count <= self.uwords.count else {
       return (BigInt(0), self)
     }
     let neg = self.negative != rhs.negative
-    if rhs.uwords.count == self.uwords.count {
-      let cmp = self.compareDigits(with: rhs)
-      if cmp == 0 {
-        return (BigInt(neg ? -1 : 1), BigInt(0))
-      } else if cmp < 0 {
-        return (BigInt(0), self)
-      }
+    if rhs.uwords.count == 1 {
+      var quotient = self.uwords
+      let rem = BigInt.shortDivide(&quotient, by: rhs.uwords[0])
+      return (BigInt(words: quotient, negative: neg),
+              BigInt(words: [rem], negative: self.negative))
     }
-    var rem = ContiguousArray<UInt32>(self.uwords)
-    rem.append(0)
-    var divis = ContiguousArray<UInt32>(rhs.uwords)
-    divis.append(0)
-    var sizediff = self.uwords.count - rhs.uwords.count
-    let div = UInt64(rhs.uwords[rhs.uwords.count - 1]) + 1
-    var res = ContiguousArray<UInt32>(repeating: 0, count: sizediff + 1)
-    var divident = rem.count - 2
-    repeat {
-      var x = BigInt.joinwords(rem[divident], rem[divident + 1])
-      var approx = x / div
-      res[sizediff] = 0
-      while approx > 0 {
-        res[sizediff] += UInt32(approx) // Is this cast ok?
-        BigInt.multSub(UInt32(approx), divis, &rem, sizediff)
-        x = BigInt.joinwords(rem[divident], rem[divident + 1])
-        approx = x / div
-      }
-      if BigInt.subIfPossible(divis: divis, rem: &rem, from: sizediff) {
-        res[sizediff] += 1
-      }
-      divident -= 1
-      sizediff -= 1
-    } while sizediff >= 0
-    return (BigInt(words: res, negative: neg), BigInt(words: rem, negative: self.negative))
+    let (q, r) = BigInt.knuthDivide(self.uwords, rhs.uwords)
+    return (BigInt(words: q, negative: neg), BigInt(words: r, negative: self.negative))
   }
   
-  /// Raises this `BigInt` value to the radixPow of `exp`.
+  /// Raises this `BigInt` value to the power of `exp`.
   public func toPower(of exp: BigInt) -> BigInt {
-    precondition(exp >= 0, "toPower(of:) with negative exponent")
-    var (expo, radix) = (exp, self)
-    var res = BigInt(1)
-    while expo != 0 {
-      if (expo & 1) != 0 {
-        res *= radix
+    precondition(!exp.negative, "toPower(of:) with negative exponent")
+    if exp.isZero {
+      return BigInt.one
+    }
+    var radix = self
+    var res = BigInt.one
+    let last = exp.uwords.count - 1
+    for (i, word) in exp.uwords.enumerated() {
+      var bits = word
+      var n = 0
+      while n < UInt32.bitWidth {
+        if bits & 1 == 1 {
+          res = res * radix
+        }
+        bits >>= 1
+        n += 1
+        if i == last && bits == 0 {
+          return res
+        }
+        radix = radix * radix
       }
-      expo /= 2
-      radix *= radix
     }
     return res
   }
   
   /// Computes the square root; this is the largest `BigInt` value `x` such that `x * x` is
-  /// smaller than `self`.
+  /// at most `self`.
   public var sqrt: BigInt {
     guard !self.negative else {
       preconditionFailure("cannot compute square root of negative number")
@@ -679,14 +736,15 @@ public struct BigInt: Hashable,
     guard !self.isZero && !self.isOne else {
       return self
     }
-    let two = BigInt(2)
-    var y = self / two
-    var x = self / y
-    while y > x {
-      y = (x + y) / two
-      x = self / y
+    // Newton iteration starting with a power of two that is at least as large as the root
+    var x = BigInt.one << ((self.lastBitSet + 1) / 2)
+    while true {
+      let y = (x + self / x) >> 1
+      if y >= x {
+        return x
+      }
+      x = y
     }
-    return y
   }
   
   /// Returns the bitwise negation of this `BigInt` number assuming a representation in
@@ -726,9 +784,10 @@ public struct BigInt: Hashable,
                      right.count + (BigInt.isMostSignificantBitSet(right) ? 1 : 0))
   }
   
-  /// Computes the bitwise `and` between this value and `rhs` assuming a
-  /// representation of the numbers in two-complement form.
-  public func and(_ rhs: BigInt) -> BigInt {
+  /// Applies the bitwise operation `op` to this value and `rhs` assuming a representation
+  /// of the numbers in two-complement form.
+  @inline(__always)
+  private func bitwise(_ rhs: BigInt, _ op: (UInt32, UInt32) -> UInt32) -> BigInt {
     var (leftcarry, rightcarry) = (true, true)
     let size = BigInt.twoComplementSize(self.uwords, rhs.uwords)
     var res = ContiguousArray<UInt32>()
@@ -750,67 +809,27 @@ public struct BigInt: Hashable,
           rightword = ~rightword
         }
       }
-      res.append(leftword & rightword)
+      res.append(op(leftword, rightword))
     }
     return BigInt.fromTwoComplement(&res)
+  }
+  
+  /// Computes the bitwise `and` between this value and `rhs` assuming a
+  /// representation of the numbers in two-complement form.
+  public func and(_ rhs: BigInt) -> BigInt {
+    return self.bitwise(rhs, &)
   }
   
   /// Computes the bitwise `or` (inclusive or) between this value and `rhs` assuming a
   /// representation of the numbers in two-complement form.
   public func or(_ rhs: BigInt) -> BigInt {
-    var (leftcarry, rightcarry) = (true, true)
-    let size = BigInt.twoComplementSize(self.uwords, rhs.uwords)
-    var res = ContiguousArray<UInt32>()
-    res.reserveCapacity(size)
-    for i in 0..<size {
-      var leftword: UInt32 = i < self.uwords.count ? self.uwords[i] : 0
-      if self.negative {
-        if leftcarry {
-          (leftword, leftcarry) = (~leftword).addingReportingOverflow(1)
-        } else {
-          leftword = ~leftword
-        }
-      }
-      var rightword: UInt32 = i < rhs.uwords.count ? rhs.uwords[i] : 0
-      if rhs.negative {
-        if rightcarry {
-          (rightword, rightcarry) = (~rightword).addingReportingOverflow(1)
-        } else {
-          rightword = ~rightword
-        }
-      }
-      res.append(leftword | rightword)
-    }
-    return BigInt.fromTwoComplement(&res)
+    return self.bitwise(rhs, |)
   }
   
   /// Computes the bitwise `xor` (exclusive or) between this value and `rhs` assuming a
   /// representation of the numbers in two-complement form.
   public func xor(_ rhs: BigInt) -> BigInt {
-    var (leftcarry, rightcarry) = (true, true)
-    let size = BigInt.twoComplementSize(self.uwords, rhs.uwords)
-    var res = ContiguousArray<UInt32>()
-    res.reserveCapacity(size)
-    for i in 0..<size {
-      var leftword: UInt32 = i < self.uwords.count ? self.uwords[i] : 0
-      if self.negative {
-        if leftcarry {
-          (leftword, leftcarry) = (~leftword).addingReportingOverflow(1)
-        } else {
-          leftword = ~leftword
-        }
-      }
-      var rightword: UInt32 = i < rhs.uwords.count ? rhs.uwords[i] : 0
-      if rhs.negative {
-        if rightcarry {
-          (rightword, rightcarry) = (~rightword).addingReportingOverflow(1)
-        } else {
-          rightword = ~rightword
-        }
-      }
-      res.append(leftword ^ rightword)
-    }
-    return BigInt.fromTwoComplement(&res)
+    return self.bitwise(rhs, ^)
   }
   
   /// Shifts the bits in this `BigInt` to the left if `n` is positive, or to the right
@@ -830,9 +849,7 @@ public struct BigInt: Hashable,
     let sbits = x % UInt32.bitWidth
     var res = ContiguousArray<UInt32>()
     res.reserveCapacity(Int(self.uwords.count) + swords)
-    for _ in 0..<swords {
-      res.append(0)
-    }
+    res.append(contentsOf: repeatElement(0 as UInt32, count: swords))
     var carry: UInt32 = 0
     for word in self.uwords {
       res.append((word << sbits) | carry)
@@ -1116,12 +1133,12 @@ extension BigInt: IntegerNumber,
   
   /// Returns true if this is an odd `BigInt` number.
   public var isOdd: Bool {
-    return (self & 1) == 1
+    return (self.uwords[0] & 1) == 1
   }
   
   /// Returns the magnitude of this `BigInt`.
   public var magnitude: BigInt {
-    return BigInt(words: uwords, negative: false)
+    return self.abs
   }
   
   /// Generic constructor for all binary integers.

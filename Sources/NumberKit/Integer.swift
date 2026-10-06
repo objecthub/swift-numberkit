@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 11/04/2024.
-//  Copyright © 2024 Matthias Zenger. All rights reserved.
+//  Copyright © 2024-2026 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -204,6 +204,9 @@ public enum Integer: IntegerNumber,
   public var magnitude: Integer {
     switch self {
       case .int(let num):
+        if num != .min {
+          return .int(Swift.abs(num))
+        }
         return Integer(BigInt(num.magnitude))
       case .bigInt(let num):
         return Integer(num.magnitude)
@@ -273,15 +276,60 @@ public enum Integer: IntegerNumber,
   }
   
   public func divided(by rhs: Integer) -> (quotient: Integer, remainder: Integer) {
+    if case .int(let lval) = self, case .int(let rval) = rhs, rval != 0,
+       !(lval == .min && rval == -1) {
+      return (.int(lval / rval), .int(lval % rval))
+    }
     let (q, r) = self.bigIntValue.divided(by: rhs.bigIntValue)
     return (Integer(q), Integer(r))
   }
   
   public func toPower(of exp: Integer) -> Integer {
+    if case .int(var base) = self, case .int(var expo) = exp, expo >= 0 {
+      // Fast path; falls back to `BigInt` as soon as an intermediate result overflows
+      var res: Int64 = 1
+      while true {
+        if expo & 1 == 1 {
+          let (r, overflow) = res.multipliedReportingOverflow(by: base)
+          if overflow {
+            break
+          }
+          res = r
+        }
+        expo >>= 1
+        if expo == 0 {
+          return .int(res)
+        }
+        let (sq, overflow) = base.multipliedReportingOverflow(by: base)
+        if overflow {
+          break
+        }
+        base = sq
+      }
+    }
     return Integer(self.bigIntValue.toPower(of: exp.bigIntValue))
   }
   
   public var sqrt: Integer {
+    if case .int(let num) = self, num >= 0 {
+      var root = Int64(Double(num).squareRoot())
+      while root > 0 {
+        let (sq, overflow) = root.multipliedReportingOverflow(by: root)
+        if !overflow && sq <= num {
+          break
+        }
+        root -= 1
+      }
+      while true {
+        let next = root + 1
+        let (sq, overflow) = next.multipliedReportingOverflow(by: next)
+        if overflow || sq > num {
+          break
+        }
+        root = next
+      }
+      return .int(root)
+    }
     return Integer(self.bigIntValue.sqrt)
   }
   
@@ -319,12 +367,18 @@ public enum Integer: IntegerNumber,
   
   /// Number of bits used to represent the (unsigned) `Integer` number.
   public var bitSize: Int {
+    if case .int(let num) = self {
+      return num.magnitude <= UInt64(UInt32.max) ? UInt32.bitWidth : 2 * UInt32.bitWidth
+    }
     return self.bigIntValue.bitSize
   }
   
   /// Number of bits set in this `Integer` number. For negative numbers, `n.bigCount` returns
   /// `~n.not.bigCount`.
   public var bitCount: Int {
+    if case .int(let num) = self {
+      return num >= 0 ? num.nonzeroBitCount : ~((~num).nonzeroBitCount)
+    }
     return self.bigIntValue.bitCount
   }
   
@@ -545,10 +599,19 @@ public enum Integer: IntegerNumber,
   }
 
   public static func << <T: BinaryInteger>(lhs: Integer, rhs: T) -> Integer {
+    if case .int(let num) = lhs, let n = Int(exactly: rhs), n >= 0 && n < 63 {
+      let shifted = num << n
+      if shifted >> n == num {
+        return .int(shifted)
+      }
+    }
     return Integer(lhs.bigIntValue << rhs)
   }
 
   public static func >> <T: BinaryInteger>(lhs: Integer, rhs: T) -> Integer {
+    if case .int(let num) = lhs, let n = Int(exactly: rhs), n >= 0 && n < 64 {
+      return .int(num >> n)
+    }
     return Integer(lhs.bigIntValue >> rhs)
   }
 

@@ -5,6 +5,10 @@
 - Fixed overflow handling in `Rational` comparison, addition and subtraction
 - Swift 6 language mode support (`BigInt.Base` is now `Sendable`); package now uses tools version 6.0 and declares minimum platforms (macOS 10.13, iOS 13, tvOS 13)
 - Updated podspec
+- `BigInt`: faster division (Knuth algorithm D), string conversion, parsing, `toPower(of:)` and `sqrt`; octal output of large numbers was incorrect and is now fixed
+- `Integer`: `Int64` fast paths for division, `toPower(of:)`, `sqrt`, shifts, `magnitude`, `bitSize` and `bitCount`
+- `Rational`: faster multiplication, division and comparison
+- `toPower(of:)` for fixed-width integers no longer overflows spuriously in its last step
 
 ## 2.6.1 (2026-06-12)
 - Migrated project to Xcode 26

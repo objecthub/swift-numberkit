@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 23/09/2017.
-//  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2026 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -98,14 +98,17 @@ extension SomeIntegerNumber {
     precondition(exp >= 0, "IntegerNumber.toPower(of:) with negative exponent")
     var (expo, radix) = (exp, self)
     var res = Self.one
-    while expo != 0 {
+    while true {
       if expo.isOdd {
         res *= radix
       }
       expo /= Self.two
+      if expo == 0 {
+        return res
+      }
+      // Squaring only if needed avoids spurious overflows in the last iteration
       radix *= radix
     }
-    return res
   }
 
   /// Returns the (non-negative) Greatest Common Divisor (GCD) of `x` and `y`. Any overflow

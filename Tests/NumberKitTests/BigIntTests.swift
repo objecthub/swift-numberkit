@@ -3,7 +3,7 @@
 //  NumberKit
 //
 //  Created by Matthias Zenger on 11/08/2015.
-//  Copyright © 2015-2020 Matthias Zenger. All rights reserved.
+//  Copyright © 2015-2026 Matthias Zenger. All rights reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -422,8 +422,8 @@ class BigIntTests: XCTestCase {
                    "11100100010011000000101000110100010010000011001111011100100111111001000011111" +
                    "000111001010111010100001100110000100100000110011111110000100111110101101")
     XCTAssertEqual(x2.toString(base: .oct), 
-                   "45155076155707762424743760324042073353026350465251452710460110642203173223744" +
-                   "174342565031411006376047655")
+                   "45155174333617752123617701640420733530547211525262534423005064220317344771037" +
+                   "071272414604406376047655")
     XCTAssertEqual(x2.toString(base: .dec), x2s)
     XCTAssertEqual(x2.toString(base: .hex), 
                    "4A6D3E36F1FEA29E3F83A08876EB16744D55655C89814689067B93F21F1CAEA1984833F84FAD")
@@ -437,8 +437,8 @@ class BigIntTests: XCTestCase {
                    "10100100101000000001010101111100111001001010010000010111111000101000001101001" +
                    "100110001001011110110110110010111001100")
     XCTAssertEqual(x3.toString(base: .oct), 
-                  "-10272164537062673156757475723540303427223026565320442244500112763445101176120" +
-                   "3231411366662714")
+                  "-20564722574313371567574757473006070571141327255044224450012574711220277050151" +
+                   "4611366662714")
     XCTAssertEqual(x3.toString(base: .dec), x3s)
     XCTAssertEqual(x3.toString(base: .hex), 
                    "-10BA74AF8CB7CDDEF9EF9D818717930B5D5A244A4A0157CE4A417E2834CC4BDB65CC")
