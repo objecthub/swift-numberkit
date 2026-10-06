@@ -1,3 +1,5 @@
+# Swift NumberKit
+
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fobjecthub%2Fswift-numberkit%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/objecthub/swift-numberkit) [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fobjecthub%2Fswift-numberkit%2Fbadge%3Ftype%3Dswift-versions)](https://swiftpackageindex.com/objecthub/swift-numberkit) [![IDE: Xcode 26](https://img.shields.io/badge/IDE-Xcode%2026-blue.svg?style=flat)](https://developer.apple.com/xcode/) [![Package managers: SwiftPM, Carthage](https://img.shields.io/badge/Package%20managers-SwiftPM,%20Carthage-green.svg?style=flat)](https://github.com/Carthage/Carthage) [![License: Apache](http://img.shields.io/badge/License-Apache-lightgrey.svg?style=flat)](https://raw.githubusercontent.com/objecthub/swift-numberkit/master/LICENSE)
 
 ## Overview
@@ -473,8 +475,8 @@ try JSONDecoder().decode([BigInt].self, from: Data("[1, \"2\"]".utf8))     // [1
 
 The sources contain documentation comments for all public types and functions. A
 [DocC](https://www.swift.org/documentation/docc/) catalogue with articles
-is included in the package (`Sources/NumberKit/NumberKit.docc`). In Xcode, choose _Product > Build Documentation_
-to browse it.
+is included in the package (`Sources/NumberKit/NumberKit.docc`). In Xcode,
+choose _Product > Build Documentation_ to browse it.
 
 ## Requirements
 
