@@ -9,6 +9,9 @@
 - `Integer`: `Int64` fast paths for division, `toPower(of:)`, `sqrt`, shifts, `magnitude`, `bitSize` and `bitCount`
 - `Rational`: faster multiplication, division and comparison
 - `toPower(of:)` for fixed-width integers no longer overflows spuriously in its last step
+- `BigInt`: new `init?(_:radix:)` and `toString(radix:uppercase:)` supporting radixes 2 to 36, `LosslessStringConvertible` conformance, `extendedGCD`, `modInverse`, `modPow` and `isProbablePrime`; decoding from JSON numbers; `doubleValue` is now correctly rounded
+- `Rational`: parsing supports arbitrarily large numerators and denominators (and rejects zero denominators); new `rounded(_:)` and `reciprocal`; `doubleValue` no longer overflows or loses precision for huge numerators and denominators
+- `Complex`: division and `reciprocal` use Smith's algorithm; `sqrt` avoids cancellation; integral powers use repeated squaring; parsing via `LosslessStringConvertible`; conforms to `SignedNumeric`
 
 ## 2.6.1 (2026-06-12)
 - Migrated project to Xcode 26

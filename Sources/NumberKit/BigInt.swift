@@ -38,6 +38,7 @@ public struct BigInt: Hashable,
                       Codable,
                       Sendable,
                       CustomStringConvertible,
+                      LosslessStringConvertible,
                       CustomDebugStringConvertible {
   
   // This is an array of `UInt32` words. The lowest significant word comes first in
@@ -199,8 +200,14 @@ public struct BigInt: Hashable,
   /// array of digits is the least significant one. `negative` is used to indicate negative
   /// `BigInt` numbers.
   public init(digits: [UInt8], negative: Bool = false, base: Base = BigInt.decBase) {
+    self.init(digits: digits, negative: negative, radix: base.radix)
+  }
+  
+  /// Creates a `BigInt` from digits (most significant digit first) given as numbers between
+  /// 0 and `radix - 1`.
+  private init(digits: [UInt8], negative: Bool, radix: Int) {
     // Process as many digits as fit into a word at once
-    let radix = UInt64(base.radix)
+    let radix = UInt64(radix)
     var chunkDigits = 0
     var chunkRadix: UInt64 = 1
     while chunkRadix * radix <= UInt64(UInt32.max) {
@@ -231,6 +238,47 @@ public struct BigInt: Hashable,
       }
     }
     self.init(words: words, negative: negative)
+  }
+  
+  /// Creates a `BigInt` from a string containing a number with an optional sign and digits
+  /// in the given `radix` (between 2 and 36). Letters in digits are case-insensitive.
+  /// Returns nil if `text` is not a valid number; it must not contain whitespace.
+  public init?(_ text: String, radix: Int = 10) {
+    precondition(radix >= 2 && radix <= 36, "radix must be between 2 and 36")
+    var utf8 = text.utf8[...]
+    var negative = false
+    if let first = utf8.first, first == UInt8(ascii: "-") || first == UInt8(ascii: "+") {
+      negative = first == UInt8(ascii: "-")
+      utf8 = utf8.dropFirst()
+    }
+    guard !utf8.isEmpty else {
+      return nil
+    }
+    var digits: [UInt8] = []
+    digits.reserveCapacity(utf8.count)
+    for byte in utf8 {
+      let value: UInt8
+      switch byte {
+        case UInt8(ascii: "0")...UInt8(ascii: "9"):
+          value = byte - UInt8(ascii: "0")
+        case UInt8(ascii: "a")...UInt8(ascii: "z"):
+          value = byte - UInt8(ascii: "a") + 10
+        case UInt8(ascii: "A")...UInt8(ascii: "Z"):
+          value = byte - UInt8(ascii: "A") + 10
+        default:
+          return nil
+      }
+      guard Int(value) < radix else {
+        return nil
+      }
+      digits.append(value)
+    }
+    self.init(digits: digits, negative: negative, radix: radix)
+  }
+  
+  /// Creates a `BigInt` from a decimal string; see `init?(_:radix:)`.
+  public init?(_ description: String) {
+    self.init(description, radix: 10)
   }
   
   /// Creates a `BigInt` from a string containing a number using the given base.
@@ -296,16 +344,29 @@ public struct BigInt: Hashable,
     self.init(words: words, negative: false)
   }
   
+  /// Decodes a `BigInt` from a string containing a decimal number, or from a number. Numbers
+  /// that do not fit into 64 bits can only be decoded if the decoder supports `Decimal`.
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
-    if let object = try? container.decode(String.self),
-       let bigInt = BigInt(from: object) {
+    if let object = try? container.decode(String.self) {
+      if let bigInt = BigInt(from: object) {
+        self = bigInt
+        return
+      }
+    } else if let number = try? container.decode(Int64.self) {
+      self.init(number)
+      return
+    } else if let number = try? container.decode(UInt64.self) {
+      self.init(number)
+      return
+    } else if let number = try? container.decode(Decimal.self),
+              let bigInt = BigInt(from: "\(number)") {
       self = bigInt
-    } else {
-      throw DecodingError.dataCorrupted(
-        DecodingError.Context(codingPath: decoder.codingPath,
-                              debugDescription: "Invalid BigInt encoding"))
+      return
     }
+    throw DecodingError.dataCorrupted(
+      DecodingError.Context(codingPath: decoder.codingPath,
+                            debugDescription: "Invalid BigInt encoding"))
   }
   
   public func encode(to encoder: Encoder) throws {
@@ -409,13 +470,11 @@ public struct BigInt: Hashable,
   
   /// Returns the digits of the magnitude of this number for the given base as ASCII
   /// characters; the most significant digit comes first.
-  private func magnitudeDigits(base: Base) -> [UInt8] {
-    let radix = base.radix
+  private func magnitudeDigits(radix: Int, table: [UInt8]) -> [UInt8] {
     var out: [UInt8] = []
     if radix & (radix - 1) == 0 {
       // Power of two: extract digits directly from the bits
       let bitsPerDigit = radix.trailingZeroBitCount
-      let table = base.digitSpace.map { $0.asciiValue! }
       let bits = (self.uwords.count - 1) * UInt32.bitWidth +
                  (UInt32.bitWidth - self.uwords[self.uwords.count - 1].leadingZeroBitCount)
       let digits = (bits + bitsPerDigit - 1) / bitsPerDigit
@@ -431,11 +490,33 @@ public struct BigInt: Hashable,
         out.append(table[Int(value) & (radix - 1)])
         k -= 1
       }
-    } else {
-      precondition(radix == 10, "unsupported base \(radix)")
+    } else if radix == 10 {
       out.reserveCapacity(self.uwords.count * 10)
       var powers = [BigInt(1_000_000_000)]
       BigInt.appendDecimal(self.abs, width: 0, powers: &powers, to: &out)
+    } else {
+      // Generic case: repeated division by the largest power of the radix fitting a word
+      let radixValue = UInt64(radix)
+      var chunkRadix: UInt64 = 1
+      var chunkDigits = 0
+      while chunkRadix * radixValue <= UInt64(UInt32.max) {
+        chunkRadix *= radixValue
+        chunkDigits += 1
+      }
+      var words = self.uwords
+      var count = words.count
+      var reversed: [UInt8] = []
+      reversed.reserveCapacity(self.uwords.count * 32 / Swift.max(radix.bitWidth - radix.leadingZeroBitCount - 1, 1))
+      while count > 0 {
+        var chunk = Int(BigInt.divideInPlace(&words, &count, by: chunkRadix))
+        var n = 0
+        while count > 0 ? n < chunkDigits : chunk > 0 {
+          reversed.append(table[chunk % radix])
+          chunk /= radix
+          n += 1
+        }
+      }
+      out = reversed.reversed()
     }
     return out
   }
@@ -454,7 +535,46 @@ public struct BigInt: Hashable,
       // a "+" is used normally in conjunction with zero.
       return forceSign ? "\(plusSign)0" : "0"
     }
-    let digits = self.magnitudeDigits(base: base)
+    return self.toString(radix: base.radix,
+                         table: base.digitSpace.map { $0.asciiValue! },
+                         groupSep: groupSep,
+                         groupSize: groupSize,
+                         forceSign: forceSign,
+                         plusSign: plusSign,
+                         minusSign: minusSign)
+  }
+  
+  /// Converts the `BigInt` object into a string using the given `radix` (between 2 and 36).
+  /// Digits greater than 9 are represented by lowercase letters unless `uppercase` is true.
+  public func toString(radix: Int,
+                       uppercase: Bool = false,
+                       groupSep: String? = nil,
+                       groupSize: Int = 3,
+                       forceSign: Bool = false,
+                       plusSign: String = "+",
+                       minusSign: String = "-") -> String {
+    precondition(radix >= 2 && radix <= 36, "radix must be between 2 and 36")
+    let letters = uppercase ? "ABCDEFGHIJKLMNOPQRSTUVWXYZ" : "abcdefghijklmnopqrstuvwxyz"
+    return self.toString(radix: radix,
+                         table: Array("0123456789".utf8) + Array(letters.utf8),
+                         groupSep: groupSep,
+                         groupSize: groupSize,
+                         forceSign: forceSign,
+                         plusSign: plusSign,
+                         minusSign: minusSign)
+  }
+  
+  private func toString(radix: Int,
+                        table: [UInt8],
+                        groupSep: String?,
+                        groupSize: Int,
+                        forceSign: Bool,
+                        plusSign: String,
+                        minusSign: String) -> String {
+    if self.isZero {
+      return forceSign ? "\(plusSign)0" : "0"
+    }
+    let digits = self.magnitudeDigits(radix: radix, table: table)
     var res: [UInt8] = []
     res.reserveCapacity(digits.count + digits.count / Swift.max(groupSize, 1) + 4)
     if negative {
@@ -522,14 +642,47 @@ public struct BigInt: Hashable,
     return value
   }
   
-  /// Returns the `BigInt` as a `Double` value. This might lead to a significant loss of
-  /// precision, but this operation is always possible.
+  /// Returns the number of bits needed to represent the magnitude of this number.
+  private var magnitudeBitLength: Int {
+    return (self.uwords.count - 1) * UInt32.bitWidth +
+           (UInt32.bitWidth - self.uwords[self.uwords.count - 1].leadingZeroBitCount)
+  }
+  
+  /// Returns the `BigInt` as a `Double` value, correctly rounded to the nearest representable
+  /// value (ties to even). Numbers that are too large are converted to infinity.
   public var doubleValue: Double {
-    var res: Double = 0.0
-    for word in uwords.reversed() {
-      res = res * Double(BigInt.base) + Double(word)
+    let bits = self.magnitudeBitLength
+    let magnitude: Double
+    if bits <= 64 {
+      magnitude = Double(self.abs.uintValue!)
+    } else {
+      // Use the leading 64 bits, and a sticky bit for all the bits that are cut off
+      let shift = bits - 64
+      var top = (self.abs >> shift).uintValue!
+      if self.abs.firstBitSet < shift {
+        top |= 1
+      }
+      magnitude = Double(sign: .plus, exponent: shift, significand: Double(top))
     }
-    return self.negative ? -res : res
+    return self.negative ? -magnitude : magnitude
+  }
+  
+  /// Returns the quotient of `numerator` and `denominator` as a `Double`, correctly rounded
+  /// even if both numbers are too large to be represented as `Double` values.
+  internal static func doubleValue(numerator: BigInt, denominator: BigInt) -> Double {
+    precondition(!denominator.isZero, "division by zero")
+    guard !numerator.isZero else {
+      return 0.0
+    }
+    let (n, d) = (numerator.abs, denominator.abs)
+    // Scale such that the integer quotient has at least 65 significant bits
+    let shift = Swift.max(0, 66 + d.magnitudeBitLength - n.magnitudeBitLength)
+    var (q, r) = (n << shift).divided(by: d)
+    if !r.isZero {
+      q = q | BigInt.one  // sticky bit
+    }
+    let magnitude = Double(sign: .plus, exponent: -shift, significand: q.doubleValue)
+    return numerator.negative != denominator.negative ? -magnitude : magnitude
   }
   
   /// For hashing values.
@@ -1568,4 +1721,121 @@ public func max(_ fst: BigInt, _ snd: BigInt) -> BigInt {
 /// Returns the minimum of `fst` and `snd`.
 public func min(_ fst: BigInt, _ snd: BigInt) -> BigInt {
   return fst.compare(to: snd) <= 0 ? fst : snd
+}
+
+/// Number-theoretic functions
+extension BigInt {
+  
+  /// Computes the extended greatest common divisor of `a` and `b`. The result consists
+  /// of the (non-negative) greatest common divisor `gcd` and coefficients `x` and `y`
+  /// such that `a * x + b * y == gcd`.
+  public static func extendedGCD(_ a: BigInt, _ b: BigInt) -> (gcd: BigInt, x: BigInt, y: BigInt) {
+    var (oldR, r) = (a, b)
+    var (oldS, s) = (BigInt.one, BigInt.zero)
+    var (oldT, t) = (BigInt.zero, BigInt.one)
+    while !r.isZero {
+      let q = oldR / r
+      (oldR, r) = (r, oldR - q * r)
+      (oldS, s) = (s, oldS - q * s)
+      (oldT, t) = (t, oldT - q * t)
+    }
+    return oldR.negative ? (oldR.negate, oldS.negate, oldT.negate) : (oldR, oldS, oldT)
+  }
+  
+  /// Returns the multiplicative inverse of this number modulo `modulus`, i.e. the number `x`
+  /// with `0 <= x < modulus` such that `self * x % modulus == 1`. Returns nil if there is no
+  /// such number, i.e. if `self` and `modulus` are not coprime. `modulus` must be positive.
+  public func modInverse(_ modulus: BigInt) -> BigInt? {
+    precondition(modulus.compare(to: BigInt.zero) > 0, "modulus must be positive")
+    let base = self.modulo(modulus)
+    let (gcd, x, _) = BigInt.extendedGCD(base, modulus)
+    guard gcd.isOne else {
+      return nil
+    }
+    return x.modulo(modulus)
+  }
+  
+  /// Returns the remainder of the division of this number by the positive number `modulus`;
+  /// as opposed to the `%` operator, the result is never negative.
+  private func modulo(_ modulus: BigInt) -> BigInt {
+    let rem = self % modulus
+    return rem.negative ? rem + modulus : rem
+  }
+  
+  /// Returns `self` raised to the power of `exponent`, modulo `modulus`. The result `x`
+  /// satisfies `0 <= x < modulus`. `exponent` must not be negative and `modulus` must be
+  /// positive.
+  public func modPow(_ exponent: BigInt, modulus: BigInt) -> BigInt {
+    precondition(!exponent.negative, "modPow with negative exponent")
+    precondition(modulus.compare(to: BigInt.zero) > 0, "modulus must be positive")
+    if modulus.isOne {
+      return BigInt.zero
+    }
+    var result = BigInt.one
+    let base = self.modulo(modulus)
+    var bit = exponent.lastBitSet - 1
+    while bit >= 0 {
+      result = (result * result) % modulus
+      if exponent.isBitSet(bit) {
+        result = (result * base) % modulus
+      }
+      bit -= 1
+    }
+    return result
+  }
+  
+  /// The first prime numbers, used for trial division and as bases of the Miller-Rabin test.
+  private static let smallPrimes: [Int64] = [
+    2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79,
+    83, 89, 97
+  ]
+  
+  /// Returns true if this number is prime. The result is exact for numbers below 3.3 * 10^24.
+  /// For larger numbers, the Miller-Rabin test is performed with `rounds` additional random
+  /// bases, i.e. a composite number is reported as prime with a probability of less than
+  /// 4^-`rounds`.
+  public func isProbablePrime(rounds: Int = 20) -> Bool {
+    guard self.compare(to: BigInt(2)) >= 0 else {
+      return false
+    }
+    for p in BigInt.smallPrimes {
+      let prime = BigInt(p)
+      if self == prime {
+        return true
+      } else if (self % prime).isZero {
+        return false
+      }
+    }
+    // Write self - 1 as d * 2^s with d odd
+    let nMinusOne = self - BigInt.one
+    let s = nMinusOne.firstBitSet
+    let d = nMinusOne >> s
+    func isWitness(_ a: BigInt) -> Bool {
+      var x = a.modPow(d, modulus: self)
+      if x.isOne || x == nMinusOne {
+        return false
+      }
+      for _ in 1..<Swift.max(s, 1) {
+        x = (x * x) % self
+        if x == nMinusOne {
+          return false
+        }
+      }
+      return true
+    }
+    // The first 13 primes are sufficient bases for all numbers below 3.3 * 10^24
+    for p in BigInt.smallPrimes.prefix(13) where isWitness(BigInt(p)) {
+      return false
+    }
+    if self >= BigInt(from: "3317044064679887385961981")! {
+      var generator = SystemRandomNumberGenerator()
+      let range = self - BigInt(3)
+      for _ in 0..<rounds {
+        if isWitness(BigInt.random(below: range, using: &generator) + BigInt(2)) {
+          return false
+        }
+      }
+    }
+    return true
+  }
 }

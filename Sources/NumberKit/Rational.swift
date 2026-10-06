@@ -173,16 +173,23 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
   ///    Numerator   = SignedInteger
   ///    Denominator = SignedInteger
   public init?(from str: String, radix: Int = 10) {
-    precondition(radix >= 2, "radix >= 2 required")
-    if let idx = str.firstIndex(of: rationalSeparator) {
-      if let numVal = Int64(str[..<idx], radix: radix),
-         let denomVal = Int64(str[str.index(after: idx)...], radix: radix) {
-        self.init(T(numVal), T(denomVal))
-      } else {
+    precondition(radix >= 2 && radix <= 36, "radix between 2 and 36 required")
+    // Parse via `BigInt` such that numbers of any size are supported
+    func parse(_ text: Substring) -> T? {
+      guard let value = BigInt(String(text), radix: radix) else {
         return nil
       }
-    } else if let value = Int64(str, radix: radix) {
-      self.init(T(value))
+      return T(exactly: value)
+    }
+    if let idx = str.firstIndex(of: rationalSeparator) {
+      guard let numVal = parse(str[..<idx]),
+            let denomVal = parse(str[str.index(after: idx)...]),
+            denomVal != 0 else {
+        return nil
+      }
+      self.init(numVal, denomVal)
+    } else if let value = parse(str[...]) {
+      self.init(value)
     } else {
       return nil
     }
@@ -204,7 +211,14 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
 
   /// Returns the `Rational` value as a double value
   public var doubleValue: Double {
-    return self.numerator.doubleValue / self.denominator.doubleValue
+    let (num, denom) = (self.numerator.doubleValue, self.denominator.doubleValue)
+    // Numbers up to 2^53 are represented exactly by `Double`, so the division is correctly
+    // rounded. Otherwise, avoid overflows and double rounding by using `BigInt`.
+    if Swift.abs(num) <= 9007199254740992.0 && denom <= 9007199254740992.0 {
+      return num / denom
+    }
+    return BigInt.doubleValue(numerator: BigInt(self.numerator),
+                              denominator: BigInt(self.denominator))
   }
 
   /// Returns a string representation of this `Rational<T>` number using base 10.
@@ -251,6 +265,50 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
   /// The negated rational value.
   public var negate: Rational<T> {
     return Rational(numerator: -numerator, denominator: denominator)
+  }
+
+  /// The reciprocal of this rational value. This value must not be zero.
+  public var reciprocal: Rational<T> {
+    precondition(numerator != 0, "reciprocal of zero")
+    return numerator < 0 ?
+        Rational(numerator: -denominator, denominator: -numerator) :
+        Rational(numerator: denominator, denominator: numerator)
+  }
+
+  /// Returns this rational value rounded to an integer of type `T` using the given rounding
+  /// rule. Use `.down` for the floor, `.up` for the ceiling, and `.towardZero` for
+  /// truncating the fractional part.
+  public func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> T {
+    let quotient = numerator / denominator  // truncated towards zero
+    let remainder = numerator % denominator  // has the sign of the numerator
+    if remainder == 0 {
+      return quotient
+    }
+    let negative = numerator < 0
+    let away = negative ? quotient - 1 : quotient + 1
+    switch rule {
+      case .towardZero:
+        return quotient
+      case .awayFromZero:
+        return away
+      case .down:
+        return negative ? away : quotient
+      case .up:
+        return negative ? quotient : away
+      default:
+        // Rounding to nearest: compare the distances to the two neighbouring integers
+        let distance = negative ? -remainder : remainder
+        let complement = denominator - distance
+        if distance < complement {
+          return quotient
+        } else if distance > complement {
+          return away
+        } else if rule == .toNearestOrEven {
+          return quotient.isOdd ? away : quotient
+        } else {
+          return away
+        }
+    }
   }
 
   /// Is true if the rational value is negative.

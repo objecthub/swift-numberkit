@@ -282,9 +282,15 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
       return .infinity
     } else if self.isInfinite {
       return .zero
+    } else if re.abs >= im.abs {
+      // Scaling avoids overflows and underflows (Smith's algorithm)
+      let r = im / re
+      let den = re + im * r
+      return Complex(T(1) / den, -r / den)
     } else {
-      let s = re * re + im * im
-      return Complex(re / s, -im / s)
+      let r = re / im
+      let den = re * r + im
+      return Complex(r / den, T(-1) / den)
     }
   }
   
@@ -306,14 +312,48 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   
   /// Returns the square root of this complex number
   public var sqrt: Complex<T> {
-    let r = ((re + abs) / T(2)).sqrt
-    let i = ((-re + abs) / T(2)).sqrt
-    return Complex(r, (im.sign == .minus) ? -i : i)
+    if self.isNaN || self.isZero {
+      return self
+    }
+    if im.isZero {
+      // The result for real numbers is exact; negative numbers yield imaginary results
+      if re.sign == .minus {
+        let root = (-re).sqrt
+        return Complex(T(0), im.sign == .minus ? -root : root)
+      }
+      return Complex(re.sqrt, im)
+    }
+    // Avoid the cancellation in `abs - |re|` by computing the smaller part from the larger
+    let t = (re.abs / T(2) + abs / T(2)).sqrt
+    if re.sign == .minus {
+      let i = im.abs / (T(2) * t)
+      return Complex(i, im.sign == .minus ? -t : t)
+    } else {
+      return Complex(t, im / (T(2) * t))
+    }
   }
   
   /// Returns this complex number taken to the power of `ex`.
   public func toPower(of ex: Complex<T>) -> Complex<T> {
-    return isZero ? (ex.isZero ? 1 : 0) : log.times(ex).exp
+    if isZero {
+      return ex.isZero ? 1 : 0
+    }
+    // Integral exponents are computed by repeated squaring, which is more precise
+    if ex.im.isZero && ex.re.isFinite && ex.re == ex.re.rounded(.towardZero) &&
+       self.isFinite {
+      var (e, base, res) = (ex.re.abs, self, Complex<T>.one)
+      while e > T(0) {
+        if e.truncatingRemainder(dividingBy: T(2)) != T(0) {
+          res = res.times(base)
+        }
+        e = (e / T(2)).rounded(.towardZero)
+        if e > T(0) {
+          base = base.times(base)
+        }
+      }
+      return ex.re.sign == .minus ? res.reciprocal : res
+    }
+    return log.times(ex).exp
   }
   
   /// Returns the sum of `self` and `rhs` as a complex number.
@@ -338,7 +378,19 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   
   /// Returns the result of dividing `self` by `rhs` as a complex number.
   public func divided(by rhs: Complex<T>) -> Complex<T> {
-    return times(rhs.reciprocal)
+    guard rhs.isFinite && !rhs.isZero else {
+      return times(rhs.reciprocal)
+    }
+    // Smith's algorithm: avoids overflows and underflows of intermediate results
+    if rhs.re.abs >= rhs.im.abs {
+      let r = rhs.im / rhs.re
+      let den = rhs.re + rhs.im * r
+      return Complex((self.re + self.im * r) / den, (self.im - self.re * r) / den)
+    } else {
+      let r = rhs.re / rhs.im
+      let den = rhs.re * r + rhs.im
+      return Complex((self.re * r + self.im) / den, (self.im * r - self.re) / den)
+    }
   }
   
   /// Returns the result of dividing `self` by scalar `rhs` as a complex number.
@@ -662,4 +714,98 @@ extension Complex: Codable where T: Codable {
 
 /// This extension implements the logic to make `Complex<T>` sendable if `T` is sendable.
 extension Complex: Sendable where T: Sendable {
+}
+
+/// This extension implements the parsing of complex numbers in the format created by
+/// `description`, e.g. "2", "-1.5i", "1+2i", "3-0.5i", "inf" or "nan".
+extension Complex: LosslessStringConvertible where T: LosslessStringConvertible {
+  
+  public init?(_ description: String) {
+    let text = description.filter { $0 != " " }
+    guard !text.isEmpty else {
+      return nil
+    }
+    guard text.hasSuffix("i") && !text.hasSuffix("inf") else {
+      // No imaginary part
+      guard let re = T(text) else {
+        return nil
+      }
+      self.init(re)
+      return
+    }
+    let body = text.dropLast()
+    // The imaginary part starts at the last sign that is not part of an exponent
+    var split: String.Index? = nil
+    var idx = body.endIndex
+    while idx > body.startIndex {
+      idx = body.index(before: idx)
+      let ch = body[idx]
+      if (ch == "+" || ch == "-") && idx > body.startIndex {
+        let prev = body[body.index(before: idx)]
+        if prev != "e" && prev != "E" {
+          split = idx
+          break
+        }
+      }
+    }
+    func parse(_ part: Substring) -> T? {
+      switch part {
+        case "", "+":
+          return T("1")
+        case "-":
+          return T("-1")
+        default:
+          return T(String(part))
+      }
+    }
+    if let split = split {
+      guard let re = T(String(body[..<split])), let im = parse(body[split...]) else {
+        return nil
+      }
+      self.init(re, im)
+    } else {
+      guard let im = parse(body) else {
+        return nil
+      }
+      self.init(T(0), im)
+    }
+  }
+}
+
+/// `Complex` numbers are numeric values. Their `magnitude` is the ∞-norm; use `norm` or `abs`
+/// for the Euclidean norm.
+extension Complex: SignedNumeric {
+  
+  public typealias Magnitude = T
+  
+  public init?<S: BinaryInteger>(exactly source: S) {
+    guard let re = T(exactly: source) else {
+      return nil
+    }
+    self.init(re)
+  }
+  
+  public static func + (lhs: Complex<T>, rhs: Complex<T>) -> Complex<T> {
+    return lhs.plus(rhs)
+  }
+  
+  public static func - (lhs: Complex<T>, rhs: Complex<T>) -> Complex<T> {
+    return lhs.minus(rhs)
+  }
+  
+  public static func * (lhs: Complex<T>, rhs: Complex<T>) -> Complex<T> {
+    return lhs.times(rhs)
+  }
+  
+  public static func += (lhs: inout Complex<T>, rhs: Complex<T>) {
+    lhs = lhs.plus(rhs)
+  }
+  
+  public static func -= (lhs: inout Complex<T>, rhs: Complex<T>) {
+    lhs = lhs.minus(rhs)
+  }
+  
+  public static func *= (lhs: inout Complex<T>, rhs: Complex<T>) {
+    lhs = lhs.times(rhs)
+  }
 }

@@ -284,4 +284,308 @@ class RegressionTests: XCTestCase {
     XCTAssertEqual((BigInt(1) << 100).toString(base: .oct), "2" + String(repeating: "0", count: 33))
     XCTAssertEqual((BigInt(1) << 100).toString(base: .hex), "1" + String(repeating: "0", count: 25))
   }
+
+  func testRadixConversion() {
+    XCTAssertEqual(BigInt("ff", radix: 16), BigInt(255))
+    XCTAssertEqual(BigInt("-Zz", radix: 36), BigInt(-1295))
+    XCTAssertEqual(BigInt("+101", radix: 2), BigInt(5))
+    XCTAssertNil(BigInt("12", radix: 2))
+    // Without a radix, the string literal initializer is selected for literals
+    XCTAssertNil(LosslessStringConvertibleHelper.make(" 12") as BigInt?)
+    XCTAssertNil(LosslessStringConvertibleHelper.make("") as BigInt?)
+    XCTAssertNil(LosslessStringConvertibleHelper.make("1_000") as BigInt?)
+    XCTAssertNil(LosslessStringConvertibleHelper.make("-") as BigInt?)
+    XCTAssertEqual(LosslessStringConvertibleHelper.make("123456789012345678901234567890"),
+                   BigInt(from: "123456789012345678901234567890"))
+    var generator = SystemRandomNumberGenerator()
+    for radix in 2...36 {
+      for _ in 0..<20 {
+        let n = randomNumber(words: Int.random(in: 1...12, using: &generator), using: &generator)
+        let text = n.toString(radix: radix)
+        XCTAssertEqual(BigInt(text, radix: radix), n, "radix \(radix)")
+        XCTAssertEqual(BigInt(n.toString(radix: radix, uppercase: true), radix: radix), n)
+      }
+    }
+    for value in [Int64.min, -1, 0, 1, 35, 36, 1295, 1296, 4294967296, Int64.max] {
+      for radix in 2...36 {
+        XCTAssertEqual(BigInt(value).toString(radix: radix), String(value, radix: radix),
+                       "\(value) radix \(radix)")
+      }
+    }
+    let x: BigInt = LosslessStringConvertibleHelper.make("-123")!
+    XCTAssertEqual(x, BigInt(-123))
+  }
+
+  func testDecodingNumbers() throws {
+    let decoder = JSONDecoder()
+    XCTAssertEqual(try decoder.decode([BigInt].self, from: Data("[42, -7, \"123456789012345678901234567890\"]".utf8)),
+                   [BigInt(42), BigInt(-7), BigInt(from: "123456789012345678901234567890")!])
+    XCTAssertEqual(try decoder.decode([BigInt].self, from: Data("[18446744073709551615]".utf8)),
+                   [BigInt(UInt64.max)])
+    XCTAssertThrowsError(try decoder.decode([BigInt].self, from: Data("[\"abc\"]".utf8)))
+    XCTAssertThrowsError(try decoder.decode([BigInt].self, from: Data("[true]".utf8)))
+  }
+
+  func testNumberTheory() {
+    let (g, x, y) = BigInt.extendedGCD(BigInt(240), BigInt(46))
+    XCTAssertEqual(g, BigInt(2))
+    XCTAssertEqual(BigInt(240) * x + BigInt(46) * y, g)
+    var generator = SystemRandomNumberGenerator()
+    for _ in 0..<200 {
+      let a = randomNumber(words: Int.random(in: 1...5, using: &generator), using: &generator)
+      let b = randomNumber(words: Int.random(in: 1...5, using: &generator), using: &generator)
+      let (g, x, y) = BigInt.extendedGCD(a, b)
+      XCTAssertEqual(a * x + b * y, g)
+      XCTAssert(!g.isNegative)
+      if !g.isZero {
+        XCTAssert((a % g).isZero && (b % g).isZero)
+      }
+    }
+    XCTAssertEqual(BigInt(3).modInverse(BigInt(11)), BigInt(4))
+    XCTAssertEqual(BigInt(-3).modInverse(BigInt(11)), BigInt(7))
+    XCTAssertNil(BigInt(6).modInverse(BigInt(9)))
+    XCTAssertEqual(BigInt(2).modPow(BigInt(10), modulus: BigInt(1000)), BigInt(24))
+    XCTAssertEqual(BigInt(2).modPow(BigInt(0), modulus: BigInt(7)), BigInt(1))
+    XCTAssertEqual(BigInt(5).modPow(BigInt(3), modulus: BigInt(1)), BigInt(0))
+    XCTAssertEqual(BigInt(-2).modPow(BigInt(3), modulus: BigInt(7)), BigInt(6))
+    // Fermat: a^(p-1) = 1 mod p for p = 2^127 - 1
+    let p = (BigInt(1) << 127) - BigInt(1)
+    XCTAssertEqual(BigInt(3).modPow(p - BigInt(1), modulus: p), BigInt(1))
+    let inverse = BigInt(123456789).modInverse(p)!
+    XCTAssertEqual((inverse * BigInt(123456789)) % p, BigInt(1))
+  }
+
+  func testPrimality() {
+    let primes = [2, 3, 5, 7, 97, 101, 7919, 104729, 2147483647]
+    for prime in primes {
+      XCTAssert(BigInt(prime).isProbablePrime(), "\(prime)")
+    }
+    for composite in [-7, 0, 1, 4, 9, 91, 561, 1105, 1729, 7917, 2147483649] {
+      XCTAssertFalse(BigInt(composite).isProbablePrime(), "\(composite)")
+    }
+    // Compare with trial division for small numbers
+    for n in 0..<2000 {
+      let isPrime = n >= 2 && !(2..<n).contains { $0 * $0 <= n && n % $0 == 0 }
+      XCTAssertEqual(BigInt(n).isProbablePrime(), isPrime, "\(n)")
+    }
+    XCTAssert(((BigInt(1) << 127) - BigInt(1)).isProbablePrime())    // Mersenne prime
+    XCTAssert(((BigInt(1) << 521) - BigInt(1)).isProbablePrime())    // Mersenne prime
+    XCTAssertFalse(((BigInt(1) << 128) + BigInt(1)).isProbablePrime())  // 641 * ...
+    XCTAssertFalse(((BigInt(1) << 67) - BigInt(1)).isProbablePrime())  // 193707721 * 761838257287
+    // Carmichael number and strong pseudoprimes to several bases
+    XCTAssertFalse(BigInt(3825123056546413051).isProbablePrime())
+    XCTAssertFalse((BigInt(10).toPower(of: BigInt(30)) + BigInt(1)).isProbablePrime())
+  }
+
+  func testDoubleConversionRounding() {
+    XCTAssertEqual(BigInt(0).doubleValue, 0.0)
+    XCTAssertEqual(BigInt(-5).doubleValue, -5.0)
+    XCTAssertEqual(BigInt(UInt64.max).doubleValue, Double(UInt64.max))
+    XCTAssertEqual(BigInt(Int64.min).doubleValue, Double(Int64.min))
+    // 2^53 + 1 is a tie and rounds to even (2^53); 2^53 + 3 rounds up to 2^53 + 4
+    XCTAssertEqual(BigInt(9007199254740993).doubleValue, 9007199254740992.0)
+    XCTAssertEqual(BigInt(9007199254740995).doubleValue, 9007199254740996.0)
+    // A tie that is broken by bits far below the rounding position
+    let tie = (BigInt(1) << 100) + (BigInt(1) << 47)  // exactly half way between two doubles
+    XCTAssertEqual(tie.doubleValue, 0x1p100)
+    XCTAssertEqual((tie + BigInt(1)).doubleValue, 0x1p100 + 0x1p48)
+    XCTAssertEqual((-(tie + BigInt(1))).doubleValue, -(0x1p100 + 0x1p48))
+    XCTAssertEqual((BigInt(1) << 1000).doubleValue, 0x1p1000)
+    XCTAssertEqual((BigInt(1) << 1023).doubleValue, 0x1p1023)
+    XCTAssertEqual((BigInt(1) << 1024).doubleValue, Double.infinity)
+    XCTAssertEqual((-(BigInt(1) << 1024)).doubleValue, -Double.infinity)
+    // The largest double and the first value that rounds up to infinity
+    let maxDouble = BigInt(Double.greatestFiniteMagnitude)
+    XCTAssertEqual(maxDouble.doubleValue, Double.greatestFiniteMagnitude)
+    XCTAssertEqual((maxDouble + BigInt(1)).doubleValue, Double.greatestFiniteMagnitude)
+    // Random 64-bit values agree with the correctly rounded hardware conversion
+    var generator = SystemRandomNumberGenerator()
+    for _ in 0..<1000 {
+      let value = UInt64.random(in: 0...UInt64.max, using: &generator)
+      XCTAssertEqual(BigInt(value).doubleValue, Double(value))
+    }
+    // Ratio conversion
+    XCTAssertEqual(BigInt.doubleValue(numerator: BigInt(1), denominator: BigInt(3)), 1.0 / 3.0)
+    XCTAssertEqual(BigInt.doubleValue(numerator: BigInt(-2), denominator: BigInt(3)), -2.0 / 3.0)
+    let huge = BigInt(10).toPower(of: BigInt(400))
+    XCTAssertEqual(BigInt.doubleValue(numerator: huge * BigInt(3), denominator: huge * BigInt(4)), 0.75)
+    XCTAssertEqual(BigInt.doubleValue(numerator: BigInt(1), denominator: huge), 0.0)
+    XCTAssertEqual(BigInt.doubleValue(numerator: huge, denominator: BigInt(1)), Double.infinity)
+  }
+}
+
+extension RegressionTests {
+
+  func testRationalParsing() {
+    XCTAssertEqual(Rational<Int>(from: "3/6"), Rational<Int>(1, 2))
+    XCTAssertEqual(Rational<Int>(from: "-3/-6"), Rational<Int>(1, 2))
+    XCTAssertEqual(Rational<Int>(from: "7/-14"), Rational<Int>(-1, 2))
+    XCTAssertEqual(Rational<Int>(from: "ff/10", radix: 16), Rational<Int>(255, 16))
+    XCTAssertNil(Rational<Int>(from: "1/0"))
+    XCTAssertNil(Rational<Int>(from: "1/"))
+    XCTAssertNil(Rational<Int>(from: "/2"))
+    XCTAssertNil(Rational<Int>(from: "a/2"))
+    XCTAssertNil(Rational<Int>(from: ""))
+    XCTAssertNil(Rational<Int8>(from: "200"))
+    XCTAssertEqual(Rational<Int8>(from: "-128/2"), Rational<Int8>(-64, 1))
+    let huge = "123456789012345678901234567890"
+    let r = Rational<BigInt>(from: huge + "/" + "246913578024691357802469135780")
+    XCTAssertEqual(r, Rational<BigInt>(BigInt(1), BigInt(2)))
+    XCTAssertEqual(Rational<BigInt>(from: huge)?.numerator, BigInt(from: huge))
+    XCTAssertNil(Rational<Int>(from: huge))
+  }
+
+  func testRationalRounding() {
+    let cases: [(Rational<Int>, [FloatingPointRoundingRule: Int])] = [
+      (Rational(7, 2), [.down: 3, .up: 4, .towardZero: 3, .awayFromZero: 4,
+                        .toNearestOrAwayFromZero: 4, .toNearestOrEven: 4]),
+      (Rational(5, 2), [.down: 2, .up: 3, .towardZero: 2, .awayFromZero: 3,
+                        .toNearestOrAwayFromZero: 3, .toNearestOrEven: 2]),
+      (Rational(-5, 2), [.down: -3, .up: -2, .towardZero: -2, .awayFromZero: -3,
+                         .toNearestOrAwayFromZero: -3, .toNearestOrEven: -2]),
+      (Rational(-7, 3), [.down: -3, .up: -2, .towardZero: -2, .awayFromZero: -3,
+                         .toNearestOrAwayFromZero: -2, .toNearestOrEven: -2]),
+      (Rational(8, 3), [.down: 2, .up: 3, .towardZero: 2, .awayFromZero: 3,
+                        .toNearestOrAwayFromZero: 3, .toNearestOrEven: 3]),
+      (Rational(6, 3), [.down: 2, .up: 2, .towardZero: 2, .awayFromZero: 2,
+                        .toNearestOrAwayFromZero: 2, .toNearestOrEven: 2]),
+      (Rational(0, 5), [.down: 0, .up: 0, .towardZero: 0, .awayFromZero: 0,
+                        .toNearestOrAwayFromZero: 0, .toNearestOrEven: 0]),
+    ]
+    for (value, expected) in cases {
+      for (rule, result) in expected {
+        XCTAssertEqual(value.rounded(rule), result, "\(value) \(rule)")
+      }
+    }
+    XCTAssertEqual(Rational<Int>(7, 2).rounded(), 4)
+    XCTAssertEqual(Rational<Int>(Int.max, 2).rounded(.down), Int.max / 2)
+    XCTAssertEqual(Rational<Int>(-Int.max, 2).rounded(.up), -(Int.max / 2))
+    XCTAssertEqual(Rational<BigInt>(BigInt(1) << 100, BigInt(3)).rounded(.up),
+                   ((BigInt(1) << 100) + BigInt(2)) / BigInt(3))
+  }
+
+  func testRationalReciprocalAndDouble() {
+    XCTAssertEqual(Rational<Int>(2, 3).reciprocal, Rational<Int>(3, 2))
+    XCTAssertEqual(Rational<Int>(-2, 3).reciprocal, Rational<Int>(-3, 2))
+    XCTAssertEqual(Rational<Int>(5).reciprocal, Rational<Int>(1, 5))
+    XCTAssertEqual(Rational<Int>(1, 3).doubleValue, 1.0 / 3.0)
+    XCTAssertEqual(Rational<Int>(-22, 7).doubleValue, -22.0 / 7.0)
+    let huge = BigInt(10).toPower(of: BigInt(400))
+    XCTAssertEqual(Rational<BigInt>(huge * BigInt(3), huge * BigInt(4) + BigInt(1)).doubleValue, 0.75)
+    XCTAssertEqual(Rational<BigInt>(huge, huge + BigInt(1)).doubleValue, 1.0)
+    XCTAssertEqual(Rational<BigInt>(BigInt(1), huge).doubleValue, 0.0)
+    XCTAssertEqual(Rational<BigInt>(huge, BigInt(1)).doubleValue, Double.infinity)
+    XCTAssertEqual(Rational<Int>(Int.max, Int.max - 1).doubleValue,
+                   Double(Int.max) / Double(Int.max - 1))
+  }
+}
+
+extension RegressionTests {
+
+  private func assertClose(_ x: Complex<Double>, _ y: Complex<Double>,
+                           tolerance: Double = 1e-12, line: UInt = #line) {
+    let scale = Swift.max(1.0, y.abs)
+    XCTAssert((x - y).abs <= tolerance * scale, "\(x) is not close to \(y)", line: line)
+  }
+
+  func testComplexDivision() {
+    assertClose(Complex(3.0, 4.0) / Complex(1.0, 2.0), Complex(2.2, -0.4))
+    assertClose(Complex(3.0, 4.0) / Complex(-1.0, 0.5), Complex(3.0, 4.0) * Complex(-1.0, 0.5).reciprocal)
+    // Naive formulas overflow or underflow in the intermediate results
+    XCTAssertEqual(Complex(1e300, 1e300) / Complex(1e300, 1e300), Complex(1.0, 0.0))
+    XCTAssertEqual(Complex(1e-300, 1e-300) / Complex(1e-300, 1e-300), Complex(1.0, 0.0))
+    assertClose(Complex(1e300, 1e300).reciprocal, Complex(0.5e-300, -0.5e-300), tolerance: 1e-12)
+    XCTAssertEqual(Complex(1.0, 0.0).reciprocal.re, 1.0)
+    XCTAssertEqual(Complex(0.0, 2.0).reciprocal, Complex(0.0, -0.5))
+    XCTAssert((Complex(1.0, 1.0) / Complex(0.0, 0.0)).isInfinite || (Complex(1.0, 1.0) / Complex(0.0, 0.0)).isNaN)
+    XCTAssert(Complex(1.0, 1.0).divided(by: Complex(.infinity, 0.0)).isZero)
+  }
+
+  func testComplexSquareRoot() {
+    XCTAssertEqual(Complex(-4.0, 0.0).sqrt, Complex(0.0, 2.0))
+    XCTAssertEqual(Complex(4.0, 0.0).sqrt, Complex(2.0, 0.0))
+    XCTAssertEqual(Complex(3.0, 4.0).sqrt, Complex(2.0, 1.0))
+    XCTAssertEqual(Complex(-3.0, 4.0).sqrt, Complex(1.0, 2.0))
+    XCTAssertEqual(Complex(-3.0, -4.0).sqrt, Complex(1.0, -2.0))
+    XCTAssertEqual(Complex(3.0, -4.0).sqrt, Complex(2.0, -1.0))
+    XCTAssertEqual(Complex(0.0, 0.0).sqrt, Complex(0.0, 0.0))
+    // No cancellation for small imaginary parts
+    let tiny = Complex(-1.0, 1e-20).sqrt
+    XCTAssertEqual(tiny.re, 5e-21, accuracy: 1e-30)
+    XCTAssertEqual(tiny.im, 1.0, accuracy: 1e-15)
+    var generator = SystemRandomNumberGenerator()
+    for _ in 0..<500 {
+      let z = Complex.random(realRange: -100.0..<100.0, imaginaryRange: -100.0..<100.0, using: &generator)
+      let root = z.sqrt
+      XCTAssert(root.re >= 0)
+      assertClose(root * root, z)
+    }
+  }
+
+  func testComplexIntegerPowers() {
+    XCTAssertEqual(Complex(1.0, 1.0).toPower(of: Complex(2.0, 0.0)), Complex(0.0, 2.0))
+    XCTAssertEqual(Complex(1.0, 1.0).toPower(of: Complex(8.0, 0.0)), Complex(16.0, 0.0))
+    XCTAssertEqual(Complex(0.0, 1.0).toPower(of: Complex(4.0, 0.0)), Complex(1.0, 0.0))
+    XCTAssertEqual(Complex(2.0, 0.0).toPower(of: Complex(-2.0, 0.0)), Complex(0.25, 0.0))
+    XCTAssertEqual(Complex(3.0, 4.0).toPower(of: Complex(0.0, 0.0)), Complex(1.0, 0.0))
+    XCTAssertEqual(Complex(3.0, 4.0).toPower(of: Complex(1.0, 0.0)), Complex(3.0, 4.0))
+    XCTAssertEqual(Complex(0.0, 0.0).toPower(of: Complex(3.0, 0.0)), Complex(0.0, 0.0))
+    XCTAssertEqual(Complex(2.0, 0.0).toPower(of: Complex(10.0, 0.0)), Complex(1024.0, 0.0))
+    assertClose(Complex(1.0, 2.0).toPower(of: Complex(-3.0, 0.0)), (Complex(1.0, 2.0) * Complex(1.0, 2.0) * Complex(1.0, 2.0)).reciprocal)
+    // Non-integral exponents still use the principal branch
+    assertClose(Complex(-8.0, 0.0).toPower(of: Complex(1.0 / 3.0, 0.0)), Complex(1.0, 3.0.squareRoot()), tolerance: 1e-12)
+    assertClose(Complex(4.0, 0.0).toPower(of: Complex(0.5, 0.0)), Complex(2.0, 0.0))
+  }
+
+  func testComplexParsing() {
+    let cases: [(String, Complex<Double>)] = [
+      ("3", Complex(3.0, 0.0)), ("-2.5", Complex(-2.5, 0.0)), ("2i", Complex(0.0, 2.0)),
+      ("1+2i", Complex(1.0, 2.0)), ("1-2i", Complex(1.0, -2.0)), ("-i", Complex(0.0, -1.0)),
+      ("i", Complex(0.0, 1.0)), ("+i", Complex(0.0, 1.0)), ("1+i", Complex(1.0, 1.0)),
+      ("2-i", Complex(2.0, -1.0)), ("1e-5+2e3i", Complex(1e-5, 2e3)),
+      ("1.5e+3-2.5e-3i", Complex(1500.0, -0.0025)), (" 1 + 2 i ", Complex(1.0, 2.0)),
+      ("-1.5-2i", Complex(-1.5, -2.0)), ("-inf", Complex(-Double.infinity, 0.0)),
+    ]
+    for (text, expected) in cases {
+      XCTAssertEqual(Complex<Double>(text), expected, text)
+    }
+    XCTAssert(Complex<Double>("nan")!.isNaN)
+    for text in ["", "i2", "1+2", "abc", "1+i+2i", "1++2i", "--i", "1+2j", "ii"] {
+      XCTAssertNil(Complex<Double>(text), text)
+    }
+    // Round trips with `description`
+    var generator = SystemRandomNumberGenerator()
+    for _ in 0..<200 {
+      let z = Complex.random(realRange: -1e6..<1e6, imaginaryRange: -1e6..<1e6, using: &generator)
+      XCTAssertEqual(Complex<Double>(z.description), z)
+    }
+    for z in [Complex(0.0, 0.0), Complex(1e-300, -1e300), Complex(0.0, -1.0), Complex(-2.5, 0.0)] {
+      XCTAssertEqual(Complex<Double>(z.description), z)
+    }
+    XCTAssertEqual(Complex<Float>("1.5-2i"), Complex<Float>(1.5, -2.0))
+  }
+
+  func testComplexNumeric() {
+    let values = [Complex(1.0, 1.0), Complex(2.0, -3.0), Complex(-0.5, 0.25)]
+    XCTAssertEqual(values.reduce(.zero, +), Complex(2.5, -1.75))
+    XCTAssertEqual(values.reduce(.one, *), Complex(1.0, 1.0) * Complex(2.0, -3.0) * Complex(-0.5, 0.25))
+    XCTAssertEqual(Complex<Double>(exactly: 5), Complex(5.0, 0.0))
+    XCTAssertEqual(Complex<Double>(exactly: -7), Complex(-7.0, 0.0))
+    XCTAssertEqual(-Complex(1.0, -2.0), Complex(-1.0, 2.0))
+    var z = Complex(1.0, 2.0)
+    z.negate()
+    XCTAssertEqual(z, Complex(-1.0, -2.0))
+    z += Complex(1.0, 1.0)
+    z *= Complex(0.0, 1.0)
+    XCTAssertEqual(z, Complex(1.0, 0.0))
+    XCTAssertEqual(Complex(3.0, -4.0).magnitude, 4.0)
+    func generic<N: SignedNumeric>(_ x: N) -> N { return x * x + x }
+    XCTAssertEqual(generic(Complex(0.0, 1.0)), Complex(-1.0, 1.0))
+  }
+}
+
+private enum LosslessStringConvertibleHelper {
+  static func make<T: LosslessStringConvertible>(_ text: String) -> T? {
+    return T(text)
+  }
 }
