@@ -31,6 +31,7 @@
 		CCD2604423F211A200DFE5A4 /* BigInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56B1B7AA81500355E1E /* BigInt.swift */; };
 		CCD2604523F211A500DFE5A4 /* Rational.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0741561B81269200406A43 /* Rational.swift */; };
 		CCD2604623F211A800DFE5A4 /* Complex.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0741581B8127B600406A43 /* Complex.swift */; };
+		CCE764BE3074D5B4008AD5AD /* RegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE764BD3074D5B4008AD5AD /* RegressionTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -70,6 +71,7 @@
 		CCD2603923F20F7200DFE5A4 /* NumberKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NumberKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CCD2603B23F20F7200DFE5A4 /* NumberKit_iOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NumberKit_iOS.h; sourceTree = "<group>"; };
 		CCD2603C23F20F7200DFE5A4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CCE764BD3074D5B4008AD5AD /* RegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegressionTests.swift; sourceTree = "<group>"; };
 		CCE9DD301B8BB4A600340DD1 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -154,6 +156,7 @@
 				CC07415A1B813A0600406A43 /* RationalTests.swift */,
 				CC07415C1B813B0300406A43 /* ComplexTests.swift */,
 				CCA2651623EF73B700483329 /* CodableTests.swift */,
+				CCE764BD3074D5B4008AD5AD /* RegressionTests.swift */,
 				CC5E473320C428D500F21B03 /* LinuxMain.swift */,
 				CC99F5601B7AA6E200355E1E /* Info.plist */,
 			);
@@ -342,6 +345,7 @@
 				CC07415D1B813B0300406A43 /* ComplexTests.swift in Sources */,
 				CC50F66A2C722A140071A563 /* IntegerNumberTests.swift in Sources */,
 				CC0A59F92BC990FA00F155FE /* IntegerTests.swift in Sources */,
+				CCE764BE3074D5B4008AD5AD /* RegressionTests.swift in Sources */,
 				CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */,
 				CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */,
 				CC07415B1B813A0600406A43 /* RationalTests.swift in Sources */,
@@ -515,7 +519,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 2.4.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
@@ -546,7 +550,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MARKETING_VERSION = 2.4.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;

@@ -112,7 +112,8 @@ public struct BigInt: Hashable,
   public static let hexBase = Base(
     digitSpace: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"],
     digitMap: ["0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9,
-      "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15]
+      "A": 10, "B": 11, "C": 12, "D": 13, "E": 14, "F": 15,
+      "a": 10, "b": 11, "c": 12, "d": 13, "e": 14, "f": 15]
   )
   
   /// Maps a radix number to the corresponding `Base` object. Only 2, 8, 10, and 16 are
@@ -138,6 +139,9 @@ public struct BigInt: Hashable,
     var words = words
     while words.count > 1 && words[words.count - 1] == 0 {
       words.removeLast()
+    }
+    if words.isEmpty {
+      words.append(0)
     }
     self.uwords = words
     self.negative = words.count == 1 && words[0] == 0 ? false : negative
@@ -171,6 +175,7 @@ public struct BigInt: Hashable,
   
   /// Initializes a `BigInt` from the given `Double` value
   public init(_ value: Double) {
+    precondition(value.isFinite, "BigInt cannot represent infinity or NaN")
     if value > -1.0 && value < 1.0 {
       self.init(words: [BigInt.loword(0), BigInt.hiword(0)], negative: value < 0.0)
     } else if value > -Double(UInt64.max) && value < Double(UInt64.max) {
@@ -250,7 +255,7 @@ public struct BigInt: Hashable,
     while i < str.endIndex && str[i] == " " {
       i = str.index(after: i)
     }
-    guard i == str.endIndex else {
+    guard i == str.endIndex && !temp.isEmpty else {
       return nil
     }
     self.init(digits: temp, negative: negative, base: base)
@@ -426,6 +431,7 @@ public struct BigInt: Hashable,
   
   /// For hashing values.
   public func hash(into hasher: inout Hasher) {
+    hasher.combine(negative)
     for i in 0..<uwords.count {
       hasher.combine(uwords[i])
     }
@@ -609,6 +615,7 @@ public struct BigInt: Hashable,
   
   /// Divides `self` by `rhs` and returns the quotient and the remainder as a `BigInt`.
   public func divided(by rhs: BigInt) -> (quotient: BigInt, remainder: BigInt) {
+    precondition(!rhs.isZero, "division by zero")
     guard rhs.uwords.count <= self.uwords.count else {
       return (BigInt(0), self)
     }
@@ -851,11 +858,19 @@ public struct BigInt: Hashable,
       i -= 1
     }
     let x = BigInt(words: ContiguousArray<UInt32>(res.reversed()), negative: self.negative)
-    if self.negative && carry > 0 {
-      return x.minus(BigInt.one)
-    } else {
-      return x
+    if self.negative {
+      // Round towards negative infinity if any non-zero bit was shifted out
+      var lost = carry > 0
+      var j = 0
+      while !lost && j < Swift.min(swords, self.uwords.count) {
+        lost = self.uwords[j] != 0
+        j += 1
+      }
+      if lost {
+        return x.minus(BigInt.one)
+      }
     }
+    return x
   }
   
   /// Number of bits used to represent the (unsigned) `BigInt` number.
@@ -1003,7 +1018,8 @@ public struct BigInt: Hashable,
   /// random number generator `generator`.
   public static func random<R: RandomNumberGenerator>(below bound: BigInt,
                                                       using generator: inout R) -> BigInt {
-    let bitWidth = bound.bitSize
+    precondition(!bound.isNegative && !bound.isZero, "upper bound must be positive")
+    let bitWidth = bound.lastBitSet
     var res = BigInt(randomWithMaxBits: bitWidth, using: &generator)
     while res >= bound {
       res = BigInt(randomWithMaxBits: bitWidth, using: &generator)
@@ -1142,10 +1158,11 @@ extension BigInt: IntegerNumber,
     self.init(truncatingIfNeeded)
   }
   
-  /// Generic constructor for all binary floating point numbers. This may crash for
-  /// floating point numbers representing infinity or NaN.
+  /// Generic constructor for all binary floating point numbers. Fractional parts are
+  /// truncated. This crashes for floating point numbers representing infinity or NaN.
   public init<T: BinaryFloatingPoint>(_ source: T) {
-    self.init(exactly: source)!
+    precondition(source.isFinite, "BigInt cannot represent infinity or NaN")
+    self.init(exactly: source.rounded(.towardZero))!
   }
   
   /// Generic constructor for all binary floating point numbers.

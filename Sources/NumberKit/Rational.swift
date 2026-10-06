@@ -267,20 +267,49 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
   ///          0 if `self` is equals to `rhs`,
   ///         +1 if `self` is greater than `rhs`
   public func compare(to rhs: Rational<T>) -> Int {
-    let (n1, n2, _) = self.commonDenomWith(rhs)
-    return n1 == n2 ? 0 : (n1 < n2 ? -1 : 1)
+    // Both values are normalized, so equal values have identical components.
+    if self.numerator == rhs.numerator && self.denominator == rhs.denominator {
+      return 0
+    }
+    let (c1, c2, _, overflow) = Rational.commonDenomWithOverflow(self, rhs)
+    if !overflow {
+      return c1 == c2 ? 0 : (c1 < c2 ? -1 : 1)
+    }
+    // Overflow-free comparison via continued fraction expansion.
+    var (n1, d1, n2, d2) = (self.numerator, self.denominator, rhs.numerator, rhs.denominator)
+    while true {
+      var (q1, r1) = (n1 / d1, n1 % d1)
+      if r1 < 0 {
+        q1 = q1 - 1
+        r1 = r1 + d1
+      }
+      var (q2, r2) = (n2 / d2, n2 % d2)
+      if r2 < 0 {
+        q2 = q2 - 1
+        r2 = r2 + d2
+      }
+      if q1 != q2 {
+        return q1 < q2 ? -1 : 1
+      } else if r1 == 0 || r2 == 0 {
+        return r1 == r2 ? 0 : (r1 == 0 ? -1 : 1)
+      }
+      // r1/d1 < r2/d2 iff d2/r2 < d1/r1; swapping the operands keeps the direction
+      (n1, d1, n2, d2) = (d2, r2, d1, r1)
+    }
   }
 
   /// Returns the sum of this rational value and `rhs`.
   public func plus(_ rhs: Rational<T>) -> Rational<T> {
-    let (n1, n2, denom) = self.commonDenomWith(rhs)
-    return Rational(n1 + n2, denom)
+    let (res, overflow) = self.addingReportingOverflow(rhs)
+    precondition(!overflow, "arithmetic overflow")
+    return res
   }
 
   /// Returns the difference between this rational value and `rhs`.
   public func minus(_ rhs: Rational<T>) -> Rational<T> {
-    let (n1, n2, denom) = self.commonDenomWith(rhs)
-    return Rational(n1 - n2, denom)
+    let (res, overflow) = self.subtractingReportingOverflow(rhs)
+    precondition(!overflow, "arithmetic overflow")
+    return res
   }
 
   /// Multiplies this rational value with `rhs` and returns the result.
@@ -295,6 +324,7 @@ public struct Rational<T: IntegerNumber>: RationalNumber, CustomStringConvertibl
 
   /// Raises this rational value to the power of `exp`.
   public func toPower(of exp: T) -> Rational<T> {
+    precondition(exp >= 0 || numerator != 0, "zero raised to a negative power")
     if (exp < 0) {
       return Rational(denominator.toPower(of: -exp), numerator.toPower(of: -exp))
     } else {

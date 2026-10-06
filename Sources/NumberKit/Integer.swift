@@ -608,6 +608,19 @@ public enum Integer: IntegerNumber,
     return lhs.compare(to: rhs) > 0
   }
 
+  public func hash(into hasher: inout Hasher) {
+    switch self {
+      case .int(let num):
+        hasher.combine(num)
+      case .bigInt(let num):
+        if let intNum = num.intValue {
+          hasher.combine(intNum)
+        } else {
+          hasher.combine(num)
+        }
+    }
+  }
+
   public static func ==(lhs: Integer, rhs: Integer) -> Bool {
     return lhs.compare(to: rhs) == 0
   }
