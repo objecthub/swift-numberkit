@@ -1,4 +1,4 @@
-// swift-tools-version:5.4
+// swift-tools-version:6.0
 //
 //  Package.swift
 //  NumberKit
@@ -23,6 +23,11 @@ import PackageDescription
 
 let package = Package(
   name: "NumberKit",
+  platforms: [
+    .macOS(.v10_13),
+    .iOS(.v13),
+    .tvOS(.v13),
+  ],
   products: [
     .library(name: "NumberKit", targets: ["NumberKit"]),
   ],
@@ -36,5 +41,5 @@ let package = Package(
                 dependencies: ["NumberKit"],
                 exclude: ["Info.plist"]),
   ],
-  swiftLanguageVersions: [.v5]
+  swiftLanguageModes: [.v6, .v5]
 )

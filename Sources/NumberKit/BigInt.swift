@@ -71,7 +71,7 @@ public struct BigInt: Hashable,
   ///
   /// - Note: It is currently not possible to define custom `Base` objects. It needs
   ///         to be figured out first what safety checks need to be put in place.
-  public final class Base {
+  public final class Base: Sendable {
     public static let bin = BigInt.binBase
     public static let oct = BigInt.octBase
     public static let dec = BigInt.decBase
