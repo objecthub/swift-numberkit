@@ -7,9 +7,10 @@ Pod::Spec.new do |s|
   s.license                = 'Apache License 2.0'
   s.author                 = { 'Matthias Zenger' => 'matthias@objecthub.com' }
   s.source                 = { :git => 'https://github.com/objecthub/swift-numberkit.git', :tag => s.version }
-  s.ios.deployment_target = '13.0'
-  s.tvos.deployment_target = '13.0'
-  s.osx.deployment_target = '10.13'
-  s.swift_version = '5.4'
+  s.ios.deployment_target = '16.4'
+  s.tvos.deployment_target = '16.4'
+  s.osx.deployment_target = '13.3'
+  s.watchos.deployment_target = '9.4'
+  s.swift_version = '5.8'
   s.source_files = 'Sources/NumberKit/**/*.{swift}'
 end

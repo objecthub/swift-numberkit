@@ -20,8 +20,10 @@
 
 import Foundation
 
-// There are many places in this package where overflow can cause incorrect
-// results. TODO: Eliminate these bugs!
+// Arithmetic on `Rational` values based on fixed-width integers traps on overflow. The
+// `*ReportingOverflow` methods can be used to detect overflows. The initializer
+// `Rational(_:_:)` and the static `gcd` and `lcm` functions ignore overflow; they may
+// return incorrect results if the result is not representable.
 
 /// The `RationalNumber` protocol defines an interface for rational numbers. A rational
 /// number is a signed number that can be expressed as the quotient of two integers

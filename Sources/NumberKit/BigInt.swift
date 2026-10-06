@@ -23,11 +23,11 @@ import Foundation
 
 /// Struct `BigInt` implements signed, arbitrary-size integers. `BigInt` values
 /// are immutable, i.e. all operations on `BigInt` values return result values.
-/// There are no mutable methdos. `BigInt` provides all the signed, integer
+/// There are no mutable methods. `BigInt` provides all the signed, integer
 /// arithmetic operations from Swift and implements the corresponding protocols.
-/// `BigInt` supports `StaticBigInt`literals, i.e. is is possible to use arbitrary
-/// length integer literals. String literals containing `BigInt` numbers are still
-/// supported for backward compatibility.
+/// `BigInt` supports `StaticBigInt` literals, i.e. it is possible to use integer literals
+/// of arbitrary length. String literals containing `BigInt` numbers are still supported
+/// for backward compatibility.
 ///
 /// - Note: `BigInt` is internally implemented as a Swift array of UInt32 numbers
 ///         and a boolean to represent the sign. Due to this overhead, for instance,
@@ -197,7 +197,7 @@ public struct BigInt: Hashable,
   }
     
   /// Creates a `BigInt` from a sequence of digits for a given base. The first digit in the
-  /// array of digits is the least significant one. `negative` is used to indicate negative
+  /// array of digits is the most significant one. `negative` is used to indicate negative
   /// `BigInt` numbers.
   public init(digits: [UInt8], negative: Bool = false, base: Base = BigInt.decBase) {
     self.init(digits: digits, negative: negative, radix: base.radix)
@@ -1144,7 +1144,7 @@ public struct BigInt: Hashable,
     return self.uwords.count * UInt32.bitWidth
   }
   
-  /// Number of bits set in this `BigInt` number. For negative numbers, `n.bigCount` returns
+  /// Number of bits set in this `BigInt` number. For negative numbers, `n.bitCount` returns
   /// `~n.not.bigCount`.
   public var bitCount: Int {
     if self.negative {
@@ -1542,11 +1542,18 @@ extension BigInt: IntegerNumber,
   }
 }
 
-#if canImport(Swift.StaticBigInt)
+/// `BigInt` supports integer literals of arbitrary length, like
+/// `let x: BigInt = 123456789012345678901234567890`.
 extension BigInt: ExpressibleByIntegerLiteral {
   public init(integerLiteral value: StaticBigInt) {
+    // Literals that fit into 64 bits are by far the most common case
+    if value.bitWidth <= Int64.bitWidth {
+      self.init(Int64(bitPattern: UInt64(value[0])))
+      return
+    }
+    // Words of the literal are in two's complement representation
     var uwords = ContiguousArray<UInt32>()
-    let numWords = (value.bitWidth/UInt.bitWidth) + 1
+    let numWords = (value.bitWidth / UInt.bitWidth) + 1
     for index in 0..<numWords {
       let myword: UInt64 = UInt64(value[index])
       uwords.append(BigInt.loword(myword))
@@ -1564,13 +1571,6 @@ extension BigInt: ExpressibleByIntegerLiteral {
     self.init(words: uwords, negative: value.signum() < 0)
   }
 }
-#else
-extension BigInt: ExpressibleByIntegerLiteral {
-  public init(integerLiteral value: Int64) {
-    self.init(Int64(value))
-  }
-}
-#endif
 
 /// Returns the sum of `lhs` and `rhs`
 public func +(lhs: BigInt, rhs: BigInt) -> BigInt {

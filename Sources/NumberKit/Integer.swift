@@ -373,7 +373,7 @@ public enum Integer: IntegerNumber,
     return self.bigIntValue.bitSize
   }
   
-  /// Number of bits set in this `Integer` number. For negative numbers, `n.bigCount` returns
+  /// Number of bits set in this `Integer` number. For negative numbers, `n.bitCount` returns
   /// `~n.not.bigCount`.
   public var bitCount: Int {
     if case .int(let num) = self {
@@ -713,19 +713,16 @@ public enum Integer: IntegerNumber,
   }
 }
 
-#if canImport(Swift.StaticBigInt)
+/// `Integer` supports integer literals of arbitrary length.
 extension Integer: ExpressibleByIntegerLiteral {
   public init(integerLiteral value: StaticBigInt) {
-    self = Integer(BigInt(integerLiteral: value))
+    if value.bitWidth <= Int64.bitWidth {
+      self = .int(Int64(bitPattern: UInt64(value[0])))
+    } else {
+      self = Integer(BigInt(integerLiteral: value))
+    }
   }
 }
-#else
-extension Integer: ExpressibleByIntegerLiteral {
-  public init(integerLiteral value: Int64) {
-    self.init(value)
-  }
-}
-#endif
 
 /// Returns the maximum of `fst` and `snd`.
 public func max(_ fst: Integer, _ snd: Integer) -> Integer {

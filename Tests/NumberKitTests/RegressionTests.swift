@@ -584,6 +584,77 @@ extension RegressionTests {
   }
 }
 
+extension RegressionTests {
+
+  func testBigIntegerLiterals() {
+    // Values around the boundaries of 32 and 64 bit words
+    XCTAssertEqual(("0" as BigInt).description, "0")
+    let zero: BigInt = 0
+    XCTAssertEqual(zero, BigInt(0))
+    XCTAssertEqual(1 as BigInt, BigInt(1))
+    XCTAssertEqual(-1 as BigInt, BigInt(-1))
+    XCTAssertEqual(4294967295 as BigInt, BigInt(UInt32.max))
+    XCTAssertEqual(4294967296 as BigInt, BigInt(1) << 32)
+    XCTAssertEqual(-4294967296 as BigInt, -(BigInt(1) << 32))
+    XCTAssertEqual(9223372036854775807 as BigInt, BigInt(Int64.max))
+    XCTAssertEqual(-9223372036854775808 as BigInt, BigInt(Int64.min))
+    XCTAssertEqual(9223372036854775808 as BigInt, BigInt(1) << 63)
+    XCTAssertEqual(-9223372036854775809 as BigInt, -(BigInt(1) << 63) - BigInt(1))
+    XCTAssertEqual(18446744073709551615 as BigInt, BigInt(UInt64.max))
+    XCTAssertEqual(18446744073709551616 as BigInt, BigInt(1) << 64)
+    XCTAssertEqual(-18446744073709551616 as BigInt, -(BigInt(1) << 64))
+    XCTAssertEqual(-18446744073709551617 as BigInt, -(BigInt(1) << 64) - BigInt(1))
+    XCTAssertEqual(340282366920938463463374607431768211455 as BigInt, (BigInt(1) << 128) - BigInt(1))
+    XCTAssertEqual(340282366920938463463374607431768211456 as BigInt, BigInt(1) << 128)
+    XCTAssertEqual(-340282366920938463463374607431768211456 as BigInt, -(BigInt(1) << 128))
+    // Long literals, compared with parsed strings
+    let positive: BigInt = 98724897408742085724085724524524524524524522454525245999098037580357603865
+    XCTAssertEqual(positive, BigInt(from: "98724897408742085724085724524524524524524522454525245999098037580357603865"))
+    let negative: BigInt = -987248974087420857240857245245245245245245224545252459990980375803576038650
+    XCTAssertEqual(negative, BigInt(from: "-987248974087420857240857245245245245245245224545252459990980375803576038650"))
+    // Other radixes and digit separators
+    XCTAssertEqual(0xFFFF_FFFF_FFFF_FFFF_FFFF as BigInt, (BigInt(1) << 80) - BigInt(1))
+    XCTAssertEqual(0b1_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000 as BigInt, BigInt(1) << 64)
+    XCTAssertEqual(0o7777777777777777777777777 as BigInt, (BigInt(1) << 75) - BigInt(1))
+    XCTAssertEqual(1_000_000_000_000_000_000_000_000 as BigInt, BigInt(10).toPower(of: BigInt(24)))
+    // Literals in arithmetic expressions and generic contexts
+    let x: BigInt = 123456789012345678901234567890
+    XCTAssertEqual(x + 1, BigInt(from: "123456789012345678901234567891"))
+    XCTAssertEqual(x * 2 - 1, BigInt(from: "246913578024691357802469135779"))
+    XCTAssertEqual(x % 10, BigInt(0))
+    func double<T: ExpressibleByIntegerLiteral & Numeric>(_ value: T) -> T { return value * 2 }
+    XCTAssertEqual(double(x), BigInt(from: "246913578024691357802469135780"))
+    XCTAssertEqual([1, 2, 3, 400000000000000000000] as [BigInt],
+                   [BigInt(1), BigInt(2), BigInt(3), BigInt(from: "400000000000000000000")!])
+  }
+
+  func testBigIntegerLiteralsForInteger() {
+    let small: Integer = 9223372036854775807
+    if case .int(let value) = small {
+      XCTAssertEqual(value, Int64.max)
+    } else {
+      XCTFail("small literals must be stored as native integers")
+    }
+    let min: Integer = -9223372036854775808
+    if case .int(let value) = min {
+      XCTAssertEqual(value, Int64.min)
+    } else {
+      XCTFail("Int64.min must be stored as a native integer")
+    }
+    let large: Integer = 9223372036854775808
+    if case .bigInt(let value) = large {
+      XCTAssertEqual(value, BigInt(1) << 63)
+    } else {
+      XCTFail("large literals must be stored as big integers")
+    }
+    XCTAssertEqual(-9223372036854775809 as Integer, Integer(Int64.min) - Integer(1))
+    XCTAssertEqual(314159265358979323846264338328 as Integer + 1,
+                   Integer(BigInt(from: "314159265358979323846264338329")!))
+    XCTAssertEqual(0xFFFF_FFFF_FFFF_FFFF_FFFF as Integer, (Integer(1) << 80) - Integer(1))
+    XCTAssertEqual(0 as Integer, Integer(0))
+  }
+}
+
 private enum LosslessStringConvertibleHelper {
   static func make<T: LosslessStringConvertible>(_ text: String) -> T? {
     return T(text)

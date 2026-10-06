@@ -24,9 +24,10 @@ import PackageDescription
 let package = Package(
   name: "NumberKit",
   platforms: [
-    .macOS(.v10_13),
-    .iOS(.v13),
-    .tvOS(.v13),
+    .macOS("13.3"),
+    .iOS("16.4"),
+    .tvOS("16.4"),
+    .watchOS("9.4"),
   ],
   products: [
     .library(name: "NumberKit", targets: ["NumberKit"]),

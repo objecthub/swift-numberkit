@@ -31,7 +31,12 @@
 		CCD2604423F211A200DFE5A4 /* BigInt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC99F56B1B7AA81500355E1E /* BigInt.swift */; };
 		CCD2604523F211A500DFE5A4 /* Rational.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0741561B81269200406A43 /* Rational.swift */; };
 		CCD2604623F211A800DFE5A4 /* Complex.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0741581B8127B600406A43 /* Complex.swift */; };
+		CCE749F512C17B8ED411FA64 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE78E3B91D26AB4A829A952 /* PerformanceTests.swift */; };
+		CCE75180BC0DBC0E15637EBB /* PropertyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE70BD5482A90A29B9FA5FF /* PropertyTests.swift */; };
+		CCE7524E440066559A6656C9 /* OracleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE78B0E7153BF7C3706D85C /* OracleTests.swift */; };
 		CCE764BE3074D5B4008AD5AD /* RegressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCE764BD3074D5B4008AD5AD /* RegressionTests.swift */; };
+		CCE79A50F8A8E9BB8BDB5EBA /* NumberKit.docc in Sources */ = {isa = PBXBuildFile; fileRef = CCE74D35DB41D94E5EFAF89F /* NumberKit.docc */; };
+		CCE7C43C5FA52F8B2B19B8F8 /* NumberKit.docc in Sources */ = {isa = PBXBuildFile; fileRef = CCE74D35DB41D94E5EFAF89F /* NumberKit.docc */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,7 +76,11 @@
 		CCD2603923F20F7200DFE5A4 /* NumberKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = NumberKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		CCD2603B23F20F7200DFE5A4 /* NumberKit_iOS.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NumberKit_iOS.h; sourceTree = "<group>"; };
 		CCD2603C23F20F7200DFE5A4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CCE70BD5482A90A29B9FA5FF /* PropertyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PropertyTests.swift; sourceTree = "<group>"; };
+		CCE74D35DB41D94E5EFAF89F /* NumberKit.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; path = NumberKit.docc; sourceTree = "<group>"; };
 		CCE764BD3074D5B4008AD5AD /* RegressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegressionTests.swift; sourceTree = "<group>"; };
+		CCE78B0E7153BF7C3706D85C /* OracleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OracleTests.swift; sourceTree = "<group>"; };
+		CCE78E3B91D26AB4A829A952 /* PerformanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerformanceTests.swift; sourceTree = "<group>"; };
 		CCE9DD301B8BB4A600340DD1 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -137,6 +146,7 @@
 				CC0A59F52BC8891800F155FE /* Integer.swift */,
 				CC0741561B81269200406A43 /* Rational.swift */,
 				CC0741581B8127B600406A43 /* Complex.swift */,
+				CCE74D35DB41D94E5EFAF89F /* NumberKit.docc */,
 				CC99F5521B7AA6E200355E1E /* NumberKit.h */,
 				CC99F5541B7AA6E200355E1E /* Info.plist */,
 			);
@@ -157,6 +167,9 @@
 				CC07415C1B813B0300406A43 /* ComplexTests.swift */,
 				CCA2651623EF73B700483329 /* CodableTests.swift */,
 				CCE764BD3074D5B4008AD5AD /* RegressionTests.swift */,
+				CCE78B0E7153BF7C3706D85C /* OracleTests.swift */,
+				CCE70BD5482A90A29B9FA5FF /* PropertyTests.swift */,
+				CCE78E3B91D26AB4A829A952 /* PerformanceTests.swift */,
 				CC5E473320C428D500F21B03 /* LinuxMain.swift */,
 				CC99F5601B7AA6E200355E1E /* Info.plist */,
 			);
@@ -260,7 +273,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 0700;
-				LastUpgradeCheck = 2650;
+				LastUpgradeCheck = 2700;
 				ORGANIZATIONNAME = ObjectHub;
 				TargetAttributes = {
 					CC99F54E1B7AA6E200355E1E = {
@@ -334,6 +347,7 @@
 				CC0A59F62BC889DF00F155FE /* Integer.swift in Sources */,
 				CC99F56C1B7AA81500355E1E /* BigInt.swift in Sources */,
 				CC0741571B81269200406A43 /* Rational.swift in Sources */,
+				CCE7C43C5FA52F8B2B19B8F8 /* NumberKit.docc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -346,6 +360,9 @@
 				CC50F66A2C722A140071A563 /* IntegerNumberTests.swift in Sources */,
 				CC0A59F92BC990FA00F155FE /* IntegerTests.swift in Sources */,
 				CCE764BE3074D5B4008AD5AD /* RegressionTests.swift in Sources */,
+				CCE7524E440066559A6656C9 /* OracleTests.swift in Sources */,
+				CCE75180BC0DBC0E15637EBB /* PropertyTests.swift in Sources */,
+				CCE749F512C17B8ED411FA64 /* PerformanceTests.swift in Sources */,
 				CC99F5701B7AAB5300355E1E /* NumberUtilTests.swift in Sources */,
 				CC99F56A1B7AA76600355E1E /* BigIntTests.swift in Sources */,
 				CC07415B1B813A0600406A43 /* RationalTests.swift in Sources */,
@@ -363,6 +380,7 @@
 				CC0A59F72BC889E000F155FE /* Integer.swift in Sources */,
 				CCD2604623F211A800DFE5A4 /* Complex.swift in Sources */,
 				CCD2604223F2119C00DFE5A4 /* IntegerNumber.swift in Sources */,
+				CCE79A50F8A8E9BB8BDB5EBA /* NumberKit.docc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -427,8 +445,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -436,8 +454,10 @@
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TVOS_DEPLOYMENT_TARGET = 16.4;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 9.4;
 			};
 			name = Debug;
 		};
@@ -485,8 +505,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -494,8 +514,10 @@
 				SWIFT_SWIFT3_OBJC_INFERENCE = Off;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				TVOS_DEPLOYMENT_TARGET = 16.4;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
+				WATCHOS_DEPLOYMENT_TARGET = 9.4;
 			};
 			name = Release;
 		};
@@ -519,7 +541,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 2.4.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
@@ -550,7 +572,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 2.4.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu99 gnu++11";
 				PRODUCT_BUNDLE_IDENTIFIER = net.objecthub.NumberKit;
@@ -617,13 +639,13 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Sources/NumberKit iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 2.4.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -661,13 +683,13 @@
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = "Sources/NumberKit iOS/Info.plist";
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MACOSX_DEPLOYMENT_TARGET = 13.3;
 				MARKETING_VERSION = 2.4.0;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				MTL_FAST_MATH = YES;

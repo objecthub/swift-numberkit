@@ -28,8 +28,9 @@ import Foundation
 ///
 /// - Note: The `ComplexNumber` protocol abstracts over the floating point type on which
 ///         the complex type implementation is based on.
-/// - Todo: Implement the `Arithmetic` protocol. This requires that complex numbers are
-///         mutable.
+///
+/// `Complex<T>` implements `SignedNumeric`, `LosslessStringConvertible` (if `T` does), and
+/// `Codable`. Its `magnitude` is the ∞-norm; use `norm` or `abs` for the Euclidean norm.
 public protocol ComplexNumber: Hashable,
                                CustomStringConvertible {
   
@@ -135,7 +136,7 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
                                                ExpressibleByFloatLiteral,
                                                CustomStringConvertible {
 
-  /// The real part of thix complex number.
+  /// The real part of this complex number.
   public let re: T
   
   /// The imaginary part of this complex number.
@@ -301,6 +302,10 @@ public struct Complex<T: FloatingPointNumber>: ComplexNumber,
   
   /// exp(x) function for complex numbers x.
   public var exp: Complex<T> {
+    if im.isZero {
+      // Avoids NaN from `infinity * 0` if the real exponential overflows
+      return Complex(re.exp)
+    }
     let abs = re.exp
     return Complex(abs * im.cos, abs * im.sin)
   }
@@ -633,7 +638,7 @@ public func atan<C: ComplexNumber>(_ z: C) -> C {
   return x.minus(y).i.divided(by: C.Float(2))
 }
 
-/// Returns `cos(r)` for the given floating point number `r`.
+/// Returns `atan(r)` for the given floating point number `r`.
 public func atan<T: FloatingPointNumber>(_ r: T) -> T {
   return atan(Complex(r)).re
 }

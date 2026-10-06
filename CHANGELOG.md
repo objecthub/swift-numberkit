@@ -1,9 +1,11 @@
 # Changelog
 
-## Unreleased
+## 3.0 (unreleased)
+- **Breaking:** minimum platform versions are now macOS 13.3, iOS 16.4, tvOS 16.4, and watchOS 9.4; this is required for arbitrary-length integer literals
+- Arbitrary-length integer literals (`let x: BigInt = 123456789012345678901234567890`) are now supported for `BigInt` and `Integer`; before, the `StaticBigInt` based implementation was never compiled because of an incorrect `canImport` check
 - Fixed `BigInt` division by zero (now traps), shifts past the word width, rounding of negative right shifts, `random(below:)` for small bounds, conversion from floating-point numbers, hashing of negative values, and parsing of empty/sign-only strings
 - Fixed overflow handling in `Rational` comparison, addition and subtraction
-- Swift 6 language mode support (`BigInt.Base` is now `Sendable`); package now uses tools version 6.0 and declares minimum platforms (macOS 10.13, iOS 13, tvOS 13)
+- Swift 6 language mode support (`BigInt.Base` is now `Sendable`); package now uses tools version 6.0 and declares its minimum platforms
 - Updated podspec
 - `BigInt`: faster division (Knuth algorithm D), string conversion (direct bit extraction for bases 2, 8, 16; divide and conquer for base 10), parsing, `toPower(of:)` and `sqrt`; octal output of large numbers was incorrect and is now fixed
 - `Integer`: `Int64` fast paths for division, `toPower(of:)`, `sqrt`, shifts, `magnitude`, `bitSize` and `bitCount`
@@ -11,7 +13,8 @@
 - `toPower(of:)` for fixed-width integers no longer overflows spuriously in its last step
 - `BigInt`: new `init?(_:radix:)` and `toString(radix:uppercase:)` supporting radixes 2 to 36, `LosslessStringConvertible` conformance, `extendedGCD`, `modInverse`, `modPow` and `isProbablePrime`; decoding from JSON numbers; `doubleValue` is now correctly rounded
 - `Rational`: parsing supports arbitrarily large numerators and denominators (and rejects zero denominators); new `rounded(_:)` and `reciprocal`; `doubleValue` no longer overflows or loses precision for huge numerators and denominators
-- `Complex`: division and `reciprocal` use Smith's algorithm; `sqrt` avoids cancellation; integral powers use repeated squaring; parsing via `LosslessStringConvertible`; conforms to `SignedNumeric`
+- `Complex`: division and `reciprocal` use Smith's algorithm; `sqrt` avoids cancellation; integral powers use repeated squaring; parsing via `LosslessStringConvertible`; conforms to `SignedNumeric`; `exp` of a real number no longer returns NaN on overflow
+- Added a DocC catalogue, README examples, randomized tests against `Int128`, property tests for `Complex`, hashing, `Sendable` and `Codable`, and benchmarks
 
 ## 2.6.1 (2026-06-12)
 - Migrated project to Xcode 26
