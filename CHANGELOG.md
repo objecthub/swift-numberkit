@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.0.1 (2026-11-25)
+- Fixed a runtime trap in `Rational.rationalWithOverflow` (and thus `Rational(_:_:)`, parsing, and the `...ReportingOverflow` operations) for numerators equal to `T.min`, e.g. `Rational<Int64>(Int64.min, 3)`
+- `Rational.rationalWithOverflow` now reports overflow only if the result is not representable; `Int64.min/3` is returned exactly without overflow
+- `Rational`: `gcdReportingOverflow` and `lcmReportingOverflow` no longer drop overflows that happen while normalizing the result
+- Added regression tests, including exhaustive checks of `Int8` rationals against a `BigInt` oracle
+
 ## 3.0 (2026-10-06)
 - **Breaking:** Minimum platform versions are now macOS 13.3, iOS 16.4, tvOS 16.4, and watchOS 9.4
 - Swift 6 language mode support: package now uses tools version 6.0 and declares its minimum platforms
