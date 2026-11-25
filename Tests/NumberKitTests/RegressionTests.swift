@@ -90,6 +90,115 @@ class RegressionTests: XCTestCase {
     XCTAssertEqual(Rational<Int>(-2, 3).toPower(of: -3), Rational<Int>(-27, 8))
   }
 
+  /// Rationals with numerator `T.min` must not trap during normalization; they are
+  /// representable if the denominator is positive.
+  func testRationalMinNumeratorNoTrap() {
+    let minOver3 = Rational<Int64>.rationalWithOverflow(Int64.min, 3)
+    XCTAssertFalse(minOver3.overflow)
+    XCTAssertEqual(minOver3.value.numerator, Int64.min)
+    XCTAssertEqual(minOver3.value.denominator, 3)
+    let r = Rational<Int64>(Int64.min, 3)
+    XCTAssertEqual(r.numerator, Int64.min)
+    XCTAssertEqual(r.denominator, 3)
+    XCTAssertEqual(Rational<Int64>(from: "-9223372036854775808/3"), r)
+    let half = -Int64(4611686018427387904)
+    let p1 = Rational<Int64>(Int64.min).multipliedReportingOverflow(by: Rational(1, 3))
+    XCTAssertFalse(p1.overflow)
+    XCTAssertEqual(p1.partialValue, r)
+    let p2 = Rational<Int64>(half).multipliedReportingOverflow(by: Rational(2, 3))
+    XCTAssertFalse(p2.overflow)
+    XCTAssertEqual(p2.partialValue, r)
+    let s1 = Rational<Int64>(half, 3).addingReportingOverflow(Rational(half, 3))
+    XCTAssertFalse(s1.overflow)
+    XCTAssertEqual(s1.partialValue, r)
+    let s2 = Rational<Int64>(half, 3).subtractingReportingOverflow(Rational(-half, 3))
+    XCTAssertFalse(s2.overflow)
+    XCTAssertEqual(s2.partialValue, r)
+    let q1 = Rational<Int64>(Int64.min).dividedReportingOverflow(by: Rational(3))
+    XCTAssertFalse(q1.overflow)
+    XCTAssertEqual(q1.partialValue, r)
+    XCTAssertEqual(Rational<Int64>(Int64.min, 2), Rational<Int64>(half))
+    XCTAssertEqual(Rational<Int64>.rationalWithOverflow(2, Int64.min).value, Rational(-1, -half))
+  }
+
+  /// Results that are not representable must be reported as overflow instead of trapping.
+  func testRationalOverflowReportedNotTrapped() {
+    XCTAssertTrue(Rational<Int64>.rationalWithOverflow(Int64.min, -3).overflow)
+    XCTAssertTrue(Rational<Int64>.rationalWithOverflow(Int64.min, -1).overflow)
+    XCTAssertTrue(Rational<Int64>.rationalWithOverflow(1, Int64.min).overflow)
+    XCTAssertTrue(Rational<Int64>.rationalWithOverflow(-3, Int64.min).overflow)
+    let minOver3 = Rational<Int64>(Int64.min, 3)
+    XCTAssertTrue(minOver3.addingReportingOverflow(Rational(-1, 3)).overflow)
+    XCTAssertTrue(minOver3.subtractingReportingOverflow(Rational(1, 3)).overflow)
+    XCTAssertTrue(minOver3.multipliedReportingOverflow(by: Rational(-1)).overflow)
+    XCTAssertTrue(minOver3.dividedReportingOverflow(by: Rational(-1)).overflow)
+    XCTAssertTrue(Rational<Int64>(Int64.min).dividedReportingOverflow(by: Rational(-3)).overflow)
+    XCTAssertTrue(Rational<Int64>(Int64.min).gcdReportingOverflow(with: Rational(Int64.min)).overflow)
+    XCTAssertTrue(minOver3.gcdReportingOverflow(with: Rational(Int64.min, 5)).overflow)
+    XCTAssertTrue(minOver3.lcmReportingOverflow(with: Rational(1, 3)).overflow)
+  }
+
+  /// Exhaustive check of `rationalWithOverflow` for `Int8` against a `BigInt` oracle: it must
+  /// never trap, report overflow iff the result is not representable, and otherwise be exact.
+  func testRationalWithOverflowExhaustiveInt8() {
+    for n in Int8.min...Int8.max {
+      for d in Int8.min...Int8.max where d != 0 {
+        let (value, overflow) = Rational<Int8>.rationalWithOverflow(n, d)
+        let exact = Rational<BigInt>(BigInt(Int(n)), BigInt(Int(d)))
+        let representable = exact.numerator >= BigInt(Int(Int8.min)) &&
+                            exact.numerator <= BigInt(Int(Int8.max)) &&
+                            exact.denominator <= BigInt(Int(Int8.max))
+        XCTAssertEqual(overflow, !representable, "\(n)/\(d)")
+        if !overflow {
+          XCTAssertEqual(BigInt(Int(value.numerator)), exact.numerator, "\(n)/\(d)")
+          XCTAssertEqual(BigInt(Int(value.denominator)), exact.denominator, "\(n)/\(d)")
+        }
+      }
+    }
+  }
+
+  /// The `...ReportingOverflow` operations on `Int8` rationals with extreme components must
+  /// never trap and must return the exact result whenever they do not report overflow.
+  func testRationalReportingOverflowInt8() {
+    let nums: [Int8] = [-128, -127, -64, -63, -3, -2, -1, 0, 1, 2, 3, 63, 64, 127]
+    let denoms: [Int8] = [1, 2, 3, 64, 127]
+    var values: [Rational<Int8>] = []
+    for n in nums {
+      for d in denoms {
+        let (value, overflow) = Rational<Int8>.rationalWithOverflow(n, d)
+        if !overflow && !values.contains(value) {
+          values.append(value)
+        }
+      }
+    }
+    func big(_ x: Rational<Int8>) -> Rational<BigInt> {
+      return Rational<BigInt>(BigInt(Int(x.numerator)), BigInt(Int(x.denominator)))
+    }
+    func check(_ res: (partialValue: Rational<Int8>, overflow: Bool),
+               _ exact: Rational<BigInt>,
+               _ message: String) {
+      if !res.overflow {
+        XCTAssertEqual(big(res.partialValue), exact, message)
+      }
+    }
+    for x in values {
+      for y in values {
+        let (bx, by) = (big(x), big(y))
+        check(x.addingReportingOverflow(y), bx + by, "\(x) + \(y)")
+        check(x.subtractingReportingOverflow(y), bx - by, "\(x) - \(y)")
+        check(x.multipliedReportingOverflow(by: y), bx * by, "\(x) * \(y)")
+        let quotient = x.dividedReportingOverflow(by: y)
+        if y.isZero {
+          XCTAssertTrue(quotient.overflow)
+        } else {
+          check(quotient, bx / by, "\(x) / \(y)")
+        }
+        check(x.gcdReportingOverflow(with: y), Rational<BigInt>.gcd(bx, by), "gcd(\(x), \(y))")
+        check(x.lcmReportingOverflow(with: y), Rational<BigInt>.lcm(bx, by), "lcm(\(x), \(y))")
+      }
+    }
+  }
+
   /// Random number with words biased towards extreme values, which stress the quotient
   /// estimation of long division.
   private func randomNumber<G: RandomNumberGenerator>(words: Int, using g: inout G) -> BigInt {

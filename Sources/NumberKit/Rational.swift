@@ -465,14 +465,18 @@ extension Rational: ExpressibleByStringLiteral {
     let gcd = T.gcd(numerator, denominator) // Safe: numerator != denominator.
     let normalizedNumerator = numerator / gcd // Safe: gcd is positive and divides numerator.
     let normalizedDenominator = denominator / gcd // Safe: gcd is positive and divides denominator.
-    // Overflows if numerator == T.min and denominator is odd.
-    let (absNumerator, numeratorOverflow) = T.absWithOverflow(normalizedNumerator)
-    // Overflows if denominator == T.min and numerator is odd.
-    let (absDenominator, denominatorOverflow) = T.absWithOverflow(normalizedDenominator)
-    // The rational value `absNumerator / absDenominator` is already normalized.
-    let resultNumerator = (numerator > 0) == (denominator > 0) ? absNumerator : -absNumerator
-    let resultOverflow = numeratorOverflow || denominatorOverflow
-    return (Rational(numerator: resultNumerator, denominator: absDenominator), resultOverflow)
+    // The rational value `normalizedNumerator / normalizedDenominator` is normalized up to
+    // the sign, which must be moved to the numerator if the denominator is negative.
+    if normalizedDenominator > 0 {
+      return (Rational(numerator: normalizedNumerator, denominator: normalizedDenominator), false)
+    }
+    // Negating both components overflows iff one of them is T.min (the negated value is not
+    // representable). Use non-trapping subtraction such that overflow is reported instead.
+    let (resultNumerator, numeratorOverflow) = T.zero.subtractingReportingOverflow(normalizedNumerator)
+    let (resultDenominator, denominatorOverflow) =
+      T.zero.subtractingReportingOverflow(normalizedDenominator)
+    return (Rational(numerator: resultNumerator, denominator: resultDenominator),
+            numeratorOverflow || denominatorOverflow)
   }
 
   /// Given two rational values `this` and `that`, return the two equivalent (but possibly not
@@ -551,7 +555,8 @@ extension Rational: ExpressibleByStringLiteral {
                                -> (partialValue: Rational<T>, overflow: Bool) {
     let (numer, overflow1) = T.gcdWithOverflow(self.numerator, y.numerator)
     let (denom, overflow2) = T.lcmWithOverflow(self.denominator, y.denominator)
-    return (Rational(numer, denom), overflow1 || overflow2)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
   }
 
   /// Returns the least common multiplier for `self` and `y` and a boolean which indicates
@@ -560,7 +565,8 @@ extension Rational: ExpressibleByStringLiteral {
                                -> (partialValue: Rational<T>, overflow: Bool) {
     let (xn, yn, denom, overflow1) = Rational.commonDenomWithOverflow(self, y)
     let (numer, overflow2) = T.lcmWithOverflow(xn, yn)
-    return (Rational(numer, denom), overflow1 || overflow2)
+    let (res, overflow3) = Rational.rationalWithOverflow(numer, denom)
+    return (res, overflow1 || overflow2 || overflow3)
   }
 }
 
